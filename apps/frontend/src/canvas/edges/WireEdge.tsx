@@ -5,7 +5,7 @@ import { useUiStore } from "../../store";
 import { useWireColorStore } from "../../store/wire-colors";
 import { mutateActiveModelFromStore } from "../model-mutation";
 import { type Junction, computeJunctions } from "./junctions";
-import { REJECT_COLOR, wireColorForDomain } from "./wire-color";
+import { REJECT_COLOR, isCausalDomain, wireColorForDomain } from "./wire-color";
 import {
   autoOrthogonalPath,
   buildWirePoints,
@@ -57,7 +57,7 @@ export function WireEdge({
   // so only "signal" gets one. `context-stroke` (set on the marker itself, see Canvas.tsx)
   // makes the arrowhead pick up this same domainColor automatically, including a
   // user-customized override, without needing a marker per color.
-  const isSignalWire = wire?.kind === "signal";
+  const isSignalWire = isCausalDomain(wire?.kind);
 
   // `orthogonal` allows a few px of tolerance (near-miss coordinate rounding, see
   // isOrthogonalPolyline's own doc comment) — snap those near-miss segments to exactly
