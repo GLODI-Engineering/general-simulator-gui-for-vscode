@@ -9,6 +9,10 @@ import controlledVoltageSourceDrawing from "./controlledVoltageSource";
 import coupledInductorDrawing from "./coupledInductor";
 import currentSensorDrawing from "./currentSensor";
 import deadbandDrawing from "./deadband";
+import dependentCccsDrawing from "./dependentCccs";
+import dependentCcvsDrawing from "./dependentCcvs";
+import dependentVccsDrawing from "./dependentVccs";
+import dependentVcvsDrawing from "./dependentVcvs";
 import derivativeDrawing from "./derivative";
 import gainDrawing from "./gain";
 import genericSwitchDrawing from "./genericSwitch";
@@ -84,6 +88,12 @@ export const SYMBOL_DRAWINGS: Record<string, SymbolDrawing> = {
   "physical_electrical.sensor.voltage": voltageSensorDrawing,
   "physical_electrical.tline.lossless": tlineLosslessDrawing,
   "physical_electrical.tline.lossy": tlineLosslessDrawing,
+  // The engine-compilable dependent family. gsim-core builds a true ideal
+  // transformer out of the VCVS/CCCS pair, so these are drawn, not generic.
+  "source.dependent.vcvs": dependentVcvsDrawing,
+  "source.dependent.vccs": dependentVccsDrawing,
+  "source.dependent.ccvs": dependentCcvsDrawing,
+  "source.dependent.cccs": dependentCccsDrawing,
   "physical_electrical.source.controlled_voltage": controlledVoltageSourceDrawing,
   "physical_electrical.source.controlled_current": controlledCurrentSourceDrawing,
 

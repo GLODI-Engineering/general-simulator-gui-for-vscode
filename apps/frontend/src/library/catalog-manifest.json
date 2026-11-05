@@ -48758,23 +48758,23 @@
               "id": "ctrl",
               "kind": "physical-electrical",
               "label": "CTRL",
-              "offset": 30,
-              "side": "left"
+              "offset": 40,
+              "side": "bottom"
             },
             {
               "direction": "out",
               "id": "p",
               "kind": "physical-electrical",
               "label": "+",
-              "offset": 15,
-              "side": "right"
+              "offset": 40,
+              "side": "left"
             },
             {
               "direction": "out",
               "id": "n",
               "kind": "physical-electrical",
               "label": "-",
-              "offset": 35,
+              "offset": 40,
               "side": "right"
             }
           ],
@@ -48801,8 +48801,8 @@
               "domain": "physical-electrical"
             },
             "label": "CTRL",
-            "offset": 30,
-            "side": "left"
+            "offset": 40,
+            "side": "bottom"
           }
         ],
         "outputs": [
@@ -48812,8 +48812,8 @@
               "domain": "physical-electrical"
             },
             "label": "+",
-            "offset": 15,
-            "side": "right"
+            "offset": 40,
+            "side": "left"
           },
           {
             "id": "n",
@@ -48821,15 +48821,15 @@
               "domain": "physical-electrical"
             },
             "label": "-",
-            "offset": 35,
+            "offset": 40,
             "side": "right"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          60,
-          60
+          80,
+          80
         ],
         "shape": "rect",
         "text": "F"
@@ -48877,23 +48877,23 @@
               "id": "ctrl",
               "kind": "physical-electrical",
               "label": "CTRL",
-              "offset": 30,
-              "side": "left"
+              "offset": 40,
+              "side": "bottom"
             },
             {
               "direction": "out",
               "id": "p",
               "kind": "physical-electrical",
               "label": "+",
-              "offset": 15,
-              "side": "right"
+              "offset": 40,
+              "side": "left"
             },
             {
               "direction": "out",
               "id": "n",
               "kind": "physical-electrical",
               "label": "-",
-              "offset": 35,
+              "offset": 40,
               "side": "right"
             }
           ],
@@ -48920,8 +48920,8 @@
               "domain": "physical-electrical"
             },
             "label": "CTRL",
-            "offset": 30,
-            "side": "left"
+            "offset": 40,
+            "side": "bottom"
           }
         ],
         "outputs": [
@@ -48931,8 +48931,8 @@
               "domain": "physical-electrical"
             },
             "label": "+",
-            "offset": 15,
-            "side": "right"
+            "offset": 40,
+            "side": "left"
           },
           {
             "id": "n",
@@ -48940,15 +48940,15 @@
               "domain": "physical-electrical"
             },
             "label": "-",
-            "offset": 35,
+            "offset": 40,
             "side": "right"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          60,
-          60
+          80,
+          80
         ],
         "shape": "rect",
         "text": "F"
@@ -48996,23 +48996,23 @@
               "id": "ctrl",
               "kind": "physical-electrical",
               "label": "CTRL",
-              "offset": 30,
-              "side": "left"
+              "offset": 40,
+              "side": "bottom"
             },
             {
               "direction": "out",
               "id": "p",
               "kind": "physical-electrical",
               "label": "+",
-              "offset": 15,
-              "side": "right"
+              "offset": 40,
+              "side": "left"
             },
             {
               "direction": "out",
               "id": "n",
               "kind": "physical-electrical",
               "label": "-",
-              "offset": 35,
+              "offset": 40,
               "side": "right"
             }
           ],
@@ -49039,8 +49039,8 @@
               "domain": "physical-electrical"
             },
             "label": "CTRL",
-            "offset": 30,
-            "side": "left"
+            "offset": 40,
+            "side": "bottom"
           }
         ],
         "outputs": [
@@ -49050,8 +49050,8 @@
               "domain": "physical-electrical"
             },
             "label": "+",
-            "offset": 15,
-            "side": "right"
+            "offset": 40,
+            "side": "left"
           },
           {
             "id": "n",
@@ -49059,15 +49059,15 @@
               "domain": "physical-electrical"
             },
             "label": "-",
-            "offset": 35,
+            "offset": 40,
             "side": "right"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          60,
-          60
+          80,
+          80
         ],
         "shape": "rect",
         "text": "H"
@@ -49115,23 +49115,23 @@
               "id": "ctrl",
               "kind": "physical-electrical",
               "label": "CTRL",
-              "offset": 30,
-              "side": "left"
+              "offset": 40,
+              "side": "bottom"
             },
             {
               "direction": "out",
               "id": "p",
               "kind": "physical-electrical",
               "label": "+",
-              "offset": 15,
-              "side": "right"
+              "offset": 40,
+              "side": "left"
             },
             {
               "direction": "out",
               "id": "n",
               "kind": "physical-electrical",
               "label": "-",
-              "offset": 35,
+              "offset": 40,
               "side": "right"
             }
           ],
@@ -49158,8 +49158,8 @@
               "domain": "physical-electrical"
             },
             "label": "CTRL",
-            "offset": 30,
-            "side": "left"
+            "offset": 40,
+            "side": "bottom"
           }
         ],
         "outputs": [
@@ -49169,8 +49169,8 @@
               "domain": "physical-electrical"
             },
             "label": "+",
-            "offset": 15,
-            "side": "right"
+            "offset": 40,
+            "side": "left"
           },
           {
             "id": "n",
@@ -49178,15 +49178,15 @@
               "domain": "physical-electrical"
             },
             "label": "-",
-            "offset": 35,
+            "offset": 40,
             "side": "right"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          60,
-          60
+          80,
+          80
         ],
         "shape": "rect",
         "text": "H"
@@ -49234,31 +49234,31 @@
               "id": "cp",
               "kind": "physical-electrical",
               "label": "C+",
-              "offset": 1,
-              "side": "left"
+              "offset": 30,
+              "side": "bottom"
             },
             {
               "direction": "in",
               "id": "cn",
               "kind": "physical-electrical",
               "label": "C-",
-              "offset": 43,
-              "side": "left"
+              "offset": 90,
+              "side": "bottom"
             },
             {
               "direction": "out",
               "id": "p",
               "kind": "physical-electrical",
               "label": "+",
-              "offset": 1,
-              "side": "right"
+              "offset": 40,
+              "side": "left"
             },
             {
               "direction": "out",
               "id": "n",
               "kind": "physical-electrical",
               "label": "-",
-              "offset": 43,
+              "offset": 40,
               "side": "right"
             }
           ],
@@ -49285,8 +49285,8 @@
               "domain": "physical-electrical"
             },
             "label": "C+",
-            "offset": 1,
-            "side": "left"
+            "offset": 30,
+            "side": "bottom"
           },
           {
             "id": "cn",
@@ -49294,8 +49294,8 @@
               "domain": "physical-electrical"
             },
             "label": "C-",
-            "offset": 43,
-            "side": "left"
+            "offset": 90,
+            "side": "bottom"
           }
         ],
         "outputs": [
@@ -49305,8 +49305,8 @@
               "domain": "physical-electrical"
             },
             "label": "+",
-            "offset": 1,
-            "side": "right"
+            "offset": 40,
+            "side": "left"
           },
           {
             "id": "n",
@@ -49314,7 +49314,7 @@
               "domain": "physical-electrical"
             },
             "label": "-",
-            "offset": 43,
+            "offset": 40,
             "side": "right"
           }
         ]
@@ -49322,7 +49322,7 @@
       "symbol": {
         "bbox": [
           120,
-          44
+          80
         ],
         "shape": "rect",
         "text": "G"
@@ -49370,31 +49370,31 @@
               "id": "cp",
               "kind": "physical-electrical",
               "label": "C+",
-              "offset": 1,
-              "side": "left"
+              "offset": 30,
+              "side": "bottom"
             },
             {
               "direction": "in",
               "id": "cn",
               "kind": "physical-electrical",
               "label": "C-",
-              "offset": 43,
-              "side": "left"
+              "offset": 90,
+              "side": "bottom"
             },
             {
               "direction": "out",
               "id": "p",
               "kind": "physical-electrical",
               "label": "+",
-              "offset": 1,
-              "side": "right"
+              "offset": 40,
+              "side": "left"
             },
             {
               "direction": "out",
               "id": "n",
               "kind": "physical-electrical",
               "label": "-",
-              "offset": 43,
+              "offset": 40,
               "side": "right"
             }
           ],
@@ -49421,8 +49421,8 @@
               "domain": "physical-electrical"
             },
             "label": "C+",
-            "offset": 1,
-            "side": "left"
+            "offset": 30,
+            "side": "bottom"
           },
           {
             "id": "cn",
@@ -49430,8 +49430,8 @@
               "domain": "physical-electrical"
             },
             "label": "C-",
-            "offset": 43,
-            "side": "left"
+            "offset": 90,
+            "side": "bottom"
           }
         ],
         "outputs": [
@@ -49441,8 +49441,8 @@
               "domain": "physical-electrical"
             },
             "label": "+",
-            "offset": 1,
-            "side": "right"
+            "offset": 40,
+            "side": "left"
           },
           {
             "id": "n",
@@ -49450,7 +49450,7 @@
               "domain": "physical-electrical"
             },
             "label": "-",
-            "offset": 43,
+            "offset": 40,
             "side": "right"
           }
         ]
@@ -49458,7 +49458,7 @@
       "symbol": {
         "bbox": [
           120,
-          44
+          80
         ],
         "shape": "rect",
         "text": "G"
@@ -49506,31 +49506,31 @@
               "id": "cp",
               "kind": "physical-electrical",
               "label": "C+",
-              "offset": 1,
-              "side": "left"
+              "offset": 30,
+              "side": "bottom"
             },
             {
               "direction": "in",
               "id": "cn",
               "kind": "physical-electrical",
               "label": "C-",
-              "offset": 43,
-              "side": "left"
+              "offset": 90,
+              "side": "bottom"
             },
             {
               "direction": "out",
               "id": "p",
               "kind": "physical-electrical",
               "label": "+",
-              "offset": 1,
-              "side": "right"
+              "offset": 40,
+              "side": "left"
             },
             {
               "direction": "out",
               "id": "n",
               "kind": "physical-electrical",
               "label": "-",
-              "offset": 43,
+              "offset": 40,
               "side": "right"
             }
           ],
@@ -49557,8 +49557,8 @@
               "domain": "physical-electrical"
             },
             "label": "C+",
-            "offset": 1,
-            "side": "left"
+            "offset": 30,
+            "side": "bottom"
           },
           {
             "id": "cn",
@@ -49566,8 +49566,8 @@
               "domain": "physical-electrical"
             },
             "label": "C-",
-            "offset": 43,
-            "side": "left"
+            "offset": 90,
+            "side": "bottom"
           }
         ],
         "outputs": [
@@ -49577,8 +49577,8 @@
               "domain": "physical-electrical"
             },
             "label": "+",
-            "offset": 1,
-            "side": "right"
+            "offset": 40,
+            "side": "left"
           },
           {
             "id": "n",
@@ -49586,7 +49586,7 @@
               "domain": "physical-electrical"
             },
             "label": "-",
-            "offset": 43,
+            "offset": 40,
             "side": "right"
           }
         ]
@@ -49594,7 +49594,7 @@
       "symbol": {
         "bbox": [
           120,
-          44
+          80
         ],
         "shape": "rect",
         "text": "E"
@@ -49642,31 +49642,31 @@
               "id": "cp",
               "kind": "physical-electrical",
               "label": "C+",
-              "offset": 1,
-              "side": "left"
+              "offset": 30,
+              "side": "bottom"
             },
             {
               "direction": "in",
               "id": "cn",
               "kind": "physical-electrical",
               "label": "C-",
-              "offset": 43,
-              "side": "left"
+              "offset": 90,
+              "side": "bottom"
             },
             {
               "direction": "out",
               "id": "p",
               "kind": "physical-electrical",
               "label": "+",
-              "offset": 1,
-              "side": "right"
+              "offset": 40,
+              "side": "left"
             },
             {
               "direction": "out",
               "id": "n",
               "kind": "physical-electrical",
               "label": "-",
-              "offset": 43,
+              "offset": 40,
               "side": "right"
             }
           ],
@@ -49693,8 +49693,8 @@
               "domain": "physical-electrical"
             },
             "label": "C+",
-            "offset": 1,
-            "side": "left"
+            "offset": 30,
+            "side": "bottom"
           },
           {
             "id": "cn",
@@ -49702,8 +49702,8 @@
               "domain": "physical-electrical"
             },
             "label": "C-",
-            "offset": 43,
-            "side": "left"
+            "offset": 90,
+            "side": "bottom"
           }
         ],
         "outputs": [
@@ -49713,8 +49713,8 @@
               "domain": "physical-electrical"
             },
             "label": "+",
-            "offset": 1,
-            "side": "right"
+            "offset": 40,
+            "side": "left"
           },
           {
             "id": "n",
@@ -49722,7 +49722,7 @@
               "domain": "physical-electrical"
             },
             "label": "-",
-            "offset": 43,
+            "offset": 40,
             "side": "right"
           }
         ]
@@ -49730,7 +49730,7 @@
       "symbol": {
         "bbox": [
           120,
-          44
+          80
         ],
         "shape": "rect",
         "text": "E"

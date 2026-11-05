@@ -1,6 +1,6 @@
+import type { PortKind } from "../../model/types";
 import { WIRE_STROKE } from "../edges/WireEdge";
 import { STUB_LEN } from "./port-hit-test";
-import type { PortKind } from "../../model/types";
 
 // Lead length comes from port-hit-test.ts, which also decides where the wire
 // attaches to the lead. Two constants would silently drift apart and leave
@@ -153,11 +153,7 @@ export function Port({
           {/* Small origin dot to mark the component boundary contact point */}
           <circle cx={0} cy={0} r={2} fill={color} />
           {label ? (
-            <text
-              {...portLabelAnchor(side)}
-              fontSize={11}
-              fill="#374151"
-            >
+            <text {...portLabelAnchor(side)} fontSize={11} fill="#374151">
               {label}
             </text>
           ) : null}

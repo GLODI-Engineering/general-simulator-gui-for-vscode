@@ -12,19 +12,19 @@ ports:
     - id: ctrl
       label: CTRL
       kind: { domain: physical-electrical }
-      side: left
-      offset: 30
+      side: bottom
+      offset: 40
   outputs:
     - id: p
       label: "+"
       kind: { domain: physical-electrical }
-      side: right
-      offset: 15
+      side: left
+      offset: 40
     - id: n
       label: "-"
       kind: { domain: physical-electrical }
       side: right
-      offset: 35
+      offset: 40
 
 params:
   - name: gain
@@ -34,7 +34,7 @@ params:
     description: Transresistance in ohms.
 
 symbol:
-  bbox: [60, 60]
+  bbox: [80, 80]
   shape: rect
   text: H
 

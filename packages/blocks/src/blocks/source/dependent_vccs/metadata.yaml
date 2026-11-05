@@ -12,24 +12,24 @@ ports:
     - id: cp
       label: "C+"
       kind: { domain: physical-electrical }
-      side: left
-      offset: 1
+      side: bottom
+      offset: 30
     - id: cn
       label: "C-"
       kind: { domain: physical-electrical }
-      side: left
-      offset: 43
+      side: bottom
+      offset: 90
   outputs:
     - id: p
       label: "+"
       kind: { domain: physical-electrical }
-      side: right
-      offset: 1
+      side: left
+      offset: 40
     - id: n
       label: "-"
       kind: { domain: physical-electrical }
       side: right
-      offset: 43
+      offset: 40
 params:
   - name: gain
     label: Gain
@@ -38,7 +38,7 @@ params:
     description: Transconductance in siemens.
 
 symbol:
-  bbox: [120, 44]
+  bbox: [120, 80]
   shape: rect
   text: G
 
