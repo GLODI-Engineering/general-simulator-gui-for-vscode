@@ -641,7 +641,7 @@
       },
       "symbol": {
         "bbox": [
-          80,
+          60,
           40
         ],
         "shape": "rect",
@@ -947,7 +947,7 @@
               "id": "in",
               "kind": "signal",
               "label": "e",
-              "offset": 25,
+              "offset": 20,
               "side": "left"
             },
             {
@@ -955,7 +955,7 @@
               "id": "out",
               "kind": "signal",
               "label": "u",
-              "offset": 25,
+              "offset": 20,
               "side": "right"
             }
           ],
@@ -1007,7 +1007,7 @@
               "domain": "signal"
             },
             "label": "e",
-            "offset": 25,
+            "offset": 20,
             "side": "left"
           }
         ],
@@ -1019,7 +1019,7 @@
               "domain": "signal"
             },
             "label": "u",
-            "offset": 25,
+            "offset": 20,
             "side": "right"
           }
         ]
@@ -1027,7 +1027,7 @@
       "symbol": {
         "bbox": [
           60,
-          50
+          40
         ],
         "shape": "rect",
         "text": "PID"
@@ -1076,7 +1076,7 @@
               "id": "in0",
               "kind": "signal",
               "label": "",
-              "offset": 15,
+              "offset": 10,
               "side": "left"
             },
             {
@@ -1084,7 +1084,7 @@
               "id": "in1",
               "kind": "signal",
               "label": "",
-              "offset": 29,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -1092,7 +1092,7 @@
               "id": "out",
               "kind": "signal",
               "label": "",
-              "offset": 22,
+              "offset": 20,
               "side": "right"
             }
           ],
@@ -1122,7 +1122,7 @@
               "domain": "signal"
             },
             "label": "",
-            "offset": 15,
+            "offset": 10,
             "side": "left"
           },
           {
@@ -1132,7 +1132,7 @@
               "domain": "signal"
             },
             "label": "",
-            "offset": 29,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -1144,15 +1144,15 @@
               "domain": "signal"
             },
             "label": "",
-            "offset": 22,
+            "offset": 20,
             "side": "right"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          50,
-          44
+          40,
+          40
         ],
         "shape": "rect",
         "text": "x"
@@ -1607,7 +1607,7 @@
               "id": "in",
               "kind": "signal",
               "label": "",
-              "offset": 25,
+              "offset": 20,
               "side": "left"
             },
             {
@@ -1615,7 +1615,7 @@
               "id": "out",
               "kind": "signal",
               "label": "",
-              "offset": 25,
+              "offset": 20,
               "side": "right"
             }
           ],
@@ -1656,7 +1656,7 @@
               "domain": "signal"
             },
             "label": "",
-            "offset": 25,
+            "offset": 20,
             "side": "left"
           }
         ],
@@ -1668,7 +1668,7 @@
               "domain": "signal"
             },
             "label": "",
-            "offset": 25,
+            "offset": 20,
             "side": "right"
           }
         ]
@@ -1676,7 +1676,7 @@
       "symbol": {
         "bbox": [
           60,
-          50
+          40
         ],
         "shape": "rect",
         "text": "H(s)"
@@ -10873,15 +10873,15 @@
               "domain": "physical-electrical"
             },
             "label": "out",
-            "offset": 30,
+            "offset": 20,
             "side": "right"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          60
+          60,
+          40
         ],
         "shape": "rect",
         "text": "CMP"
@@ -10971,15 +10971,15 @@
               "domain": "physical-electrical"
             },
             "label": "out",
-            "offset": 30,
+            "offset": 20,
             "side": "right"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          60
+          60,
+          40
         ],
         "shape": "rect",
         "text": "CMP"
@@ -11069,15 +11069,15 @@
               "domain": "physical-electrical"
             },
             "label": "out",
-            "offset": 30,
+            "offset": 20,
             "side": "right"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          60
+          60,
+          40
         ],
         "shape": "rect",
         "text": "CMP"
@@ -14710,77 +14710,7 @@
           60,
           60
         ],
-        "primitives": [
-          {
-            "type": "line",
-            "x1": 0,
-            "x2": 29,
-            "y1": 41,
-            "y2": 41
-          },
-          {
-            "lw": 2.52,
-            "type": "line",
-            "x1": 29,
-            "x2": 29,
-            "y1": 24,
-            "y2": 58
-          },
-          {
-            "type": "line",
-            "x1": 29,
-            "x2": 46,
-            "y1": 31,
-            "y2": 14
-          },
-          {
-            "type": "line",
-            "x1": 46,
-            "x2": 46,
-            "y1": 14,
-            "y2": 0
-          },
-          {
-            "type": "line",
-            "x1": 29,
-            "x2": 46,
-            "y1": 50,
-            "y2": 67
-          },
-          {
-            "type": "line",
-            "x1": 46,
-            "x2": 46,
-            "y1": 67,
-            "y2": 80
-          },
-          {
-            "filled": true,
-            "pts": [
-              [
-                44,
-                62
-              ],
-              [
-                37,
-                58
-              ],
-              [
-                37,
-                65
-              ]
-            ],
-            "type": "polygon"
-          },
-          {
-            "cx": 40,
-            "cy": 40,
-            "lw": 1.6800000000000002,
-            "r": 40,
-            "type": "circle"
-          }
-        ],
-        "shape": "primitives"
+        "shape": "rect"
       },
       "tags": [
         "physical",
@@ -14894,77 +14824,7 @@
           60,
           60
         ],
-        "primitives": [
-          {
-            "type": "line",
-            "x1": 0,
-            "x2": 29,
-            "y1": 41,
-            "y2": 41
-          },
-          {
-            "lw": 2.52,
-            "type": "line",
-            "x1": 29,
-            "x2": 29,
-            "y1": 24,
-            "y2": 58
-          },
-          {
-            "type": "line",
-            "x1": 29,
-            "x2": 46,
-            "y1": 31,
-            "y2": 14
-          },
-          {
-            "type": "line",
-            "x1": 46,
-            "x2": 46,
-            "y1": 14,
-            "y2": 0
-          },
-          {
-            "type": "line",
-            "x1": 29,
-            "x2": 46,
-            "y1": 50,
-            "y2": 67
-          },
-          {
-            "type": "line",
-            "x1": 46,
-            "x2": 46,
-            "y1": 67,
-            "y2": 80
-          },
-          {
-            "filled": true,
-            "pts": [
-              [
-                44,
-                62
-              ],
-              [
-                37,
-                58
-              ],
-              [
-                37,
-                65
-              ]
-            ],
-            "type": "polygon"
-          },
-          {
-            "cx": 40,
-            "cy": 40,
-            "lw": 1.6800000000000002,
-            "r": 40,
-            "type": "circle"
-          }
-        ],
-        "shape": "primitives"
+        "shape": "rect"
       },
       "tags": [
         "physical",
@@ -15078,77 +14938,7 @@
           60,
           60
         ],
-        "primitives": [
-          {
-            "type": "line",
-            "x1": 0,
-            "x2": 29,
-            "y1": 41,
-            "y2": 41
-          },
-          {
-            "lw": 2.52,
-            "type": "line",
-            "x1": 29,
-            "x2": 29,
-            "y1": 24,
-            "y2": 58
-          },
-          {
-            "type": "line",
-            "x1": 29,
-            "x2": 46,
-            "y1": 31,
-            "y2": 14
-          },
-          {
-            "type": "line",
-            "x1": 46,
-            "x2": 46,
-            "y1": 14,
-            "y2": 0
-          },
-          {
-            "type": "line",
-            "x1": 29,
-            "x2": 46,
-            "y1": 50,
-            "y2": 67
-          },
-          {
-            "type": "line",
-            "x1": 46,
-            "x2": 46,
-            "y1": 67,
-            "y2": 80
-          },
-          {
-            "filled": true,
-            "pts": [
-              [
-                44,
-                62
-              ],
-              [
-                37,
-                58
-              ],
-              [
-                37,
-                65
-              ]
-            ],
-            "type": "polygon"
-          },
-          {
-            "cx": 40,
-            "cy": 40,
-            "lw": 1.6800000000000002,
-            "r": 40,
-            "type": "circle"
-          }
-        ],
-        "shape": "primitives"
+        "shape": "rect"
       },
       "tags": [
         "physical",
@@ -16467,150 +16257,7 @@
           60,
           60
         ],
-        "primitives": [
-          {
-            "type": "line",
-            "x1": 0,
-            "x2": 17,
-            "y1": 81,
-            "y2": 81
-          },
-          {
-            "lw": 2.52,
-            "type": "line",
-            "x1": 17,
-            "x2": 17,
-            "y1": 35,
-            "y2": 81
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 26,
-            "y1": 29,
-            "y2": 41
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 26,
-            "y1": 52,
-            "y2": 64
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 26,
-            "y1": 75,
-            "y2": 87
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 69,
-            "y1": 29,
-            "y2": 29
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 69,
-            "y1": 87,
-            "y2": 87
-          },
-          {
-            "type": "line",
-            "x1": 51,
-            "x2": 51,
-            "y1": 0,
-            "y2": 29
-          },
-          {
-            "type": "line",
-            "x1": 51,
-            "x2": 51,
-            "y1": 87,
-            "y2": 110
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 51,
-            "y1": 58,
-            "y2": 58
-          },
-          {
-            "type": "line",
-            "x1": 51,
-            "x2": 51,
-            "y1": 58,
-            "y2": 87
-          },
-          {
-            "type": "line",
-            "x1": 69,
-            "x2": 69,
-            "y1": 29,
-            "y2": 41
-          },
-          {
-            "type": "line",
-            "x1": 69,
-            "x2": 69,
-            "y1": 61,
-            "y2": 87
-          },
-          {
-            "type": "line",
-            "x1": 69,
-            "x2": 57,
-            "y1": 41,
-            "y2": 61
-          },
-          {
-            "type": "line",
-            "x1": 69,
-            "x2": 80,
-            "y1": 41,
-            "y2": 61
-          },
-          {
-            "type": "line",
-            "x1": 57,
-            "x2": 80,
-            "y1": 61,
-            "y2": 61
-          },
-          {
-            "type": "line",
-            "x1": 60,
-            "x2": 77,
-            "y1": 41,
-            "y2": 41
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 37,
-            "y1": 58,
-            "y2": 52
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 37,
-            "y1": 58,
-            "y2": 64
-          },
-          {
-            "cx": 47,
-            "cy": 55,
-            "lw": 1.6800000000000002,
-            "r": 51,
-            "type": "circle"
-          }
-        ],
-        "shape": "primitives"
+        "shape": "rect"
       },
       "tags": [
         "physical",
@@ -16747,150 +16394,7 @@
           60,
           60
         ],
-        "primitives": [
-          {
-            "type": "line",
-            "x1": 0,
-            "x2": 17,
-            "y1": 81,
-            "y2": 81
-          },
-          {
-            "lw": 2.52,
-            "type": "line",
-            "x1": 17,
-            "x2": 17,
-            "y1": 35,
-            "y2": 81
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 26,
-            "y1": 29,
-            "y2": 41
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 26,
-            "y1": 52,
-            "y2": 64
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 26,
-            "y1": 75,
-            "y2": 87
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 69,
-            "y1": 29,
-            "y2": 29
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 69,
-            "y1": 87,
-            "y2": 87
-          },
-          {
-            "type": "line",
-            "x1": 51,
-            "x2": 51,
-            "y1": 0,
-            "y2": 29
-          },
-          {
-            "type": "line",
-            "x1": 51,
-            "x2": 51,
-            "y1": 87,
-            "y2": 110
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 51,
-            "y1": 58,
-            "y2": 58
-          },
-          {
-            "type": "line",
-            "x1": 51,
-            "x2": 51,
-            "y1": 58,
-            "y2": 87
-          },
-          {
-            "type": "line",
-            "x1": 69,
-            "x2": 69,
-            "y1": 29,
-            "y2": 41
-          },
-          {
-            "type": "line",
-            "x1": 69,
-            "x2": 69,
-            "y1": 61,
-            "y2": 87
-          },
-          {
-            "type": "line",
-            "x1": 69,
-            "x2": 57,
-            "y1": 41,
-            "y2": 61
-          },
-          {
-            "type": "line",
-            "x1": 69,
-            "x2": 80,
-            "y1": 41,
-            "y2": 61
-          },
-          {
-            "type": "line",
-            "x1": 57,
-            "x2": 80,
-            "y1": 61,
-            "y2": 61
-          },
-          {
-            "type": "line",
-            "x1": 60,
-            "x2": 77,
-            "y1": 41,
-            "y2": 41
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 37,
-            "y1": 58,
-            "y2": 52
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 37,
-            "y1": 58,
-            "y2": 64
-          },
-          {
-            "cx": 47,
-            "cy": 55,
-            "lw": 1.6800000000000002,
-            "r": 51,
-            "type": "circle"
-          }
-        ],
-        "shape": "primitives"
+        "shape": "rect"
       },
       "tags": [
         "physical",
@@ -17027,150 +16531,7 @@
           60,
           60
         ],
-        "primitives": [
-          {
-            "type": "line",
-            "x1": 0,
-            "x2": 17,
-            "y1": 81,
-            "y2": 81
-          },
-          {
-            "lw": 2.52,
-            "type": "line",
-            "x1": 17,
-            "x2": 17,
-            "y1": 35,
-            "y2": 81
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 26,
-            "y1": 29,
-            "y2": 41
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 26,
-            "y1": 52,
-            "y2": 64
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 26,
-            "y1": 75,
-            "y2": 87
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 69,
-            "y1": 29,
-            "y2": 29
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 69,
-            "y1": 87,
-            "y2": 87
-          },
-          {
-            "type": "line",
-            "x1": 51,
-            "x2": 51,
-            "y1": 0,
-            "y2": 29
-          },
-          {
-            "type": "line",
-            "x1": 51,
-            "x2": 51,
-            "y1": 87,
-            "y2": 110
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 51,
-            "y1": 58,
-            "y2": 58
-          },
-          {
-            "type": "line",
-            "x1": 51,
-            "x2": 51,
-            "y1": 58,
-            "y2": 87
-          },
-          {
-            "type": "line",
-            "x1": 69,
-            "x2": 69,
-            "y1": 29,
-            "y2": 41
-          },
-          {
-            "type": "line",
-            "x1": 69,
-            "x2": 69,
-            "y1": 61,
-            "y2": 87
-          },
-          {
-            "type": "line",
-            "x1": 69,
-            "x2": 57,
-            "y1": 41,
-            "y2": 61
-          },
-          {
-            "type": "line",
-            "x1": 69,
-            "x2": 80,
-            "y1": 41,
-            "y2": 61
-          },
-          {
-            "type": "line",
-            "x1": 57,
-            "x2": 80,
-            "y1": 61,
-            "y2": 61
-          },
-          {
-            "type": "line",
-            "x1": 60,
-            "x2": 77,
-            "y1": 41,
-            "y2": 41
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 37,
-            "y1": 58,
-            "y2": 52
-          },
-          {
-            "type": "line",
-            "x1": 26,
-            "x2": 37,
-            "y1": 58,
-            "y2": 64
-          },
-          {
-            "cx": 47,
-            "cy": 55,
-            "lw": 1.6800000000000002,
-            "r": 51,
-            "type": "circle"
-          }
-        ],
-        "shape": "primitives"
+        "shape": "rect"
       },
       "tags": [
         "physical",
@@ -36002,7 +35363,7 @@
       },
       "symbol": {
         "bbox": [
-          70,
+          60,
           40
         ],
         "shape": "rect",
@@ -36156,7 +35517,7 @@
       },
       "symbol": {
         "bbox": [
-          70,
+          60,
           40
         ],
         "shape": "rect",
@@ -36640,7 +36001,7 @@
       },
       "symbol": {
         "bbox": [
-          80,
+          60,
           40
         ],
         "shape": "rect",
@@ -36762,7 +36123,7 @@
       },
       "symbol": {
         "bbox": [
-          80,
+          60,
           40
         ],
         "shape": "rect",
@@ -37098,7 +36459,7 @@
       },
       "symbol": {
         "bbox": [
-          80,
+          60,
           40
         ],
         "shape": "rect",
@@ -37210,7 +36571,7 @@
       },
       "symbol": {
         "bbox": [
-          80,
+          60,
           40
         ],
         "shape": "rect",
@@ -37591,7 +36952,7 @@
       },
       "symbol": {
         "bbox": [
-          80,
+          60,
           40
         ],
         "shape": "rect",
@@ -37704,7 +37065,7 @@
       },
       "symbol": {
         "bbox": [
-          80,
+          60,
           40
         ],
         "shape": "rect",
@@ -37827,7 +37188,7 @@
       },
       "symbol": {
         "bbox": [
-          70,
+          60,
           40
         ],
         "shape": "rect",
@@ -37950,7 +37311,7 @@
       },
       "symbol": {
         "bbox": [
-          70,
+          60,
           40
         ],
         "shape": "rect",
@@ -38083,7 +37444,7 @@
       },
       "symbol": {
         "bbox": [
-          70,
+          60,
           40
         ],
         "shape": "rect",
@@ -38216,7 +37577,7 @@
       },
       "symbol": {
         "bbox": [
-          70,
+          60,
           40
         ],
         "shape": "rect",
@@ -38542,7 +37903,7 @@
       },
       "symbol": {
         "bbox": [
-          70,
+          60,
           40
         ],
         "shape": "rect",
@@ -38644,7 +38005,7 @@
       },
       "symbol": {
         "bbox": [
-          70,
+          60,
           40
         ],
         "shape": "rect",
@@ -41725,14 +41086,14 @@
               "direction": "in",
               "id": "in0",
               "kind": "signal",
-              "offset": 14,
+              "offset": 10,
               "side": "left"
             },
             {
               "direction": "in",
               "id": "in1",
               "kind": "signal",
-              "offset": 26,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -41775,7 +41136,7 @@
               "domain": "signal"
             },
             "label": "",
-            "offset": 14,
+            "offset": 10,
             "side": "left"
           },
           {
@@ -41785,7 +41146,7 @@
               "domain": "signal"
             },
             "label": "",
-            "offset": 26,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -41804,8 +41165,8 @@
       },
       "symbol": {
         "bbox": [
-          70,
-          60
+          60,
+          40
         ],
         "shape": "rect",
         "text": "MinMax"
@@ -41853,14 +41214,14 @@
               "direction": "in",
               "id": "in0",
               "kind": "signal",
-              "offset": 14,
+              "offset": 10,
               "side": "left"
             },
             {
               "direction": "in",
               "id": "in1",
               "kind": "signal",
-              "offset": 26,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -41903,7 +41264,7 @@
               "domain": "signal"
             },
             "label": "",
-            "offset": 14,
+            "offset": 10,
             "side": "left"
           },
           {
@@ -41913,7 +41274,7 @@
               "domain": "signal"
             },
             "label": "",
-            "offset": 26,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -41932,8 +41293,8 @@
       },
       "symbol": {
         "bbox": [
-          70,
-          60
+          60,
+          40
         ],
         "shape": "rect",
         "text": "MinMax"
@@ -41977,14 +41338,14 @@
               "direction": "in",
               "id": "in0",
               "kind": "signal",
-              "offset": 14,
+              "offset": 10,
               "side": "left"
             },
             {
               "direction": "in",
               "id": "in1",
               "kind": "signal",
-              "offset": 26,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -42023,7 +41384,7 @@
               "domain": "signal"
             },
             "label": "",
-            "offset": 14,
+            "offset": 10,
             "side": "left"
           },
           {
@@ -42033,7 +41394,7 @@
               "domain": "signal"
             },
             "label": "",
-            "offset": 26,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -42052,7 +41413,7 @@
       },
       "symbol": {
         "bbox": [
-          60,
+          40,
           40
         ],
         "shape": "rect",
@@ -42097,14 +41458,14 @@
               "direction": "in",
               "id": "in0",
               "kind": "signal",
-              "offset": 14,
+              "offset": 10,
               "side": "left"
             },
             {
               "direction": "in",
               "id": "in1",
               "kind": "signal",
-              "offset": 26,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -42143,7 +41504,7 @@
               "domain": "signal"
             },
             "label": "",
-            "offset": 14,
+            "offset": 10,
             "side": "left"
           },
           {
@@ -42153,7 +41514,7 @@
               "domain": "signal"
             },
             "label": "",
-            "offset": 26,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -42172,7 +41533,7 @@
       },
       "symbol": {
         "bbox": [
-          60,
+          40,
           40
         ],
         "shape": "rect",
@@ -42799,14 +42160,14 @@
               "direction": "in",
               "id": "in0",
               "kind": "signal",
-              "offset": 14,
+              "offset": 10,
               "side": "left"
             },
             {
               "direction": "in",
               "id": "in1",
               "kind": "signal",
-              "offset": 26,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -42856,7 +42217,7 @@
               "domain": "signal"
             },
             "label": "+",
-            "offset": 14,
+            "offset": 10,
             "side": "left"
           },
           {
@@ -42866,7 +42227,7 @@
               "domain": "signal"
             },
             "label": "+",
-            "offset": 26,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -42885,8 +42246,8 @@
       },
       "symbol": {
         "bbox": [
-          50,
-          50
+          40,
+          40
         ],
         "shape": "circle",
         "text": "SUM"
@@ -42938,14 +42299,14 @@
               "direction": "in",
               "id": "in0",
               "kind": "signal",
-              "offset": 14,
+              "offset": 10,
               "side": "left"
             },
             {
               "direction": "in",
               "id": "in1",
               "kind": "signal",
-              "offset": 26,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -42995,7 +42356,7 @@
               "domain": "signal"
             },
             "label": "+",
-            "offset": 14,
+            "offset": 10,
             "side": "left"
           },
           {
@@ -43005,7 +42366,7 @@
               "domain": "signal"
             },
             "label": "+",
-            "offset": 26,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -43024,8 +42385,8 @@
       },
       "symbol": {
         "bbox": [
-          50,
-          50
+          40,
+          40
         ],
         "shape": "circle",
         "text": "SUM"

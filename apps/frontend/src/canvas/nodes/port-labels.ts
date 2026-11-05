@@ -22,7 +22,15 @@ import type { PortKind } from "../../model/types";
  * command) still labels that one port, because there the name is the only
  * thing distinguishing it from the power terminals.
  */
-export function shouldShowPortLabel(kind: PortKind): boolean {
+export function shouldShowPortLabel(kind: PortKind, signalPortCount = 2): boolean {
+  // A block with exactly one signal port does not need it named: an ideal
+  // switch has a single gate, and a lone "gate" in small grey type beside a
+  // power device whose other two pins are deliberately unlabelled reads as
+  // debris rather than as information. Two or more and the names are doing
+  // real work again — that is the case this rule exists for.
+  if (signalPortCount < 2) {
+    return false;
+  }
   switch (kind.domain) {
     case "physical-electrical":
     case "physical-thermal":

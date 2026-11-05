@@ -3,6 +3,7 @@ import type { ParamValue } from "../../model/types";
 import { WIRE_STROKE } from "../edges/WireEdge";
 import { SYMBOL_SCALE } from "./port-hit-test";
 import PmosSvg from "./symbols/spice-primitive-P-MOS.drawio.svg?react";
+import { findDrawing } from "./symbols/registry";
 
 const STROKE = "#0f172a";
 const FILL = "#ffffff";
@@ -99,6 +100,8 @@ export interface SchematicSymbol {
    * overlay's visuals so they don't double up — see Port.tsx `decorate`.
    */
   selfDrawnPorts?: boolean;
+  /** How tall the artwork is when it does not fill its box; see SymbolDrawing. */
+  inkHeight?: number;
 }
 
 const SI_PREFIXES: Array<[number, string]> = [
@@ -1501,6 +1504,27 @@ function symbolKeyCandidates(key: string): string[] {
 export function getSchematicSymbol(
   ...keys: Array<string | undefined>
 ): SchematicSymbol | undefined {
+  // `symbols/` first. Artwork there is a drop-in file against the contract in
+  // `symbol-drawing.tsx`; this table is the older artwork it is replacing,
+  // kept so types without a new drawing keep the one they had. A type that
+  // gains a file in `symbols/registry.ts` is drawn from there from then on,
+  // with no change to what the component is.
+  for (const key of keys) {
+    if (!key) continue;
+    for (const candidate of symbolKeyCandidates(key)) {
+      const drawing = findDrawing(candidate);
+      if (drawing) {
+        return {
+          render: (ctx) => drawing.draw(ctx),
+          valueParam: drawing.valueParam,
+          unit: drawing.unit,
+          staticLabel: drawing.staticLabel,
+          selfDrawnPorts: drawing.selfDrawnPorts,
+          inkHeight: drawing.inkHeight,
+        };
+      }
+    }
+  }
   for (const key of keys) {
     if (!key) continue;
     for (const candidate of symbolKeyCandidates(key)) {

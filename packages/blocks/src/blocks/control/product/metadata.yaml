@@ -13,18 +13,18 @@ ports:
       label: ""
       kind: { domain: signal, dims: scalar }
       side: left
-      offset: 15
+      offset: 10
     - id: in1
       label: ""
       kind: { domain: signal, dims: scalar }
       side: left
-      offset: 29
+      offset: 30
   outputs:
     - id: out
       label: ""
       kind: { domain: signal, dims: scalar }
       side: right
-      offset: 22
+      offset: 20
 
 params:
   - name: n_inputs
@@ -35,7 +35,7 @@ params:
     description: "Number of input signals (2-8)."
 
 symbol:
-  bbox: [50, 44]
+  bbox: [40, 40]
   shape: rect
   text: "x"
 
