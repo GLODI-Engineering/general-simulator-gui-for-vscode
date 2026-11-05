@@ -14,6 +14,7 @@ import dependentCcvsDrawing from "./dependentCcvs";
 import dependentVccsDrawing from "./dependentVccs";
 import dependentVcvsDrawing from "./dependentVcvs";
 import derivativeDrawing from "./derivative";
+import { converterDrawing } from "./domainConverter";
 import gainDrawing from "./gain";
 import genericSwitchDrawing from "./genericSwitch";
 import idealSwitchDrawing from "./idealSwitch";
@@ -88,6 +89,39 @@ export const SYMBOL_DRAWINGS: Record<string, SymbolDrawing> = {
   "physical_electrical.sensor.voltage": voltageSensorDrawing,
   "physical_electrical.tline.lossless": tlineLosslessDrawing,
   "physical_electrical.tline.lossy": tlineLosslessDrawing,
+  // Domain converters. Every one of these fell back to a blank rectangle,
+  // so eleven different parts drew identically; the symbol now carries the
+  // boundary it exists to cross.
+  "converter.sig2phys": converterDrawing("signal", "physical-electrical", 60),
+  "converter.phys2sig": converterDrawing("physical-electrical", "signal", 60),
+  "converter.signal_to_physical_signal": converterDrawing("signal", "physical-signal"),
+  "converter.physical_signal_to_signal": converterDrawing("physical-signal", "signal"),
+  "converter.electrical_to_rotational": converterDrawing(
+    "physical-electrical",
+    "physical-rotational",
+  ),
+  "converter.rotational_to_electrical": converterDrawing(
+    "physical-rotational",
+    "physical-electrical",
+  ),
+  "converter.electrical_to_thermal": converterDrawing("physical-electrical", "physical-thermal"),
+  "converter.electrical_to_translational": converterDrawing(
+    "physical-electrical",
+    "physical-translational",
+  ),
+  "converter.translational_to_electrical": converterDrawing(
+    "physical-translational",
+    "physical-electrical",
+  ),
+  "converter.rotational_to_translational": converterDrawing(
+    "physical-rotational",
+    "physical-translational",
+  ),
+  "converter.translational_to_rotational": converterDrawing(
+    "physical-translational",
+    "physical-rotational",
+  ),
+
   // The engine-compilable dependent family. gsim-core builds a true ideal
   // transformer out of the VCVS/CCCS pair, so these are drawn, not generic.
   "source.dependent.vcvs": dependentVcvsDrawing,
