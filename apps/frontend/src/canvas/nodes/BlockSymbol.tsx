@@ -2,6 +2,7 @@ import { isAutoRefdes } from "../../library/refdes";
 import type { BlockMetadata, Mirror, ParamValue, Rotation } from "../../model/types";
 import { WIRE_STROKE } from "../edges/WireEdge";
 import { Port } from "./Port";
+import { shouldShowPortLabel } from "./port-labels";
 import type { PortSide } from "./Port";
 import { formatEngineering, getSchematicSymbol } from "./component-symbols";
 import { SYMBOL_SCALE, getMetadataPortCenters } from "./port-hit-test";
@@ -174,10 +175,10 @@ const LABEL_GAP = 8;
 
 /**
  * Extra clearance for a label forced onto a face that already carries ports.
- * `Port.tsx` draws a 16-unit stub with a 3.5-radius terminal dot outside the
- * box, so ~22px puts the label past the tip of the stub.
+ * `Port.tsx` draws a one-grid-unit (20) stub with a small terminal dot outside
+ * the box, so this has to clear the tip rather than merely the outline.
  */
-const PORT_CLEARANCE = 22;
+const PORT_CLEARANCE = 26;
 
 /** Vertical pitch between the static label and the value label when stacked. */
 const LABEL_ROW = 15;
@@ -463,7 +464,7 @@ export function BlockSymbol({
       {showLabels ? <title>{metadata.label}</title> : null}
       <g transform={`scale(${SYMBOL_SCALE}) ${symbolTransform(rotation, mirror, resolvedBbox)}`}>
         {schematic ? (
-          schematic.render({ width, height, params })
+          schematic.render({ width, height, params, rotation, mirror })
         ) : (
           <>
             {metadata.symbol.shape === "custom" && metadata.symbol.path ? (
@@ -523,7 +524,7 @@ export function BlockSymbol({
             y={port.center.y - blockPosition[1]}
             kind={portDef.kind}
             direction={direction}
-            label={portDef.label}
+            label={shouldShowPortLabel(portDef.kind) ? portDef.label : undefined}
             side={port.rotatedSide}
             decorate={!schematic?.selfDrawnPorts}
           />

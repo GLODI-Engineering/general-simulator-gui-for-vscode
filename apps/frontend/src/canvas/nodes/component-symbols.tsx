@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, SVGProps } from "react";
 import type { ParamValue } from "../../model/types";
 import { WIRE_STROKE } from "../edges/WireEdge";
 import { SYMBOL_SCALE } from "./port-hit-test";
@@ -19,6 +19,58 @@ export interface SymbolContext {
   width: number;
   height: number;
   params: Record<string, ParamValue>;
+  /** Orientation of the enclosing symbol group — see `UprightText`. */
+  rotation?: 0 | 90 | 180 | 270;
+  mirror?: "none" | "x" | "y";
+}
+
+/**
+ * Text inside a symbol, kept the right way up.
+ *
+ * `BlockSymbol` draws every symbol inside one `rotate()`/`scale()` group, so
+ * rotating a part rotates its artwork — which is the point for a resistor's
+ * zigzag, and wrong for the lettering on it. A DC source turned upright
+ * rendered its minus sign as a vertical bar and its "+" on its side; a
+ * rotated gate's operator fell over with it. Glyphs do not rotate on a real
+ * schematic, at any orientation.
+ *
+ * This undoes the group's linear transform about the text's own anchor, so
+ * the text stays where the symbol put it and reads horizontally. The group
+ * applies R(theta) then the mirror, so the inverse is the mirror followed by
+ * R(-theta) — and an SVG transform list applies right to left, which is why
+ * they are written in that order.
+ */
+export function UprightText({
+  ctx,
+  x,
+  y,
+  children,
+  ...rest
+}: {
+  ctx: SymbolContext;
+  x: number;
+  y: number;
+  children: ReactNode;
+} & Omit<SVGProps<SVGTextElement>, "x" | "y" | "children">) {
+  const rotation = ctx.rotation ?? 0;
+  const mirror = ctx.mirror ?? "none";
+  if (rotation === 0 && mirror === "none") {
+    return (
+      <text x={x} y={y} {...rest}>
+        {children}
+      </text>
+    );
+  }
+  const flip = mirror === "x" ? "scale(1 -1)" : mirror === "y" ? "scale(-1 1)" : "";
+  const counter =
+    `translate(${x} ${y}) ${flip} rotate(${-rotation}) translate(${-x} ${-y})`.replace(/\s+/g, " ");
+  return (
+    <g transform={counter}>
+      <text x={x} y={y} {...rest}>
+        {children}
+      </text>
+    </g>
+  );
 }
 
 export interface SchematicSymbol {
@@ -156,15 +208,15 @@ function sourceCircle(ctx: SymbolContext, glyph: ReactNode): ReactNode {
 }
 
 // Voltage glyphs
-function dcVoltageGlyph(y: number): ReactNode {
+function dcVoltageGlyph(y: number, ctx: SymbolContext): ReactNode {
   return (
     <g>
-      <text x={26} y={y - 1} fontSize={8} fill={STROKE} textAnchor="middle">
+      <UprightText ctx={ctx} x={26} y={y - 1} fontSize={8} fill={STROKE} textAnchor="middle">
         +
-      </text>
-      <text x={34} y={y + 3} fontSize={10} fill={STROKE} textAnchor="middle">
+      </UprightText>
+      <UprightText ctx={ctx} x={34} y={y + 3} fontSize={10} fill={STROKE} textAnchor="middle">
         −
-      </text>
+      </UprightText>
     </g>
   );
 }
@@ -933,26 +985,31 @@ function hysteresisRender(ctx: SymbolContext): ReactNode {
 }
 
 // ── Wrappers for sources by family ───────────────────────────────────────────
-function voltageSource(glyph: (y: number) => ReactNode): SchematicSymbol {
+// The glyph takes the context as well as its centre line so a glyph that
+// draws lettering (the DC pair) can keep it upright under rotation. Glyphs
+// that are pure artwork ignore the second argument.
+type SourceGlyph = (y: number, ctx: SymbolContext) => ReactNode;
+
+function voltageSource(glyph: SourceGlyph): SchematicSymbol {
   return {
     valueParam: "V",
     unit: "V",
-    render: (ctx) => sourceCircle(ctx, glyph(ctx.height / 2)),
+    render: (ctx) => sourceCircle(ctx, glyph(ctx.height / 2, ctx)),
   };
 }
 
-function currentSource(glyph: (y: number) => ReactNode): SchematicSymbol {
+function currentSource(glyph: SourceGlyph): SchematicSymbol {
   return {
     valueParam: "I",
     unit: "A",
-    render: (ctx) => sourceCircle(ctx, glyph(ctx.height / 2)),
+    render: (ctx) => sourceCircle(ctx, glyph(ctx.height / 2, ctx)),
   };
 }
 
 // ── CCVS (user-drawn, bbox 80×60) ─────────────────────────────────────────────
 // spice-primitive-CCVS.drawio.svg. Circle on the left, two output terminals
 // both on the RIGHT face. p right/1, n right/59.
-function ccvsRender(): ReactNode {
+function ccvsRender(ctx: SymbolContext): ReactNode {
   return (
     <g>
       {/* Top bar: circle area → right terminal */}
@@ -965,12 +1022,12 @@ function ccvsRender(): ReactNode {
       {/* Circle (voltage source symbol) */}
       <circle cx={12} cy={29} r={13} fill={FILL} stroke={STROKE} strokeWidth={SW * 0.8} />
       {/* + and − polarity glyphs */}
-      <text x={12} y={23} textAnchor="middle" fontSize={10} fill={STROKE}>
+      <UprightText ctx={ctx} x={12} y={23} textAnchor="middle" fontSize={10} fill={STROKE}>
         +
-      </text>
-      <text x={12} y={38} textAnchor="middle" fontSize={12} fill={STROKE}>
+      </UprightText>
+      <UprightText ctx={ctx} x={12} y={38} textAnchor="middle" fontSize={12} fill={STROKE}>
         −
-      </text>
+      </UprightText>
     </g>
   );
 }
@@ -997,7 +1054,7 @@ function cccsRender(): ReactNode {
 // spice-primitive-VCVS.drawio.svg. Two circles connected by a bridge.
 // LEFT circle = voltage-sensing input (cp left/1, cn left/43).
 // RIGHT circle = voltage output (p right/1, n right/43).
-function vcvsRender(): ReactNode {
+function vcvsRender(ctx: SymbolContext): ReactNode {
   return (
     <g>
       {/* ── Left circle group (control input) ── */}
@@ -1015,12 +1072,12 @@ function vcvsRender(): ReactNode {
       <line x1={82} y1={30} x2={82} y2={44} stroke={STROKE} strokeWidth={SW} />
       <circle cx={82} cy={21} r={9} fill={FILL} stroke={STROKE} strokeWidth={SW * 0.8} />
       {/* + / − polarity on output circle */}
-      <text x={82} y={18} textAnchor="middle" fontSize={7} fill={STROKE}>
+      <UprightText ctx={ctx} x={82} y={18} textAnchor="middle" fontSize={7} fill={STROKE}>
         +
-      </text>
-      <text x={82} y={27} textAnchor="middle" fontSize={9} fill={STROKE}>
+      </UprightText>
+      <UprightText ctx={ctx} x={82} y={27} textAnchor="middle" fontSize={9} fill={STROKE}>
         −
-      </text>
+      </UprightText>
     </g>
   );
 }
@@ -1242,14 +1299,14 @@ export const SCHEMATIC_SYMBOLS: Record<string, SchematicSymbol> = {
   },
 
   // Dependent sources — CC
-  "physical_electrical.source.ccvs": { staticLabel: "CCVS", render: () => ccvsRender() },
-  "source.dependent.ccvs": { staticLabel: "CCVS", render: () => ccvsRender() },
+  "physical_electrical.source.ccvs": { staticLabel: "CCVS", render: (ctx) => ccvsRender(ctx) },
+  "source.dependent.ccvs": { staticLabel: "CCVS", render: (ctx) => ccvsRender(ctx) },
   "physical_electrical.source.cccs": { staticLabel: "CCCS", render: () => cccsRender() },
   "source.dependent.cccs": { staticLabel: "CCCS", render: () => cccsRender() },
 
   // Dependent sources — VC
-  "source.dependent.vcvs": { staticLabel: "VCVS", render: () => vcvsRender() },
-  "physical_electrical.source.vcvs": { staticLabel: "VCVS", render: () => vcvsRender() },
+  "source.dependent.vcvs": { staticLabel: "VCVS", render: (ctx) => vcvsRender(ctx) },
+  "physical_electrical.source.vcvs": { staticLabel: "VCVS", render: (ctx) => vcvsRender(ctx) },
   "source.dependent.vccs": { staticLabel: "VCCS", render: () => vccsRender() },
   "physical_electrical.source.vccs": { staticLabel: "VCCS", render: () => vccsRender() },
 

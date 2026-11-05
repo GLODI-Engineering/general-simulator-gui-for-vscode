@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactFlow, {
   Controls,
   type Node,
@@ -25,6 +25,7 @@ import { CanvasOverlay, ProbeOverlay } from "./CanvasOverlay";
 import { ContextMenu } from "./ContextMenu";
 import { type FlowBlockData, deriveFlowEdges, deriveFlowNodes } from "./derive-flow-state";
 import { resolveDroppedBlock, screenToModelCoords, setActiveDragBlock } from "./dnd";
+import { schematicBounds } from "./fit-bounds";
 import WireEdge from "./edges/WireEdge";
 import { type Junction, computeJunctions } from "./edges/junctions";
 import { applySegDrag } from "./edges/segment-drag";
@@ -407,7 +408,7 @@ function CanvasSurface() {
   const setPan = useUiStore((state) => state.setPan);
   const pushToast = useToastStore.getState().pushToast;
   const catalog = useLibraryStore((state) => state.catalog);
-  const { setViewport, zoomIn, zoomOut, fitView } = useReactFlow();
+  const { setViewport, zoomIn, zoomOut, fitView, fitBounds } = useReactFlow();
   const storeApi = useStoreApi();
 
   // Sync zoom/pan from UI store → ReactFlow viewport. This only needs to
@@ -420,6 +421,29 @@ function CanvasSurface() {
   useEffect(() => {
     setViewport({ x: pan.x, y: pan.y, zoom });
   }, [pan.x, pan.y, zoom, setViewport]);
+
+  /**
+   * Frame everything that has ink in it, not just the nodes.
+   *
+   * `fitView` frames node boxes, which on a schematic leaves out any wire
+   * that runs outside them — a return rail below the parts is the usual
+   * casualty. `schematicBounds` unions the nodes, their leads and every
+   * waypoint; `fitBounds` then frames that. Falls back to `fitView` for an
+   * empty sheet, where there are no bounds to compute.
+   */
+  const fitSchematic = useCallback(() => {
+    const state = useGraphStore.getState();
+    const catalogNow = useLibraryStore.getState().catalog;
+    const subcktDefs = activeSubcktDefsFromStore();
+    const bounds = schematicBounds(state.document.model.blocks, state.document.model.wires, (b) =>
+      resolveBlockMetadata(b, catalogNow, subcktDefs),
+    );
+    if (bounds) {
+      fitBounds(bounds, { duration: 0 });
+    } else {
+      fitView();
+    }
+  }, [fitBounds, fitView]);
 
   // Expose the real ReactFlow zoom/fit API on window so App.tsx's
   // module-level handleAction (outside the ReactFlowProvider tree, so it
@@ -436,13 +460,13 @@ function CanvasSurface() {
     };
     windowRef.__gensim_canvasZoomIn = () => zoomIn();
     windowRef.__gensim_canvasZoomOut = () => zoomOut();
-    windowRef.__gensim_canvasFitView = () => fitView();
+    windowRef.__gensim_canvasFitView = () => fitSchematic();
     return () => {
       windowRef.__gensim_canvasZoomIn = undefined;
       windowRef.__gensim_canvasZoomOut = undefined;
       windowRef.__gensim_canvasFitView = undefined;
     };
-  }, [zoomIn, zoomOut, fitView]);
+  }, [zoomIn, zoomOut, fitSchematic]);
 
   const [contextMenu, setContextMenu] = useState<{
     blockId: string;
@@ -818,7 +842,23 @@ function CanvasSurface() {
   };
 
   const edges = useMemo(() => deriveFlowEdges(wires), [wires]);
-  const junctions = useMemo(() => computeJunctions(wires), [wires]);
+  // Endpoints are port lead tips; without them a three-way node formed by
+  // wires that *end* at the same port is invisible to junction detection.
+  const junctions = useMemo(() => {
+    const tips = new Map<string, [number, number]>();
+    for (const block of blocks) {
+      const metadata = resolveBlockMetadata(block, catalog, activeSubcktDefsFromStore());
+      if (!metadata) continue;
+      for (const port of getMetadataPortCenters(block, metadata)) {
+        tips.set(`${block.id}:${port.id}`, [port.stubTip.x, port.stubTip.y]);
+      }
+    }
+    return computeJunctions(wires, (wire) => {
+      const from = tips.get(`${wire.from.block}:${wire.from.port}`);
+      const to = tips.get(`${wire.to.block}:${wire.to.port}`);
+      return from && to ? [from, to] : null;
+    });
+  }, [wires, blocks, catalog]);
 
   const applySelection = (updater: (selection: Set<string>) => Set<string>) => {
     setSelection(updater(new Set(selection)));

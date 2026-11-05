@@ -83,7 +83,7 @@ function BlockNodeImpl({ data, selected }: NodeProps<FlowBlockData>) {
         mirror={data.block.mirror}
         params={data.block.params}
         blockPosition={data.block.position}
-        label={data.block.label}
+        label={data.displayLabel ?? data.block.label}
       />
       {handles.flatMap((handle) =>
         (["source", "target"] as const).map((type) => (

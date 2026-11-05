@@ -31,7 +31,12 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const DEFAULT_BASE = "http://localhost:5173";
+// 127.0.0.1, not "localhost": vite binds loopback as IPv6 (::1) by default while
+// Chromium resolves "localhost" to 127.0.0.1, and the render then fails with
+// ERR_CONNECTION_REFUSED against a server that is demonstrably up.
+const PREVIEW_HOST = "127.0.0.1";
+const PREVIEW_PORT = 5173;
+const DEFAULT_BASE = `http://${PREVIEW_HOST}:${PREVIEW_PORT}`;
 
 function parseArgs(argv) {
   const args = { width: 1600, height: 1000, theme: "light", full: false };
@@ -59,7 +64,10 @@ function parseArgs(argv) {
 async function startPreview() {
   const child = spawn(
     "pnpm",
-    ["--filter", "@gensim/frontend", "preview", "--port", "5173", "--strictPort"],
+    [
+      "--filter", "@gensim/frontend", "preview",
+      "--host", PREVIEW_HOST, "--port", String(PREVIEW_PORT), "--strictPort",
+    ],
     { cwd: REPO_ROOT, stdio: ["ignore", "pipe", "pipe"] },
   );
   let log = "";
@@ -95,7 +103,19 @@ async function main() {
 
   let server = null;
   const base = args.base ?? DEFAULT_BASE;
-  if (!args.base) server = await startPreview();
+  if (!args.base) {
+    // Reuse a preview already listening on the port. Spawning a second one
+    // under --strictPort leaves a child that can never bind, and killing it at
+    // the end would take down the server the render actually used.
+    let alreadyUp = false;
+    try {
+      const probe = await fetch(DEFAULT_BASE, { method: "HEAD" });
+      alreadyUp = probe.ok || probe.status === 404;
+    } catch {
+      alreadyUp = false;
+    }
+    if (!alreadyUp) server = await startPreview();
+  }
 
   // Prefer Playwright's own bundled build; fall back to the system Chrome
   // channel so a render never depends on `npx playwright install` having
@@ -117,7 +137,7 @@ async function main() {
     page.on("pageerror", (e) => errors.push(String(e)));
     page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
 
-    await page.goto(base, { waitUntil: "networkidle" });
+    await page.goto(base, { waitUntil: "domcontentloaded" });
     await page.waitForSelector("[data-testid='app-shell'], main", { timeout: 20_000 });
 
     await page.evaluate((theme) => {
