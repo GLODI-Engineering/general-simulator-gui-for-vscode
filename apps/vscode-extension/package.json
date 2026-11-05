@@ -2,7 +2,7 @@
   "name": "general-simulator-gui",
   "displayName": "General Simulator GUI for VS Code",
   "description": "Schematic capture, component authoring and circuit/system simulation inside VS Code, powered by the general-simulator engine.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": false,
   "publisher": "gensim",
   "engines": {
