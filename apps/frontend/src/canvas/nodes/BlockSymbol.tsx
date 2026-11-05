@@ -209,6 +209,12 @@ const LABEL_GAP = 8;
  */
 const PORT_CLEARANCE = 26;
 
+/**
+ * Where a label beside the part sits, as a fraction of the box height.
+ * Below the centre line, clear of a gate or base lead leaving at mid-height.
+ */
+const BESIDE_LABEL_ROW = 0.74;
+
 /** Vertical pitch between the static label and the value label when stacked. */
 const LABEL_ROW = 15;
 
@@ -354,10 +360,14 @@ export function labelAnchorFor(
         y: height - inset + gap + 8 + row * LABEL_ROW,
         textAnchor: "middle",
       };
+    // Beside the part, below its centre line. A three-terminal device — a
+    // MOSFET, a BJT — has pins on three faces, so its name can only go to the
+    // side; power-electronics schematics put the designator there and low,
+    // clear of the gate lead that leaves at mid-height.
     case "left":
-      return { x: -gap, y: height / 2 - 1 + row * LABEL_ROW, textAnchor: "end" };
+      return { x: -gap, y: height * BESIDE_LABEL_ROW + row * LABEL_ROW, textAnchor: "end" };
     default:
-      return { x: width + gap, y: height / 2 - 1 + row * LABEL_ROW, textAnchor: "start" };
+      return { x: width + gap, y: height * BESIDE_LABEL_ROW + row * LABEL_ROW, textAnchor: "start" };
   }
 }
 

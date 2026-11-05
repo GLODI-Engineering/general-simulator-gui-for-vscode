@@ -11,7 +11,7 @@ tags: [signal-flow, math]
 ports: {inputs: [{id: in0, label: "+", kind: {domain: signal, dims: scalar}, side: left, offset: 10}, {id: in1, label: "+", kind: {domain: signal, dims: scalar}, side: left, offset: 30}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
 params: [{name: signs, label: Signs, type: string, default: ++}, {name: icon_shape, label: Icon shape, type: enum, default: round, choices: [round, rectangular]}]
 fidelities: [{tier: n_a, ports: [{id: in0, kind: signal, direction: in, side: left, offset: 10}, {id: in1, kind: signal, direction: in, side: left, offset: 30}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: signs, type: string, default: ++}, {id: icon_shape, type: enum, default: round, choices: [round, rectangular]}], doc: Signal summing block.}]
-symbol: {bbox: [40, 40], shape: circle, text: SUM}
+symbol: {bbox: [60, 40], shape: circle, text: SUM}
 behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.math.sum}
 main_param: signs
 port_sigs:

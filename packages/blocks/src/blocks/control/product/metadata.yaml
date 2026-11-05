@@ -35,7 +35,7 @@ params:
     description: "Number of input signals (2-8)."
 
 symbol:
-  bbox: [40, 40]
+  bbox: [60, 40]
   shape: rect
   text: "x"
 

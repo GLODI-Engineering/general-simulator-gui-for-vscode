@@ -15,37 +15,58 @@ import {
 } from "../symbol-drawing";
 
 /**
- * The sign beside each input comes from the block's own `signs` parameter —
- * `"+-"`, `"++"`, `"+--"` — not from a fixed assumption. Drawing a `+` on
- * the top lead and a `−` on the bottom regardless would contradict the data
- * whenever the block was configured any other way, which is worse than
- * drawing nothing.
+ * How many inputs this instance has, from the `signs` parameter that also
+ * decides their signs. A summing junction is variadic — four or five inputs
+ * is ordinary — which is why the body is a rectangle and not a circle: the
+ * box grows with the input count and a circle of fixed radius would have the
+ * leads crowding into it.
  */
-function signsOf(ctx: DrawContext, count: number): string[] {
+function signsOf(ctx: DrawContext): string[] {
   const raw = ctx.params.signs;
-  const text = typeof raw === "string" ? raw : "";
-  return Array.from({ length: count }, (_, i) => (text[i] === "-" ? "−" : "+"));
+  const text = typeof raw === "string" && raw.length > 0 ? raw : "+-";
+  return [...text].map((c) => (c === "-" ? "−" : "+"));
+}
+
+/**
+ * Where the i-th of n inputs sits down the left edge.
+ *
+ * Mirrors the even spread `resolveBlockPorts` computes for a variadic group,
+ * so each sign lands beside its own lead however many there are.
+ */
+function inputRow(index: number, count: number, height: number): number {
+  return Math.round((height * (index + 1)) / (count + 1));
 }
 
 function draw(ctx: DrawContext): ReactNode {
-  const marks = signsOf(ctx, 2);
+  const { width, height } = ctx;
+  const signs = signsOf(ctx);
   return (
     <g>
-      <circle cx={20} cy={20} r={14} fill={FILL} stroke={STROKE} strokeWidth={SW} />
-      <line x1={0} y1={10} x2={10} y2={10} stroke={STROKE} strokeWidth={SW} />
-      <line x1={0} y1={30} x2={10} y2={30} stroke={STROKE} strokeWidth={SW} />
-      <line x1={34} y1={20} x2={40} y2={20} stroke={STROKE} strokeWidth={SW} />
-      {/* Sigma says "this adds"; the signs say what each input does. */}
-      <SymbolLabel ctx={ctx} x={20} y={20} size="md">
+      <rect
+        x={0}
+        y={0}
+        width={width}
+        height={height}
+        fill={FILL}
+        stroke={STROKE}
+        strokeWidth={SW}
+      />
+      <SymbolLabel ctx={ctx} x={width / 2} y={height / 2} size="lg">
         Σ
       </SymbolLabel>
-      {/* Each mark sits just outside the circle, next to its own lead. */}
-      <SymbolLabel ctx={ctx} x={10} y={8} size="sm">
-        {marks[0] as string}
-      </SymbolLabel>
-      <SymbolLabel ctx={ctx} x={10} y={32} size="sm">
-        {marks[1] as string}
-      </SymbolLabel>
+      {/* Each sign sits at the edge its lead enters by, not against the body
+          text — that is where the eye goes to read what an input does. */}
+      {signs.map((sign, index) => (
+        <SymbolLabel
+          key={`${sign}-${inputRow(index, signs.length, height)}`}
+          ctx={ctx}
+          x={7}
+          y={inputRow(index, signs.length, height)}
+          size="sm"
+        >
+          {sign}
+        </SymbolLabel>
+      ))}
     </g>
   );
 }

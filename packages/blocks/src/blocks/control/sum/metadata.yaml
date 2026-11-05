@@ -32,7 +32,7 @@ params:
     description: Sequence of `+` or `-` characters, one per input port.
 
 symbol:
-  bbox: [40, 40]
+  bbox: [60, 40]
   shape: circle
   text: "Σ"
 
