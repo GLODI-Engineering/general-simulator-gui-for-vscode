@@ -11,18 +11,18 @@ ports:
   inputs:
     - id: b
       label: Base
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: left
       offset: 41
   outputs:
     - id: c
       label: Collector
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: top
       offset: 46
     - id: e
       label: Emitter
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: bottom
       offset: 46
 params:

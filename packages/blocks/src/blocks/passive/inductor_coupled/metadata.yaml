@@ -11,23 +11,23 @@ ports:
   inputs:
     - id: p1
       label: "p1"
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: left
       offset: 10
     - id: n1
       label: "n1"
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: left
       offset: 30
   outputs:
     - id: p2
       label: "p2"
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: right
       offset: 10
     - id: n2
       label: "n2"
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: right
       offset: 30
 

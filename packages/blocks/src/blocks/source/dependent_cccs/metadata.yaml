@@ -11,18 +11,18 @@ ports:
   inputs:
     - id: ctrl
       label: CTRL
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: left
       offset: 30
   outputs:
     - id: p
       label: "+"
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: right
       offset: 15
     - id: n
       label: "-"
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: right
       offset: 35
 
