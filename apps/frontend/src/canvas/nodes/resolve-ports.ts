@@ -118,7 +118,7 @@ export function resolveBlockPorts(
  * Minimum spacing, in pre-scale bbox units, between two adjacent ports on the same side.
  *
  * Ports are drawn with a 10px label (Port.tsx) and the whole symbol is magnified by
- * SYMBOL_SCALE = 1.6, so 12 units is ~19px on screen — about the tightest pitch at which
+ * SYMBOL_SCALE = 2, so 12 units is 24px on screen — about the tightest pitch at which
  * two stacked port labels do not overlap.
  *
  * This is a floor, not a target. A block whose declared bbox already gives its ports at

@@ -37,6 +37,32 @@ function domainColor(kind: PortKind): string {
   }
 }
 
+/**
+ * Where a port's name sits relative to its terminal.
+ *
+ * It used to be drawn at `y = 4` — on the lead's own line — so the wire
+ * leaving the port ran straight through its name. On a block with several
+ * named outputs, every label had a wire through it. The name now sits clear
+ * of the lead on the side the lead leaves by, which is also where a reader
+ * expects it.
+ */
+function portLabelAnchor(side: PortSide | undefined): {
+  x: number;
+  y: number;
+  textAnchor: "start" | "end" | "middle";
+} {
+  switch (side) {
+    case "right":
+      return { x: STUB_LEN + 4, y: -5, textAnchor: "start" };
+    case "top":
+      return { x: 5, y: -STUB_LEN - 5, textAnchor: "start" };
+    case "bottom":
+      return { x: 5, y: STUB_LEN + 12, textAnchor: "start" };
+    default:
+      return { x: -STUB_LEN - 4, y: -5, textAnchor: "end" };
+  }
+}
+
 /** Direction vector for the stub based on which side of the component the port is on. */
 function stubVector(side: PortSide): [number, number] {
   switch (side) {
@@ -128,10 +154,8 @@ export function Port({
           <circle cx={0} cy={0} r={2} fill={color} />
           {label ? (
             <text
-              x={side === "left" ? -STUB_LEN - 3 : STUB_LEN + 3}
-              y={4}
-              textAnchor={side === "left" ? "end" : "start"}
-              fontSize={10}
+              {...portLabelAnchor(side)}
+              fontSize={11}
               fill="#374151"
             >
               {label}
