@@ -1,0 +1,40 @@
+name: source.voltage.dc
+label: "V (DC)"
+version: 1
+category: sources
+description: Ideal DC voltage source. SPICE element V.
+
+aliases: [VDC, dc voltage source]
+tags: [source, electrical, voltage, dc]
+
+ports:
+  inputs:
+    - id: p
+      label: "+"
+      kind: { domain: electrical }
+      side: left
+      offset: 20
+  outputs:
+    - id: n
+      label: "-"
+      kind: { domain: electrical }
+      side: right
+      offset: 20
+
+params:
+  - name: V
+    label: Voltage
+    type: number
+    default: 0.0
+    description: DC voltage in volts
+
+symbol:
+  bbox: [60, 40]
+  shape: circle
+  text: "V (DC)"
+
+behavior:
+  causality: source
+  domain: electrical
+  state_count: 0
+  equation_template: source.voltage.dc

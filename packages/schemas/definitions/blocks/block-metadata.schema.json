@@ -1,0 +1,721 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://general-simulator.dev/schemas/blocks/block-metadata.schema.json",
+  "title": "BlockMetadata",
+  "description": "Catalog entry for one functional block. One file per block under packages/blocks/src/blocks/<family>/<block_dir>/metadata.yaml. Shared contract: the frontend reads visual + search fields; the simulator reads behavior + equation_template. See docs/specs/frontend-spec.md \u00a79 and progress.yaml FE-23.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["label", "paradigm", "domain", "fidelities"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "description": "Catalog key in dotted canonical form such as `control.gain` or `source.voltage.pulse`. Stable across releases \u2014 renaming breaks every saved model that uses the block."
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable label shown in the library tree, Quick Insert results, and block headers on the canvas."
+    },
+    "type": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z0-9][a-z0-9_-]*)+$",
+      "description": "v2 catalog type string, such as `physical-electrical.passive.resistor`. When omitted, `name` is also the catalog type."
+    },
+    "version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Block metadata schema version. v1 is the only valid value today; bump only when adding required fields."
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "signal",
+        "control",
+        "power",
+        "passive",
+        "sources",
+        "source",
+        "dependent",
+        "semiconductor",
+        "tline",
+        "sinks",
+        "subsystems",
+        "user",
+        "element",
+        "opamp",
+        "reference",
+        "routing",
+        "sensor",
+        "switch"
+      ],
+      "description": "Top-level category for the library tree. This is the frontend-visible grouping and may differ from the intermediate directory layout for some families."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "One-line description used in Quick Insert tooltip and the block tooltip on hover."
+    },
+    "icon": {
+      "type": "string",
+      "description": "Optional icon asset used by lightweight v2 catalog entries."
+    },
+    "paradigm": {
+      "type": "string",
+      "enum": [
+        "signal-flow",
+        "physical-network",
+        "converter",
+        "hierarchy",
+        "routing",
+        "annotation"
+      ],
+      "description": "Top-level modeling paradigm used by .gsim_sch v2 blocks and catalog filtering."
+    },
+    "domain": {
+      "$ref": "#/$defs/PortKindDomain",
+      "description": "Primary v2 port domain for this block family."
+    },
+    "fidelities": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/FidelityEntry"
+      },
+      "description": "Per-fidelity port and parameter contract used by the fidelity-swap UI and .gsim_sch v2 block insertion."
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "default": [],
+      "description": "Alternate searchable names (e.g. \"Proportional-Integral-Derivative\" for PID). Boosts fuzzy-match recall."
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "default": [],
+      "description": "Keywords for filtering and ranking. Free-form, but conventions emerge (e.g. `feedback`, `nonlinear`, `discrete`)."
+    },
+    "ports": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inputs"],
+      "properties": {
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Port"
+          }
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Port"
+          }
+        },
+        "variadic_inputs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["count_from", "template"],
+          "description": "Optional: input ports whose count is determined by a parameter (e.g. the Sum block's signs string). The frontend instantiates one port per element of the controlling param.",
+          "properties": {
+            "count_from": {
+              "type": "string",
+              "description": "Name of the param that controls input count. The param must be of type string, vector, or integer."
+            },
+            "template": {
+              "$ref": "#/$defs/Port"
+            }
+          }
+        },
+        "variadic_outputs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["count_from", "template"],
+          "description": "Optional: output ports whose count is determined by a parameter (e.g. a script block's output_names vector). The frontend instantiates one port per element of the controlling param, exactly as for variadic_inputs.",
+          "properties": {
+            "count_from": {
+              "type": "string",
+              "description": "Name of the param that controls output count. The param must be of type string, vector, or integer."
+            },
+            "template": {
+              "$ref": "#/$defs/Port"
+            }
+          }
+        }
+      },
+      "description": "Port declarations. Coordinates are in block-local frame; rotation/mirror are applied by the renderer at draw time."
+    },
+    "params": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Param"
+      },
+      "description": "Parameter declarations. Listed in display order in the Property Inspector."
+    },
+    "symbol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bbox", "shape"],
+      "properties": {
+        "bbox": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "Symbol bounding box `[width, height]` in canvas units (integer). Ports are positioned along the bbox edges via `side` + `offset`."
+        },
+        "shape": {
+          "type": "string",
+          "enum": ["rect", "circle", "triangle", "custom", "primitives"],
+          "description": "Symbol geometry. `rect` is the default block; `circle` for summing junctions; `triangle` for gain/amplifier; `custom` uses `path`; `primitives` (GSF) uses a literal `primitives` array for multi-shape drawings."
+        },
+        "path": {
+          "type": "string",
+          "description": "SVG path `d=` attribute, required when `shape == custom`. Coordinates in block-local frame (origin top-left of bbox)."
+        },
+        "primitives": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Primitive"
+          },
+          "description": "GSF (Gsim Symbol Format) primitive list, required when `shape == primitives`. See docs/specs/gsim-symbol-format-spec.md."
+        },
+        "text": {
+          "type": "string",
+          "description": "Optional text rendered inside the symbol (e.g. \"PID\", \"1/s\"). May reference a param value via `{paramName}` interpolation."
+        },
+        "svg_viewbox": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "Original SVG viewBox [width, height]. Required when ports use svg_x/svg_y positioning."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "shape": {
+                "const": "custom"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "path": {
+                "type": "string"
+              }
+            },
+            "required": ["path"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "shape": {
+                "const": "primitives"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "primitives": {
+                "type": "array",
+                "minItems": 1
+              }
+            },
+            "required": ["primitives"]
+          }
+        }
+      ],
+      "description": "How the block is drawn. The renderer reads `bbox` to lay out ports; `shape` + `path` + `text` for the body."
+    },
+    "behavior": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["causality", "domain", "state_count", "equation_template"],
+      "properties": {
+        "causality": {
+          "type": "string",
+          "enum": ["source", "causal", "acausal", "sink", "reference"],
+          "description": "`source`: 0 inputs, n outputs. `causal`: inputs determine outputs. `acausal`: equation-based (no fixed direction). `sink`: n inputs, 0 outputs."
+        },
+        "domain": {
+          "type": "string",
+          "enum": ["signal", "electrical", "thermal", "mechanical", "event", "mixed"],
+          "description": "Primary modelling domain. `mixed` blocks bridge two domains (e.g. a current sensor with electrical pins and a signal output)."
+        },
+        "state_count": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "string",
+              "const": "dynamic"
+            }
+          ],
+          "description": "Number of internal state variables. Use `\"dynamic\"` when count depends on a param (e.g. transfer-function order from `den` polynomial length)."
+        },
+        "equation_template": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "description": "Reference to the simulator-side equation template (resolved by the `packages/simulator/` lowering stage). Conventionally equals `name` and may contain multiple dotted segments, but is kept separate so a block can be renamed without breaking its template binding."
+        }
+      },
+      "description": "Solver-facing metadata. The frontend uses `causality` to lay out ports; the simulator uses all four fields during IR-1 \u2192 IR-2 lowering."
+    },
+    "main_param": {
+      "type": "string",
+      "description": "Name of the param targeted by Alt+Enter (\"set main parameter\"). Must match an entry in `params[]`. Omit if no param is the obvious primary edit target."
+    },
+    "port_sigs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Port dimension signatures for FE-65 signal-dimension propagation. Keys are port ids (wildcards like 'in*' allowed); values are one of: '[N]' (literal dim), 'inherit', 'from(<portId>)', 'sum(<portPattern>)', 'partition(<portId>, <param>)', 'shape(<param>)', 'bus'."
+    }
+  },
+  "allOf": [
+    {
+      "description": "If main_param is set, it must reference an existing param. Enforced at runtime by the catalog loader (FE-23). The params array is already required at the root level; this allOf entry is reserved for future cross-field constraints.",
+      "if": {
+        "properties": {
+          "main_param": {
+            "type": "string"
+          }
+        },
+        "required": ["main_param"]
+      },
+      "then": {}
+    }
+  ],
+  "$defs": {
+    "Primitive": {
+      "description": "GSF (Gsim Symbol Format) primitive — mirrors the Primitive union in apps/frontend/src/canvas/nodes/primitive-renderer.ts field-for-field. Coordinates are integers in block-local space, origin top-left of symbol.bbox.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "x1", "y1", "x2", "y2"],
+          "properties": {
+            "type": { "const": "line" },
+            "x1": { "type": "number" },
+            "y1": { "type": "number" },
+            "x2": { "type": "number" },
+            "y2": { "type": "number" },
+            "lw": { "type": "number" },
+            "color": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "x", "y", "w", "h"],
+          "properties": {
+            "type": { "const": "rect" },
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "w": { "type": "number" },
+            "h": { "type": "number" },
+            "lw": { "type": "number" },
+            "filled": { "type": "boolean" },
+            "color": { "type": "string" },
+            "rotation": {
+              "type": "number",
+              "description": "Degrees, about the shape's own center. Optional, defaults to 0 (unrotated) when absent."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "x", "y", "w", "h"],
+          "properties": {
+            "type": { "const": "rectf" },
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "w": { "type": "number" },
+            "h": { "type": "number" },
+            "color": { "type": "string" },
+            "rotation": {
+              "type": "number",
+              "description": "Degrees, about the shape's own center. Optional, defaults to 0 (unrotated) when absent."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "cx", "cy", "r"],
+          "properties": {
+            "type": { "const": "circle" },
+            "cx": { "type": "number" },
+            "cy": { "type": "number" },
+            "r": { "type": "number" },
+            "lw": { "type": "number" },
+            "filled": { "type": "boolean" },
+            "color": { "type": "string" },
+            "rotation": {
+              "type": "number",
+              "description": "Degrees. A circle is rotation-invariant visually; kept for schema symmetry with rect/rectf/text, not rendered as a visible effect."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "cx", "cy", "r", "a0", "a1"],
+          "properties": {
+            "type": { "const": "arc" },
+            "cx": { "type": "number" },
+            "cy": { "type": "number" },
+            "r": { "type": "number" },
+            "a0": { "type": "number" },
+            "a1": { "type": "number" },
+            "ccw": { "type": "boolean" },
+            "lw": { "type": "number" },
+            "color": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "pts"],
+          "properties": {
+            "type": { "const": "polygon" },
+            "pts": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "lw": { "type": "number" },
+            "filled": { "type": "boolean" },
+            "color": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "pts"],
+          "properties": {
+            "type": { "const": "polyline" },
+            "pts": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            },
+            "lw": { "type": "number" },
+            "color": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "x", "y", "text"],
+          "properties": {
+            "type": { "const": "text" },
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "text": { "type": "string" },
+            "size": { "type": "number" },
+            "align": { "type": "string", "enum": ["start", "center", "end"] },
+            "baseline": { "type": "string", "enum": ["top", "middle", "bottom"] },
+            "bold": { "type": "boolean" },
+            "filled": { "type": "boolean" },
+            "color": { "type": "string" },
+            "rotation": {
+              "type": "number",
+              "description": "Degrees, about the text's own anchor point (x, y). Optional, defaults to 0 (unrotated) when absent."
+            }
+          }
+        }
+      ]
+    },
+    "PortKindDomain": {
+      "type": "string",
+      "enum": [
+        "signal",
+        "signal-bus",
+        "function-call",
+        "physical-electrical",
+        "physical-translational",
+        "physical-rotational",
+        "physical-thermal",
+        "physical-signal",
+        "mixed",
+        "reserved.physical-magnetic",
+        "reserved.physical-hydraulic",
+        "reserved.physical-fluid",
+        "electrical",
+        "thermal",
+        "mechanical",
+        "event"
+      ]
+    },
+    "FidelityEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tier", "doc"],
+      "properties": {
+        "tier": {
+          "type": "string",
+          "enum": ["ideal", "behavioral", "spice", "n_a"]
+        },
+        "ports": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FidelityPort"
+          }
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FidelityParam"
+          }
+        },
+        "doc": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "FidelityPort": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "direction"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+        },
+        "kind": {
+          "$ref": "#/$defs/PortKindDomain"
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["in", "out", "inout"]
+        },
+        "label": {
+          "type": "string"
+        },
+        "side": {
+          "type": "string",
+          "enum": ["left", "right", "top", "bottom"]
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "FidelityParam": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["number", "integer", "vector", "matrix", "string", "bool", "enum", "list"]
+        },
+        "default": {},
+        "unit": {
+          "type": "string"
+        },
+        "doc": {
+          "type": "string"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "enum"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "choices": {
+                "type": "array"
+              }
+            },
+            "required": ["choices"]
+          }
+        }
+      ]
+    },
+    "Port": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "kind"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Stable port identifier; used by every connection in every saved model. Renaming breaks every model that uses this block."
+        },
+        "label": {
+          "type": "string",
+          "description": "Short label rendered next to the port (e.g. \"e\" for PID error input). Empty string for no label."
+        },
+        "kind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["domain"],
+          "properties": {
+            "domain": {
+              "$ref": "#/$defs/PortKindDomain"
+            },
+            "dims": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "enum": ["scalar", "matrix"]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["vector"],
+                  "properties": {
+                    "vector": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "side": {
+          "type": "string",
+          "enum": ["left", "right", "top", "bottom"],
+          "description": "Which side of the bbox the port emerges from in the unrotated, unmirrored block. Rotation/mirror are applied by the renderer."
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Distance along the chosen side, in canvas units, from the top-left corner of the bbox (top/bottom: from left edge; left/right: from top edge)."
+        },
+        "svg_x": {
+          "type": "number",
+          "description": "X coordinate in the symbol SVG viewBox space. When combined with svg_y and symbol.svg_viewbox, overrides side+offset for port position."
+        },
+        "svg_y": {
+          "type": "number",
+          "description": "Y coordinate in the symbol SVG viewBox space."
+        }
+      }
+    },
+    "Param": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "label", "type"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_]*$",
+          "description": "Stable param identifier; persisted in every saved model. Renaming breaks every model that uses this block."
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable label rendered in the Property Inspector."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["number", "integer", "vector", "matrix", "string", "bool", "enum", "list"],
+          "description": "Param value type. The inspector renders one editor per type (NumberInput, VectorInput, Dropdown, etc. \u2014 see FE-26)."
+        },
+        "default": {
+          "description": "Default value used when a block is inserted. Must match `type`. Validation is done by the catalog loader, not the schema (cross-field type rules are awkward in pure JSON Schema)."
+        },
+        "min": {
+          "type": "number",
+          "description": "Inclusive lower bound for numeric / vector elements. Inspector flags violations as warnings."
+        },
+        "max": {
+          "type": "number",
+          "description": "Inclusive upper bound for numeric / vector elements."
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Allowed values, required when `type == enum`."
+        },
+        "description": {
+          "type": "string",
+          "description": "Inspector tooltip text."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "enum"
+              }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "properties": {
+              "choices": {
+                "type": "array"
+              }
+            },
+            "required": ["choices"]
+          }
+        }
+      ]
+    }
+  }
+}

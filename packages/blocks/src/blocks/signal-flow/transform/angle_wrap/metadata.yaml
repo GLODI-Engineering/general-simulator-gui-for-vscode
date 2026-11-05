@@ -1,0 +1,18 @@
+name: signal_flow.transform.angle_wrap
+type: signal-flow.transform.angle_wrap
+label: Angle Wrap
+version: 1
+category: control
+description: Wraps an angle into the [0, 2*pi) range.
+paradigm: signal-flow
+domain: signal
+aliases: [angle wrap, mod2pi]
+tags: [signal-flow, transform, motor-control]
+ports: {inputs: [{id: in, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: []
+fidelities: [{tier: n_a, ports: [{id: in, kind: signal, direction: in, side: left, offset: 20}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [], doc: 'Wraps an angle into [0, 2*pi).'}]
+symbol: {bbox: [70, 40], shape: rect, text: "mod 2π"}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.transform.angle_wrap}
+port_sigs:
+  in: "inherit"
+  out: "from(in)"

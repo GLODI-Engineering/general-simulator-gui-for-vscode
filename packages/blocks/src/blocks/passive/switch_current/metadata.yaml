@@ -1,0 +1,45 @@
+name: passive.switch.current
+label: Current-Controlled Switch
+version: 1
+category: passive
+description: Current-controlled switch. SPICE element W.
+
+aliases: [CSW, current switch, current-controlled switch]
+tags: [passive, electrical, switch, current-controlled]
+
+ports:
+  inputs:
+    - id: p
+      label: "+"
+      kind: { domain: electrical }
+      side: left
+      offset: 20
+  outputs:
+    - id: n
+      label: "-"
+      kind: { domain: electrical }
+      side: right
+      offset: 20
+
+params:
+  - name: model
+    label: Model
+    type: string
+    default: CSW
+    description: SPICE switch model name.
+  - name: controlling_source
+    label: Controlling Source
+    type: string
+    default: ""
+    description: Name of the voltage source whose current controls the switch.
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: CSW
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: passive.switch.current

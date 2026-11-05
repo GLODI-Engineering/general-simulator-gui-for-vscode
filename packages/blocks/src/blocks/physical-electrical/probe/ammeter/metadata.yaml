@@ -1,0 +1,15 @@
+name: physical_electrical.probe.ammeter
+type: physical-electrical.probe.ammeter
+label: Ammeter
+version: 1
+category: power
+description: Current probe with physical-signal output.
+paradigm: converter
+domain: physical-signal
+aliases: [ammeter]
+tags: [physical, electrical, probe]
+ports: {inputs: [{id: p, label: "+", kind: {domain: physical-electrical}, side: left, offset: 14}, {id: n, label: "-", kind: {domain: physical-electrical}, side: left, offset: 26}], outputs: [{id: out, label: i, kind: {domain: physical-signal}, side: right, offset: 20}]}
+params: []
+fidelities: [{tier: ideal, ports: [{id: p, kind: physical-electrical, direction: inout}, {id: n, kind: physical-electrical, direction: inout}, {id: out, kind: physical-signal, direction: out}], params: [], doc: Current probe.}]
+symbol: {bbox: [70, 40], shape: rect, text: "I?"}
+behavior: {causality: acausal, domain: mixed, state_count: 0, equation_template: physical_electrical.probe.ammeter}

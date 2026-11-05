@@ -1,0 +1,32 @@
+name: routing.data_store_memory
+label: Data Store Memory
+version: 1
+description: Defines a named data store with an initial value accessible by data_store_read/write blocks.
+paradigm: routing
+domain: signal
+aliases: [data store memory, shared memory, global store]
+tags: [routing, data-store, signal-flow]
+params:
+  - name: name
+    label: Store name
+    type: string
+    default: "store1"
+    description: Unique identifier for this data store in the model namespace.
+  - name: initial_value
+    label: Initial value
+    type: number
+    default: 0.0
+    description: Initial value of the data store at simulation start.
+ports:
+  inputs: []
+  outputs: []
+fidelities:
+  - tier: n_a
+    ports: []
+    params:
+      - {id: name, type: string, default: "store1", doc: Unique data store name.}
+      - {id: initial_value, type: number, default: 0.0, doc: Initial value at t=0.}
+    doc: Defines a named data store for use by data_store_read and data_store_write blocks.
+symbol: {bbox: [80, 40], shape: rect, text: DSM}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: routing.data_store_memory}
+port_sigs: {}

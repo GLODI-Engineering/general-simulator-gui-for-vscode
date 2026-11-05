@@ -1,0 +1,30 @@
+name: source.time
+label: "Simulation Time"
+version: 1
+category: sources
+description: "Emits the current simulation time t as a signal."
+
+aliases: [time, clock, t, ramp]
+tags: [source, signal, time, general-simulator]
+
+ports:
+  inputs: []
+  outputs:
+    - id: out
+      label: "t"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params: []
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "t"
+
+behavior:
+  causality: source
+  domain: signal
+  state_count: 0
+  equation_template: source.time

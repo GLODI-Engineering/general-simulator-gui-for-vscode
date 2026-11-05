@@ -1,0 +1,41 @@
+name: converter.phys2sig
+label: "Physical to Signal"
+version: 1
+category: power
+description: "Reads a circuit node voltage or branch current back out as a signal."
+paradigm: converter
+
+aliases: [phys2sig, p2s, physical to signal]
+tags: [converter, signal, electrical, general-simulator]
+
+ports:
+  inputs: []
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params:
+  - name: node
+    label: "Node"
+    type: string
+    default: ""
+    description: "Circuit node whose voltage is read. Set exactly one of node/branch."
+  - name: branch
+    label: "Branch"
+    type: string
+    default: ""
+    description: "Device branch whose current is read. Set exactly one of node/branch."
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "P2S"
+
+behavior:
+  causality: causal
+  domain: mixed
+  state_count: 0
+  equation_template: converter.phys2sig

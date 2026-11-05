@@ -1,0 +1,15 @@
+name: physical_thermal.source.temperature
+type: physical-thermal.source.temperature
+label: Temperature Source
+version: 1
+category: power
+description: Thermal temperature source.
+paradigm: physical-network
+domain: physical-thermal
+aliases: [temperature]
+tags: [physical, thermal, source]
+ports: {inputs: [{id: a, label: a, kind: {domain: physical-thermal}, side: left, offset: 20}], outputs: [{id: b, label: b, kind: {domain: physical-thermal}, side: right, offset: 20}]}
+params: [{name: T, label: Temperature, type: number, default: 293.15}]
+fidelities: [{tier: ideal, ports: [{id: a, kind: physical-thermal, direction: inout}, {id: b, kind: physical-thermal, direction: inout}], params: [{id: T, type: number, default: 293.15}], doc: Thermal temperature source.}]
+symbol: {bbox: [70, 40], shape: rect, text: T}
+behavior: {causality: acausal, domain: thermal, state_count: 0, equation_template: physical_thermal.source.temperature}

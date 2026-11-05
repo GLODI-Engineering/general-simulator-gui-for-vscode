@@ -1,0 +1,63 @@
+name: control.discrete_state_space
+label: "Discrete State Space"
+version: 1
+category: control
+description: "Discrete-time linear state-space block x[k+1] = Ax[k] + Bu[k], y = Cx + Du."
+
+aliases: [discrete state space, dss]
+tags: [control, signal, linear, discrete, state-space, general-simulator]
+
+ports:
+  inputs:
+    - id: in0
+      label: "u"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 20
+  outputs:
+    - id: out0
+      label: "y"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params:
+  - name: a
+    label: "A"
+    type: matrix
+    default: [[1.0]]
+    description: "State matrix A."
+  - name: b
+    label: "B"
+    type: matrix
+    default: [[0.1]]
+    description: "Input matrix B; its column count sets the input-port count."
+  - name: c
+    label: "C"
+    type: matrix
+    default: [[1.0]]
+    description: "Output matrix C; its row count sets the output-port count."
+  - name: d
+    label: "D"
+    type: matrix
+    default: [[0.0]]
+    description: "Feedthrough matrix D."
+  - name: ts
+    label: "Sample time"
+    type: number
+    default: 0.1
+    min: 0
+    description: "Fixed sample period in seconds."
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "DSS"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: dynamic
+  equation_template: control.discrete_state_space
+
+main_param: ts

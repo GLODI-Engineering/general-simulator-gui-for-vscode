@@ -1,0 +1,60 @@
+name: control.transform.park
+label: "Park Transform"
+version: 1
+category: control
+description: "Park (alpha-beta-zero to dq0) transform."
+
+aliases: [park, transform, coordinate transform]
+tags: [control, signal, transform, motor-control, general-simulator]
+
+ports:
+  inputs:
+    - id: alpha
+      label: "alpha"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 18
+    - id: beta
+      label: "beta"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 35
+    - id: zero
+      label: "zero"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 53
+    - id: theta
+      label: "theta"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 70
+  outputs:
+    - id: d
+      label: "d"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 22
+    - id: q
+      label: "q"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 44
+    - id: zero_out
+      label: "zero_out"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 66
+
+params: []
+
+symbol:
+  bbox: [80, 88]
+  shape: rect
+  text: "αβ0/dq0"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 0
+  equation_template: control.transform.park

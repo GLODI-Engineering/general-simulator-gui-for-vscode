@@ -1,0 +1,15 @@
+name: physical_electrical.passive.resistor
+type: physical-electrical.passive.resistor
+label: Electrical Resistor
+version: 1
+category: passive
+description: Physical electrical resistor with ideal, behavioral, and SPICE fidelity tiers.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [resistor, R]
+tags: [physical, electrical, passive]
+ports: {inputs: [{id: p, label: "+", kind: {domain: physical-electrical}, side: left, offset: 20}], outputs: [{id: n, label: "-", kind: {domain: physical-electrical}, side: right, offset: 20}]}
+params: [{name: R, label: Resistance, type: number, default: 1000.0}]
+fidelities: [{tier: ideal, ports: [{id: p, kind: physical-electrical, direction: inout}, {id: n, kind: physical-electrical, direction: inout}], params: [{id: R, type: number, default: 1000.0}], doc: Ideal resistor.}, {tier: behavioral, ports: [{id: p, kind: physical-electrical, direction: inout}, {id: n, kind: physical-electrical, direction: inout}], params: [{id: R, type: number, default: 1000.0}], doc: Behavioral resistor.}, {tier: spice, ports: [{id: p, kind: physical-electrical, direction: inout}, {id: n, kind: physical-electrical, direction: inout}], params: [{id: R, type: number, default: 1000.0}], doc: SPICE resistor.}]
+symbol: {bbox: [60, 40], shape: rect, text: R}
+behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.passive.resistor}

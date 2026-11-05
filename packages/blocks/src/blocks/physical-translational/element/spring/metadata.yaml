@@ -1,0 +1,15 @@
+name: physical_translational.element.spring
+type: physical-translational.element.spring
+label: Translational Spring
+version: 1
+category: power
+description: Translational mechanical spring.
+paradigm: physical-network
+domain: physical-translational
+aliases: [spring]
+tags: [physical, translational]
+ports: {inputs: [{id: a, label: a, kind: {domain: physical-translational}, side: left, offset: 20}], outputs: [{id: b, label: b, kind: {domain: physical-translational}, side: right, offset: 20}]}
+params: [{name: k, label: Stiffness, type: number, default: 1.0}]
+fidelities: [{tier: ideal, ports: [{id: a, kind: physical-translational, direction: inout}, {id: b, kind: physical-translational, direction: inout}], params: [{id: k, type: number, default: 1.0}], doc: Translational mechanical spring.}]
+symbol: {bbox: [70, 40], shape: rect, text: K}
+behavior: {causality: acausal, domain: mechanical, state_count: 1, equation_template: physical_translational.element.spring}

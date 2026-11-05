@@ -1,0 +1,79 @@
+name: semi.mosfet.n
+label: NMOS
+version: 1
+category: semiconductor
+description: "N-channel MOSFET. Model level set via model param."
+
+aliases: [M, nmos, mosfet n, NMOS]
+tags: [semiconductor, electrical, mosfet, n-channel, transistor]
+
+ports:
+  inputs:
+    - id: g
+      label: Gate
+      kind: { domain: electrical }
+      side: left
+      offset: 81
+    - id: d
+      label: Drain
+      kind: { domain: electrical }
+      side: top
+      offset: 51
+    - id: s
+      label: Source
+      kind: { domain: electrical }
+      side: bottom
+      offset: 51
+
+params:
+  - name: model
+    label: Model
+    type: string
+    default: ""
+    description: SPICE model name.
+  - name: W
+    label: Width
+    type: number
+    default: 1.0e-6
+    description: channel width m
+  - name: L
+    label: Length
+    type: number
+    default: 180.0e-9
+    description: channel length m
+  - name: M
+    label: Multiplier
+    type: integer
+    default: 1
+    description: multiplier
+  - name: AD
+    label: AD
+    type: number
+    default: 0.0
+    description: Drain diffusion area.
+  - name: AS
+    label: AS
+    type: number
+    default: 0.0
+    description: Source diffusion area.
+  - name: PD
+    label: PD
+    type: number
+    default: 0.0
+    description: Drain diffusion perimeter.
+  - name: PS
+    label: PS
+    type: number
+    default: 0.0
+    description: Source diffusion perimeter.
+
+symbol:
+  bbox: [80, 110]
+  shape: rect
+  text: NMOS
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: semi.mosfet.n

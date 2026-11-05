@@ -1,0 +1,15 @@
+name: physical_translational.element.damper
+type: physical-translational.element.damper
+label: Translational Damper
+version: 1
+category: power
+description: Translational mechanical damper.
+paradigm: physical-network
+domain: physical-translational
+aliases: [damper]
+tags: [physical, translational]
+ports: {inputs: [{id: a, label: a, kind: {domain: physical-translational}, side: left, offset: 20}], outputs: [{id: b, label: b, kind: {domain: physical-translational}, side: right, offset: 20}]}
+params: [{name: c, label: Damping, type: number, default: 1.0}]
+fidelities: [{tier: ideal, ports: [{id: a, kind: physical-translational, direction: inout}, {id: b, kind: physical-translational, direction: inout}], params: [{id: c, type: number, default: 1.0}], doc: Translational mechanical damper.}]
+symbol: {bbox: [70, 40], shape: rect, text: B}
+behavior: {causality: acausal, domain: mechanical, state_count: 0, equation_template: physical_translational.element.damper}

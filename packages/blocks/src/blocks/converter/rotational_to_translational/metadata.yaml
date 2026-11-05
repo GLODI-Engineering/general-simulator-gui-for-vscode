@@ -1,0 +1,15 @@
+name: converter.rotational_to_translational
+type: converter.rotational_to_translational
+label: Rotational to Translational
+version: 1
+category: power
+description: Converts rotational mechanical motion to translational motion.
+paradigm: converter
+domain: physical-translational
+aliases: [gear rack]
+tags: [converter]
+ports: {inputs: [{id: r, label: r, kind: {domain: physical-rotational}, side: left, offset: 20}], outputs: [{id: t, label: t, kind: {domain: physical-translational}, side: right, offset: 20}]}
+params: [{name: ratio, label: Ratio, type: number, default: 1.0}]
+fidelities: [{tier: ideal, ports: [{id: r, kind: physical-rotational, direction: inout}, {id: t, kind: physical-translational, direction: inout}], params: [{id: ratio, type: number, default: 1.0}], doc: Converts rotational mechanical motion to translational motion.}]
+symbol: {bbox: [90, 40], shape: rect, text: r-t}
+behavior: {causality: acausal, domain: mixed, state_count: 0, equation_template: converter.rotational_to_translational}

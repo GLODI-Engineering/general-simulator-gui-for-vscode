@@ -1,0 +1,189 @@
+name: physical_electrical.semiconductor.mosfet_n
+type: physical-electrical.semiconductor.mosfet_n
+label: NMOS
+version: 1
+category: semiconductor
+description: Physical electrical N-channel MOSFET.
+paradigm: physical-network
+domain: physical-electrical
+aliases:
+- mosfet
+- nmos
+- mosfet_n
+tags:
+- physical
+- electrical
+- semiconductor
+ports:
+  inputs:
+  - id: g
+    label: G
+    kind:
+      domain: physical-electrical
+    side: left
+    offset: 81
+  outputs:
+  - id: d
+    label: D
+    kind:
+      domain: physical-electrical
+    side: top
+    offset: 51
+  - id: s
+    label: S
+    kind:
+      domain: physical-electrical
+    side: bottom
+    offset: 51
+params:
+- name: model
+  label: Model
+  type: string
+  default: NMOS
+- name: W
+  label: Width
+  type: number
+  default: 1.0e-06
+- name: L
+  label: Length
+  type: number
+  default: 1.8e-07
+fidelities:
+- tier: ideal
+  ports:
+  - id: g
+    kind: physical-electrical
+    direction: inout
+  - id: d
+    kind: physical-electrical
+    direction: inout
+  - id: s
+    kind: physical-electrical
+    direction: inout
+  params:
+  - id: model
+    type: string
+    default: NMOS
+  - id: W
+    type: number
+    default: 1.0e-06
+  - id: L
+    type: number
+    default: 1.8e-07
+  doc: Ideal N-channel MOSFET.
+- tier: behavioral
+  doc: Behavioral N-channel MOSFET.
+- tier: spice
+  doc: SPICE N-channel MOSFET.
+symbol:
+  bbox:
+  - 80
+  - 110
+  shape: primitives
+  primitives:
+  - type: line
+    x1: 0
+    y1: 81
+    x2: 17
+    y2: 81
+  - type: line
+    x1: 17
+    y1: 35
+    x2: 17
+    y2: 81
+    lw: 2.52
+  - type: line
+    x1: 26
+    y1: 29
+    x2: 26
+    y2: 41
+  - type: line
+    x1: 26
+    y1: 52
+    x2: 26
+    y2: 64
+  - type: line
+    x1: 26
+    y1: 75
+    x2: 26
+    y2: 87
+  - type: line
+    x1: 26
+    y1: 29
+    x2: 69
+    y2: 29
+  - type: line
+    x1: 26
+    y1: 87
+    x2: 69
+    y2: 87
+  - type: line
+    x1: 51
+    y1: 0
+    x2: 51
+    y2: 29
+  - type: line
+    x1: 51
+    y1: 87
+    x2: 51
+    y2: 110
+  - type: line
+    x1: 26
+    y1: 58
+    x2: 51
+    y2: 58
+  - type: line
+    x1: 51
+    y1: 58
+    x2: 51
+    y2: 87
+  - type: line
+    x1: 69
+    y1: 29
+    x2: 69
+    y2: 41
+  - type: line
+    x1: 69
+    y1: 61
+    x2: 69
+    y2: 87
+  - type: line
+    x1: 69
+    y1: 41
+    x2: 57
+    y2: 61
+  - type: line
+    x1: 69
+    y1: 41
+    x2: 80
+    y2: 61
+  - type: line
+    x1: 57
+    y1: 61
+    x2: 80
+    y2: 61
+  - type: line
+    x1: 60
+    y1: 41
+    x2: 77
+    y2: 41
+  - type: line
+    x1: 26
+    y1: 58
+    x2: 37
+    y2: 52
+  - type: line
+    x1: 26
+    y1: 58
+    x2: 37
+    y2: 64
+  - type: circle
+    cx: 47
+    cy: 55
+    r: 51
+    lw: 1.6800000000000002
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: physical_electrical.semiconductor.mosfet_n

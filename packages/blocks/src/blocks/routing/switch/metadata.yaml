@@ -1,0 +1,60 @@
+name: routing.switch
+label: Switch
+version: 1
+description: Passes data0 or data1 based on a condition applied to the control input.
+paradigm: routing
+domain: signal
+aliases: [switch, conditional switch, ternary switch]
+tags: [routing, switch, conditional, signal-flow]
+params:
+  - name: criteria
+    label: Criteria
+    type: string
+    default: "u2 >= threshold"
+    description: 'Switching condition. Supported forms: u2 >= threshold, u2 > threshold, u2 ~= 0.'
+  - name: threshold
+    label: Threshold
+    type: number
+    default: 0.0
+    description: Threshold value used in the criteria expression.
+ports:
+  inputs:
+    - id: data0
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 10
+    - id: control
+      label: ctrl
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 20
+    - id: data1
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 30
+  outputs:
+    - id: out
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: right
+      offset: 20
+fidelities:
+  - tier: n_a
+    ports:
+      - {id: data0, kind: signal, direction: in, side: left, offset: 10}
+      - {id: control, kind: signal, direction: in, side: left, offset: 20}
+      - {id: data1, kind: signal, direction: in, side: left, offset: 30}
+      - {id: out, kind: signal, direction: out, side: right, offset: 20}
+    params:
+      - {id: criteria, type: string, default: "u2 >= threshold", doc: Switching condition expression.}
+      - {id: threshold, type: number, default: 0.0, doc: Threshold value.}
+    doc: Selects data0 or data1 based on the criteria applied to the control input.
+symbol: {bbox: [60, 60], shape: rect, text: SW}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: routing.switch}
+port_sigs:
+  data0: "inherit"
+  control: "[1]"
+  data1: "from(data0)"
+  out: "from(data0)"

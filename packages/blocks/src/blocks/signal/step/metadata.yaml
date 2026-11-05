@@ -1,0 +1,48 @@
+name: signal.step
+label: Step
+version: 1
+category: signal
+description: Step input — outputs `before` for t < t_step, `after` afterwards.
+
+aliases: [step, unit step, heaviside]
+tags: [source, signal, step]
+
+ports:
+  inputs: []
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params:
+  - name: t_step
+    label: Step time
+    type: number
+    default: 1.0
+    min: 0
+    description: Time at which the step occurs.
+  - name: before
+    label: Initial value
+    type: number
+    default: 0.0
+    description: Output value for t < t_step.
+  - name: after
+    label: Final value
+    type: number
+    default: 1.0
+    description: Output value for t >= t_step.
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: Step
+
+behavior:
+  causality: source
+  domain: signal
+  state_count: 0
+  equation_template: signal.step
+
+main_param: t_step

@@ -1,0 +1,75 @@
+name: passive.inductor
+label: Inductor
+version: 1
+category: passive
+description: Linear inductor. SPICE element L.
+paradigm: physical-network
+domain: physical-electrical
+
+aliases: [L, inductor, linear inductor]
+tags: [passive, electrical, inductor, linear]
+
+ports:
+  inputs:
+    - id: p
+      label: "+"
+      kind: { domain: electrical }
+      side: left
+      offset: 20
+  outputs:
+    - id: n
+      label: "-"
+      kind: { domain: electrical }
+      side: right
+      offset: 20
+
+params:
+  - name: L
+    label: Inductance
+    type: number
+    default: 1.0e-6
+    description: Inductance in henries.
+  - name: IC
+    label: Initial Condition
+    type: number
+    default: 0.0
+    description: Initial current through inductor in amperes.
+
+fidelities:
+  - tier: ideal
+    ports:
+      - id: p
+        kind: physical-electrical
+        direction: inout
+        label: "+"
+        side: left
+        offset: 20
+      - id: n
+        kind: physical-electrical
+        direction: inout
+        label: "-"
+        side: right
+        offset: 20
+    params:
+      - id: L
+        type: number
+        default: 1.0e-6
+        unit: H
+        doc: Inductance in henries.
+      - id: IC
+        type: number
+        default: 0.0
+        unit: A
+        doc: Initial current through inductor in amperes.
+    doc: Ideal linear inductor.
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: L
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 1
+  equation_template: passive.inductor

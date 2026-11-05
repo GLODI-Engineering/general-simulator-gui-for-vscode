@@ -1,0 +1,75 @@
+name: passive.capacitor
+label: Capacitor
+version: 1
+category: passive
+description: Linear capacitor. SPICE element C.
+paradigm: physical-network
+domain: physical-electrical
+
+aliases: [C, capacitor, linear capacitor]
+tags: [passive, electrical, capacitor, linear]
+
+ports:
+  inputs:
+    - id: p
+      label: "+"
+      kind: { domain: electrical }
+      side: left
+      offset: 20
+  outputs:
+    - id: n
+      label: "-"
+      kind: { domain: electrical }
+      side: right
+      offset: 20
+
+params:
+  - name: C
+    label: Capacitance
+    type: number
+    default: 1.0e-6
+    description: Capacitance in farads.
+  - name: IC
+    label: Initial Condition
+    type: number
+    default: 0.0
+    description: Initial voltage across capacitor in volts.
+
+fidelities:
+  - tier: ideal
+    ports:
+      - id: p
+        kind: physical-electrical
+        direction: inout
+        label: "+"
+        side: left
+        offset: 20
+      - id: n
+        kind: physical-electrical
+        direction: inout
+        label: "-"
+        side: right
+        offset: 20
+    params:
+      - id: C
+        type: number
+        default: 1.0e-6
+        unit: F
+        doc: Capacitance in farads.
+      - id: IC
+        type: number
+        default: 0.0
+        unit: V
+        doc: Initial voltage across capacitor in volts.
+    doc: Ideal linear capacitor.
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: C
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 1
+  equation_template: passive.capacitor

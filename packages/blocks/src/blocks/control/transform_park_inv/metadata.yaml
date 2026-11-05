@@ -1,0 +1,60 @@
+name: control.transform.park_inv
+label: "Inverse Park Transform"
+version: 1
+category: control
+description: "Inverse Park (dq0 to alpha-beta-zero) transform."
+
+aliases: [park inv, transform, coordinate transform]
+tags: [control, signal, transform, motor-control, general-simulator]
+
+ports:
+  inputs:
+    - id: d
+      label: "d"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 18
+    - id: q
+      label: "q"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 35
+    - id: zero
+      label: "zero"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 53
+    - id: theta
+      label: "theta"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 70
+  outputs:
+    - id: alpha
+      label: "alpha"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 22
+    - id: beta
+      label: "beta"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 44
+    - id: zero_out
+      label: "zero_out"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 66
+
+params: []
+
+symbol:
+  bbox: [80, 88]
+  shape: rect
+  text: "dq0/αβ0"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 0
+  equation_template: control.transform.park_inv

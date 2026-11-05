@@ -1,0 +1,618 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://general-simulator.dev/schemas/model/gsim_sch.schema.json",
+  "title": "GsimSchDocument",
+  "description": "Canonical .gsim_sch v2 model document shared by the frontend, desktop shell, and backend kernel.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "model"],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 2,
+      "description": "Top-level file format version. Must be 2. The v2 loader rejects any other value."
+    },
+    "model": {
+      "$ref": "#/$defs/Model"
+    }
+  },
+  "$defs": {
+    "IntegerPair": {
+      "type": "array",
+      "items": { "type": "integer" },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "Rotation": {
+      "type": "integer",
+      "enum": [0, 90, 180, 270]
+    },
+    "Mirror": {
+      "type": "string",
+      "enum": ["none", "x", "y"]
+    },
+    "PortKind": {
+      "type": "string",
+      "enum": [
+        "signal",
+        "signal-bus",
+        "function-call",
+        "physical-electrical",
+        "physical-translational",
+        "physical-rotational",
+        "physical-thermal",
+        "physical-signal",
+        "mixed",
+        "reserved.physical-magnetic",
+        "reserved.physical-hydraulic",
+        "reserved.physical-fluid"
+      ]
+    },
+    "Fidelity": {
+      "type": "string",
+      "enum": ["ideal", "behavioral", "spice", "n_a"]
+    },
+    "ModelRole": {
+      "type": "string",
+      "enum": ["schematic", "library"],
+      "default": "schematic",
+      "description": "Top-level document role (spec §4.1). 'schematic' (the default when absent) is a design meant to be opened and simulated directly; 'library' is reusable content — a pre-wired stamp to copy into a parent schematic and/or a carrier for subckt_defs — that tooling must not offer to run on its own. Intent hint only: it adds no structural validation."
+    },
+    "Paradigm": {
+      "type": "string",
+      "enum": [
+        "signal-flow",
+        "physical-network",
+        "converter",
+        "hierarchy",
+        "routing",
+        "annotation",
+        "spice-subckt"
+      ]
+    },
+    "ParamValue": {
+      "description": "A param value: JSON number, boolean, expression string (starts/ends with braces), or identifier reference string.",
+      "oneOf": [
+        { "type": "number" },
+        { "type": "boolean" },
+        {
+          "type": "string",
+          "description": "Either an expression string matching ^\\{.+\\}$ or a param name reference matching ^[A-Za-z_][A-Za-z0-9_]*$."
+        }
+      ]
+    },
+    "ParamEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "value"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "value": { "$ref": "#/$defs/ParamValue" },
+        "unit": { "type": "string" },
+        "doc": { "type": "string" }
+      }
+    },
+    "Endpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["block", "port"],
+      "properties": {
+        "block": { "type": "string", "minLength": 1 },
+        "port": { "type": "string", "minLength": 1 }
+      }
+    },
+    "Block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "paradigm",
+        "domain",
+        "fidelity",
+        "position",
+        "rotation",
+        "mirror",
+        "params",
+        "ic"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+        },
+        "type": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z][a-z0-9_-]*)+$"
+        },
+        "paradigm": { "$ref": "#/$defs/Paradigm" },
+        "domain": { "$ref": "#/$defs/PortKind" },
+        "fidelity": { "$ref": "#/$defs/Fidelity" },
+        "position": { "$ref": "#/$defs/IntegerPair" },
+        "rotation": { "$ref": "#/$defs/Rotation" },
+        "mirror": { "$ref": "#/$defs/Mirror" },
+        "params": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/ParamValue" }
+        },
+        "ic": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/ParamValue" }
+        },
+        "label": { "type": "string" },
+        "subckt_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "For a spice-subckt.* Block: the `id` of the SubcktDef in `model.subckt_defs` this block instantiates. This is the serialized field name — `def_ref` is only the name used on the builder's input spec (NewSubcktInstanceSpec) and on SubcktInstance (def-to-def nesting), never on a Block."
+        },
+        "subsystem": {
+          "oneOf": [{ "$ref": "#/$defs/SubsystemModel" }, { "type": "null" }]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "type": { "type": "string", "pattern": "^signal-flow\\." } },
+            "required": ["type"]
+          },
+          "then": { "properties": { "paradigm": { "const": "signal-flow" } } }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "type": "string",
+                "pattern": "^(physical-electrical|physical-translational|physical-rotational|physical-thermal)\\."
+              }
+            },
+            "required": ["type"]
+          },
+          "then": { "properties": { "paradigm": { "const": "physical-network" } } }
+        },
+        {
+          "if": {
+            "properties": { "type": { "type": "string", "pattern": "^converter\\." } },
+            "required": ["type"]
+          },
+          "then": { "properties": { "paradigm": { "const": "converter" } } }
+        },
+        {
+          "if": {
+            "properties": { "type": { "type": "string", "pattern": "^hierarchy\\." } },
+            "required": ["type"]
+          },
+          "then": { "properties": { "paradigm": { "const": "hierarchy" } } }
+        },
+        {
+          "if": {
+            "properties": { "type": { "type": "string", "pattern": "^routing\\." } },
+            "required": ["type"]
+          },
+          "then": { "properties": { "paradigm": { "const": "routing" } } }
+        },
+        {
+          "if": {
+            "properties": { "type": { "type": "string", "pattern": "^annotation\\." } },
+            "required": ["type"]
+          },
+          "then": { "properties": { "paradigm": { "const": "annotation" } } }
+        },
+        {
+          "if": {
+            "properties": { "type": { "type": "string", "pattern": "^spice-subckt\\." } },
+            "required": ["type"]
+          },
+          "then": { "properties": { "paradigm": { "const": "spice-subckt" } } }
+        },
+        {
+          "if": {
+            "properties": { "paradigm": { "const": "spice-subckt" } },
+            "required": ["paradigm"]
+          },
+          "then": {
+            "properties": {
+              "subsystem": { "const": null }
+            },
+            "description": "A spice-subckt instance references a SubcktDef by id via its own `subckt_ref` field; it has no graphical subsystem body of its own."
+          }
+        }
+      ]
+    },
+    "Wire": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "from", "to", "waypoints", "pinned", "net", "kind"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "from": { "$ref": "#/$defs/Endpoint" },
+        "to": { "$ref": "#/$defs/Endpoint" },
+        "waypoints": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/IntegerPair" }
+        },
+        "pinned": { "type": "boolean" },
+        "net": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+        "kind": { "$ref": "#/$defs/PortKind" },
+        "label": { "oneOf": [{ "type": "string" }, { "type": "null" }] }
+      }
+    },
+    "NetEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "kind", "scope"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+        },
+        "kind": { "$ref": "#/$defs/PortKind" },
+        "scope": { "type": "string", "enum": ["global", "local"] },
+        "is_reference": { "type": "boolean" }
+      }
+    },
+    "AnnotationStyle": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "Annotation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": {
+          "type": "string",
+          "enum": ["text", "polyline", "rectangle", "ellipse"]
+        },
+        "position": { "$ref": "#/$defs/IntegerPair" },
+        "size": { "$ref": "#/$defs/IntegerPair" },
+        "rotation": { "$ref": "#/$defs/Rotation" },
+        "text": { "type": "string" },
+        "points": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/IntegerPair" }
+        },
+        "style": { "$ref": "#/$defs/AnnotationStyle" }
+      }
+    },
+    "AnalysisOP": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "const": "OP" }
+      }
+    },
+    "AnalysisTRAN": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "t_end", "t_step"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "const": "TRAN" },
+        "t_start": { "$ref": "#/$defs/ParamValue" },
+        "t_end": { "$ref": "#/$defs/ParamValue" },
+        "t_step": { "$ref": "#/$defs/ParamValue" },
+        "uic": { "type": "boolean" },
+        "sweeps": { "type": "array", "items": { "$ref": "#/$defs/Sweep" } }
+      }
+    },
+    "AnalysisAC": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "sweep", "n_points", "f_start", "f_end"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "const": "AC" },
+        "sweep": { "type": "string", "enum": ["LIN", "DEC", "OCT"] },
+        "n_points": { "$ref": "#/$defs/ParamValue" },
+        "f_start": { "$ref": "#/$defs/ParamValue" },
+        "f_end": { "$ref": "#/$defs/ParamValue" },
+        "sweeps": { "type": "array", "items": { "$ref": "#/$defs/Sweep" } }
+      }
+    },
+    "AnalysisDC": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "source", "start", "stop", "step"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "const": "DC" },
+        "source": { "type": "string", "minLength": 1 },
+        "start": { "$ref": "#/$defs/ParamValue" },
+        "stop": { "$ref": "#/$defs/ParamValue" },
+        "step": { "$ref": "#/$defs/ParamValue" },
+        "sweeps": { "type": "array", "items": { "$ref": "#/$defs/Sweep" } }
+      }
+    },
+    "AnalysisReserved": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "enum": ["NOISE", "TF"] }
+      }
+    },
+    "Analysis": {
+      "oneOf": [
+        { "$ref": "#/$defs/AnalysisOP" },
+        { "$ref": "#/$defs/AnalysisTRAN" },
+        { "$ref": "#/$defs/AnalysisAC" },
+        { "$ref": "#/$defs/AnalysisDC" },
+        { "$ref": "#/$defs/AnalysisReserved" }
+      ]
+    },
+    "SweepByValues": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["param", "values"],
+      "properties": {
+        "param": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+        "values": { "type": "array", "items": { "type": "number" } }
+      }
+    },
+    "SweepLin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["param", "lin"],
+      "properties": {
+        "param": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+        "lin": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["start", "stop", "n"],
+          "properties": {
+            "start": { "$ref": "#/$defs/ParamValue" },
+            "stop": { "$ref": "#/$defs/ParamValue" },
+            "n": { "$ref": "#/$defs/ParamValue" }
+          }
+        }
+      }
+    },
+    "SweepDec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["param", "dec"],
+      "properties": {
+        "param": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+        "dec": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["start", "stop", "n_per_decade"],
+          "properties": {
+            "start": { "$ref": "#/$defs/ParamValue" },
+            "stop": { "$ref": "#/$defs/ParamValue" },
+            "n_per_decade": { "$ref": "#/$defs/ParamValue" }
+          }
+        }
+      }
+    },
+    "Sweep": {
+      "oneOf": [
+        { "$ref": "#/$defs/SweepByValues" },
+        { "$ref": "#/$defs/SweepLin" },
+        { "$ref": "#/$defs/SweepDec" }
+      ]
+    },
+    "ICEntryNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "name", "value"],
+      "properties": {
+        "kind": { "type": "string", "const": "node" },
+        "name": { "type": "string", "minLength": 1 },
+        "value": { "$ref": "#/$defs/ParamValue" }
+      }
+    },
+    "ICEntryBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "block", "var", "value"],
+      "properties": {
+        "kind": { "type": "string", "const": "block" },
+        "block": { "type": "string", "minLength": 1 },
+        "var": { "type": "string", "minLength": 1 },
+        "value": { "$ref": "#/$defs/ParamValue" }
+      }
+    },
+    "ICEntry": {
+      "oneOf": [{ "$ref": "#/$defs/ICEntryNode" }, { "$ref": "#/$defs/ICEntryBlock" }]
+    },
+    "SolverOptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "abstol": { "type": "number" },
+        "reltol": { "type": "number" },
+        "vntol": { "type": "number" },
+        "method": { "type": "string", "enum": ["trap", "gear", "bdf", "radau", "rk45", "rk23"] },
+        "method_options": { "type": "object", "additionalProperties": true }
+      }
+    },
+    "OutputOptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "save_all_nodes": { "type": "boolean" },
+        "save_nodes": { "type": "array", "items": { "type": "string" } },
+        "save_currents": { "type": "array", "items": { "type": "string" } },
+        "save_block_states": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "SimulationDirective": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "default_analysis": { "type": "string", "minLength": 1 },
+        "analyses": { "type": "array", "items": { "$ref": "#/$defs/Analysis" } },
+        "solver": { "$ref": "#/$defs/SolverOptions" },
+        "initial_conditions": { "type": "array", "items": { "$ref": "#/$defs/ICEntry" } },
+        "output": { "$ref": "#/$defs/OutputOptions" }
+      }
+    },
+    "SubcktPort": {
+      "description": "An acausal physical-network pin on a SubcktDef, positional in the emitted .SUBCKT pin list. No direction: SPICE subckt pins are acausal, unlike SubsystemPort's in/out signal-flow ports.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "physical-electrical",
+            "physical-translational",
+            "physical-rotational",
+            "physical-thermal"
+          ]
+        }
+      }
+    },
+    "SubcktInstance": {
+      "description": "A structured reference from one SubcktDef's body to another SubcktDef, emitted as an X-card. Lets a SubcktDef nest other SubcktDefs the way real SPICE subckts nest other subckts, without hand-writing X-card text.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "def_ref", "connections"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "pattern": "^[A-Za-z][A-Za-z0-9_-]*$" },
+        "def_ref": { "type": "string", "minLength": 1 },
+        "connections": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Local net names within the parent def's body, positional, matching the referenced SubcktDef's ports order."
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/ParamValue" }
+        }
+      }
+    },
+    "SubcktDef": {
+      "description": "A reusable, opaque-but-readable SPICE subcircuit definition. `body` is raw SPICE element-card text (visible verbatim to a reader, e.g. an AI, even though it is not decomposed into blocks/wires); `instances` structurally references other SubcktDefs for nested reuse. Emitted once as `.SUBCKT <name> <ports...> ... .ENDS`; instantiated many times via spice-subckt.* Block.subckt_ref.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "ports", "body"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "pattern": "^[A-Za-z][A-Za-z0-9_-]*$" },
+        "name": { "type": "string", "minLength": 1 },
+        "ports": { "type": "array", "items": { "$ref": "#/$defs/SubcktPort" } },
+        "params": { "type": "array", "items": { "$ref": "#/$defs/ParamEntry" } },
+        "instances": { "type": "array", "items": { "$ref": "#/$defs/SubcktInstance" } },
+        "body": { "type": "string" },
+        "blocks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Block" },
+          "description": "Optional .gsim_sch-native body: the def's internal topology as real blocks, alongside (or instead of) the raw `body` card text. Present when the subcircuit was authored structurally rather than pasted as SPICE. Editors use it to draw a preview of the subcircuit's internals inside each instance's box."
+        },
+        "wires": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Wire" },
+          "description": "Wires of the .gsim_sch-native body, paired with `blocks`."
+        }
+      }
+    },
+    "SubsystemPort": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "direction", "kind", "boundary_block"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "direction": { "type": "string", "enum": ["in", "out"] },
+        "kind": { "$ref": "#/$defs/PortKind" },
+        "boundary_block": { "type": "string", "minLength": 1 }
+      }
+    },
+    "ParamAlias": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["child", "parent"],
+      "properties": {
+        "child": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
+        "parent": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" }
+      }
+    },
+    "SubsystemModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "grid",
+        "params",
+        "blocks",
+        "wires",
+        "lines",
+        "nets",
+        "simulation",
+        "metadata"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "pattern": "^[A-Za-z][A-Za-z0-9_-]*$" },
+        "name": { "type": "string", "minLength": 1 },
+        "grid": { "type": "integer", "minimum": 1 },
+        "params": { "type": "array", "items": { "$ref": "#/$defs/ParamEntry" } },
+        "blocks": { "type": "array", "items": { "$ref": "#/$defs/Block" } },
+        "wires": { "type": "array", "items": { "$ref": "#/$defs/Wire" } },
+        "lines": { "type": "array", "items": { "$ref": "#/$defs/Annotation" } },
+        "nets": { "type": "array", "items": { "$ref": "#/$defs/NetEntry" } },
+        "simulation": { "$ref": "#/$defs/SimulationDirective" },
+        "metadata": { "type": "object", "additionalProperties": true },
+        "ports": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SubsystemPort" }
+        },
+        "parent_param_aliases": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ParamAlias" }
+        },
+        "subckt_defs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SubcktDef" }
+        }
+      }
+    },
+    "Model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "grid",
+        "params",
+        "blocks",
+        "wires",
+        "lines",
+        "nets",
+        "simulation",
+        "metadata"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+        },
+        "name": { "type": "string", "minLength": 1 },
+        "role": { "$ref": "#/$defs/ModelRole" },
+        "grid": { "type": "integer", "minimum": 1 },
+        "params": { "type": "array", "items": { "$ref": "#/$defs/ParamEntry" } },
+        "blocks": { "type": "array", "items": { "$ref": "#/$defs/Block" } },
+        "wires": { "type": "array", "items": { "$ref": "#/$defs/Wire" } },
+        "lines": { "type": "array", "items": { "$ref": "#/$defs/Annotation" } },
+        "nets": { "type": "array", "items": { "$ref": "#/$defs/NetEntry" } },
+        "simulation": { "$ref": "#/$defs/SimulationDirective" },
+        "metadata": { "type": "object", "additionalProperties": true },
+        "subckt_defs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SubcktDef" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+name: signal_flow.attributes.signal_specification
+type: signal-flow.attributes.signal_specification
+label: Signal Specification
+version: 1
+category: signal
+description: >
+  Compile-time hard constraint on signal dimension. Passes the signal through
+  unchanged at runtime but raises DimensionMismatchError at IR-1 build if the
+  connected signal does not match the declared dim.
+paradigm: signal-flow
+domain: signal
+aliases: [signal_spec, signal specification]
+tags: [signal-flow, attributes, dimension]
+params:
+  - name: dim
+    label: Dimension
+    type: vector
+    default: [1]
+    description: Required dimension of the signal (list of ints, e.g. [3] for a 3-vector).
+  - name: complexity
+    label: Complexity
+    type: enum
+    default: real
+    choices: [real, complex]
+    description: Required signal complexity.
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 20
+  outputs:
+    - id: out
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: right
+      offset: 20
+symbol: {bbox: [70, 40], shape: rect, text: Spec}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.attributes.signal_specification}
+port_sigs:
+  in: "inherit"
+  out: "from(in)"

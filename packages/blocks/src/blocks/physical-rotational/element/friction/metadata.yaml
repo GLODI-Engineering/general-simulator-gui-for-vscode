@@ -1,0 +1,15 @@
+name: physical_rotational.element.friction
+type: physical-rotational.element.friction
+label: Rotational Friction
+version: 1
+category: element
+description: Rotational friction element (Coulomb + viscous).
+paradigm: physical-network
+domain: physical-rotational
+aliases: [rotational_friction]
+tags: [physical, rotational]
+ports: {inputs: [{id: a, label: a, kind: {domain: physical-rotational}, side: left, offset: 20}], outputs: [{id: b, label: b, kind: {domain: physical-rotational}, side: right, offset: 20}]}
+params: [{name: coulomb, label: Coulomb torque Nm, type: number, default: 1.0}, {name: viscous, label: Viscous damping Nms/rad, type: number, default: 0.1}]
+fidelities: [{tier: ideal, doc: Smooth rotational friction.}, {tier: behavioral, doc: Stribeck rotational friction.}]
+symbol: {bbox: [70, 40], shape: rect, text: Tf}
+behavior: {causality: acausal, domain: mechanical, state_count: 0, equation_template: physical_rotational.element.friction}

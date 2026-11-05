@@ -1,0 +1,65 @@
+name: passive.diode.ideal
+label: "Ideal Diode"
+version: 1
+category: semiconductor
+description: "Ideal diode: piecewise-conductance forward/reverse model with a breakdown branch."
+
+aliases: [ideal diode, diode, d, semi.diode]
+tags: [passive, electrical, diode, ideal, general-simulator]
+
+ports:
+  inputs:
+    - id: a
+      label: "A"
+      kind: { domain: electrical }
+      side: left
+      offset: 20
+  outputs:
+    - id: k
+      label: "K"
+      kind: { domain: electrical }
+      side: right
+      offset: 20
+
+params:
+  - name: g_on
+    label: "On conductance"
+    type: number
+    default: 5.0
+    min: 0
+    description: "Forward conductance in siemens."
+  - name: g_off
+    label: "Off conductance"
+    type: number
+    default: 1e-09
+    min: 0
+    description: "Reverse leakage conductance in siemens."
+  - name: v_th
+    label: "Threshold voltage"
+    type: number
+    default: 0.6
+    description: "Forward threshold voltage in volts."
+  - name: v_breakdown
+    label: "Breakdown voltage"
+    type: number
+    default: -100.0
+    description: "Reverse breakdown voltage in volts."
+  - name: g_breakdown
+    label: "Breakdown conductance"
+    type: number
+    default: 0.0
+    min: 0
+    description: "Conductance past reverse breakdown, in siemens."
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "D"
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: passive.diode.ideal
+
+main_param: v_th

@@ -1,0 +1,53 @@
+name: math.fn3
+label: "Math Function (ternary)"
+version: 1
+category: signal
+description: "Ternary waveform-arithmetic function applied to three signals."
+
+aliases: [fn3, ternary function, math function]
+tags: [math, signal, arithmetic, general-simulator]
+
+ports:
+  inputs:
+    - id: in1
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 16
+    - id: in2
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 33
+    - id: in3
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 50
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 33
+
+params:
+  - name: fn
+    label: "Function"
+    type: enum
+    choices: [if, limit]
+    default: if
+    description: "Ternary waveform function to apply."
+
+symbol:
+  bbox: [60, 66]
+  shape: rect
+  text: "{fn}"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 0
+  equation_template: math.fn3
+
+main_param: fn

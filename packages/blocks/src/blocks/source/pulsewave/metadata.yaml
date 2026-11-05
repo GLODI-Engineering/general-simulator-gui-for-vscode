@@ -1,0 +1,72 @@
+name: source.pulsewave
+label: "Pulse Wave Source"
+version: 1
+category: sources
+description: "Trapezoidal pulse signal source, using ngspice PULSE() semantics."
+
+aliases: [pulsewave, pulse, square wave]
+tags: [source, signal, pulse, transient, general-simulator]
+
+ports:
+  inputs: []
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params:
+  - name: v1
+    label: "Initial value"
+    type: number
+    default: 0.0
+    description: "Value before the first pulse."
+  - name: v2
+    label: "Pulsed value"
+    type: number
+    default: 1.0
+    description: "Value during the pulse."
+  - name: td
+    label: "Delay"
+    type: number
+    default: 0.0
+    min: 0
+    description: "Delay before the first edge, in seconds."
+  - name: tr
+    label: "Rise time"
+    type: number
+    default: 0.0
+    min: 0
+    description: "Rise time in seconds."
+  - name: tf
+    label: "Fall time"
+    type: number
+    default: 0.0
+    min: 0
+    description: "Fall time in seconds."
+  - name: pw
+    label: "Pulse width"
+    type: number
+    default: 1e+30
+    min: 0
+    description: "Flat-top width in seconds (1e30 = never falls)."
+  - name: per
+    label: "Period"
+    type: number
+    default: 1e+30
+    min: 0
+    description: "Period in seconds (1e30 = single pulse)."
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "PULSE"
+
+behavior:
+  causality: source
+  domain: signal
+  state_count: 0
+  equation_template: source.pulsewave
+
+main_param: per

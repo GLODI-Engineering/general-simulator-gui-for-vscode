@@ -1,0 +1,17 @@
+{
+  "name": "@gensim/schemas",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./generated/typescript/index.ts",
+  "types": "./generated/typescript/index.ts",
+  "scripts": {
+    "codegen": "node scripts/codegen.mjs",
+    "codegen:check": "node scripts/codegen.mjs --check",
+    "gen:ts": "json-schema-to-typescript -i 'definitions/**/*.json' -o generated/typescript/",
+    "gen:py": "datamodel-codegen --input definitions --output generated/python --input-file-type jsonschema"
+  },
+  "devDependencies": {
+    "json-schema-to-typescript": "^15.0.3"
+  }
+}

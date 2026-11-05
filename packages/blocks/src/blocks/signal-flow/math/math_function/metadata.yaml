@@ -1,0 +1,19 @@
+name: signal_flow.math.math_function
+type: signal-flow.math.math_function
+label: Math Function
+version: 1
+category: control
+description: Configurable math function block.
+paradigm: signal-flow
+domain: signal
+aliases: [math function]
+tags: [signal-flow, math]
+ports: {inputs: [{id: in, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: [{name: operator, label: Operator, type: enum, default: exp, choices: [exp, log, log10, pow, sqrt]}]
+fidelities: [{tier: n_a, ports: [{id: in, kind: signal, direction: in, side: left, offset: 20}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: operator, type: enum, default: exp, choices: [exp, log, log10, pow, sqrt]}], doc: Configurable math function block.}]
+symbol: {bbox: [80, 40], shape: rect, text: f(u)}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.math.math_function}
+main_param: operator
+port_sigs:
+  in: "inherit"
+  out: "from(in)"

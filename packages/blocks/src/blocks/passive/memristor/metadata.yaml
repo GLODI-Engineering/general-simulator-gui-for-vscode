@@ -1,0 +1,40 @@
+name: passive.memristor
+label: Memristor (Xyce)
+version: 1
+category: passive
+description: Memristor device (TEAM, Yakopcic, PEM formulations). Xyce only.
+
+aliases: [MEM, memristor]
+tags: [passive, electrical, memristor, xyce-only]
+
+ports:
+  inputs:
+    - id: p
+      label: "+"
+      kind: { domain: electrical }
+      side: left
+      offset: 20
+  outputs:
+    - id: n
+      label: "-"
+      kind: { domain: electrical }
+      side: right
+      offset: 20
+
+params:
+  - name: model
+    label: Model
+    type: string
+    default: ""
+    description: Xyce memristor model name (TEAM, Yakopcic, or PEM).
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: MEM
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 1
+  equation_template: passive.memristor

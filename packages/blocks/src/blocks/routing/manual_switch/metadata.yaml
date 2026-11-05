@@ -1,0 +1,47 @@
+name: routing.manual_switch
+label: Manual Switch
+version: 1
+description: Passes through one of two inputs based on params.current (0 or 1).
+paradigm: routing
+domain: signal
+aliases: [manual switch, toggle, selector switch]
+tags: [routing, switch, signal-flow]
+params:
+  - name: current
+    label: Active input
+    type: integer
+    default: 0
+    description: Index (0 or 1) of the input port that passes through to the output.
+ports:
+  inputs:
+    - id: in0
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 10
+    - id: in1
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 30
+  outputs:
+    - id: out
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: right
+      offset: 20
+fidelities:
+  - tier: n_a
+    ports:
+      - {id: in0, kind: signal, direction: in, side: left, offset: 10}
+      - {id: in1, kind: signal, direction: in, side: left, offset: 30}
+      - {id: out, kind: signal, direction: out, side: right, offset: 20}
+    params:
+      - {id: current, type: integer, default: 0, doc: "Active input index (0 or 1)."}
+    doc: Selects one of two inputs based on the current parameter.
+symbol: {bbox: [60, 60], shape: rect, text: SW}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: routing.manual_switch}
+port_sigs:
+  in0: "inherit"
+  in1: "from(in0)"
+  out: "from(in0)"

@@ -1,0 +1,36 @@
+name: converter.electrical_to_rotational
+type: converter.electrical_to_rotational
+label: Electrical to Rotational
+version: 1
+category: power
+description: Converts electrical energy to rotational mechanical energy (DC motor model).
+paradigm: converter
+domain: physical-rotational
+aliases: [electrical to rotational, dc motor]
+tags: [converter]
+ports:
+  inputs:
+    - {id: e, label: e, kind: {domain: physical-electrical}, side: left, offset: 20}
+  outputs:
+    - {id: r, label: r, kind: {domain: physical-rotational}, side: right, offset: 20}
+params:
+  - {name: kt, label: Torque constant (N·m/A), type: number, default: 0.01}
+  - {name: ke, label: Back-EMF constant (V·s/rad), type: number, default: 0.01}
+fidelities:
+  - tier: ideal
+    ports:
+      - {id: e, kind: physical-electrical, direction: inout}
+      - {id: r, kind: physical-rotational, direction: inout}
+    params:
+      - {id: kt, type: number, default: 0.01}
+      - {id: ke, type: number, default: 0.01}
+    doc: Ideal DC motor coupling between electrical and rotational domains.
+symbol:
+  bbox: [90, 40]
+  shape: rect
+  text: e-r
+behavior:
+  causality: acausal
+  domain: mixed
+  state_count: 0
+  equation_template: converter.electrical_to_rotational

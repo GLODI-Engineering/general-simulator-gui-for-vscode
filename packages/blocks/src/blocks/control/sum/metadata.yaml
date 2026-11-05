@@ -1,0 +1,45 @@
+name: control.sum
+label: Sum
+version: 1
+category: control
+description: Weighted summation. Number of inputs and their signs come from `signs`.
+
+aliases: [adder, summer, summation, sigma]
+tags: [sum, adder, control, linear]
+
+ports:
+  inputs: []
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+  variadic_inputs:
+    count_from: signs
+    template:
+      id: in
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 0
+
+params:
+  - name: signs
+    label: Signs
+    type: string
+    default: "++"
+    description: Sequence of `+` or `-` characters, one per input port.
+
+symbol:
+  bbox: [40, 40]
+  shape: circle
+  text: "Σ"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 0
+  equation_template: control.sum
+
+main_param: signs

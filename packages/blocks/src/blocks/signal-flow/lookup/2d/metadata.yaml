@@ -1,0 +1,19 @@
+name: signal_flow.lookup.table_2d
+type: signal-flow.lookup.2d
+label: Lookup 2D
+version: 1
+category: control
+description: Two-dimensional lookup table.
+paradigm: signal-flow
+domain: signal
+aliases: [lookup 2d]
+tags: [signal-flow, lookup]
+ports: {inputs: [{id: in0, label: x, kind: {domain: signal, dims: scalar}, side: left, offset: 14}, {id: in1, label: y, kind: {domain: signal, dims: scalar}, side: left, offset: 26}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: [{name: x, label: X breakpoints, type: vector, default: [0.0, 1.0]}, {name: y, label: Y breakpoints, type: vector, default: [0.0, 1.0]}, {name: table, label: Table, type: matrix, default: [[0.0, 1.0], [1.0, 2.0]]}]
+fidelities: [{tier: n_a, ports: [{id: in0, kind: signal, direction: in, side: left, offset: 14}, {id: in1, kind: signal, direction: in, side: left, offset: 26}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: x, type: vector, default: [0.0, 1.0]}, {id: y, type: vector, default: [0.0, 1.0]}, {id: table, type: matrix, default: [[0.0, 1.0], [1.0, 2.0]]}], doc: Two-dimensional lookup table.}]
+symbol: {bbox: [80, 40], shape: rect, text: LUT2}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.lookup.table_2d}
+port_sigs:
+  in0: "inherit"
+  in1: "inherit"
+  out: "[1]"

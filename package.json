@@ -1,0 +1,31 @@
+{
+  "name": "general-simulator-gui-for-vscode",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "build": "pnpm --filter @gensim/frontend build && pnpm --filter general-simulator-gui build",
+    "build:webviews": "pnpm --filter @gensim/frontend build",
+    "build:extension": "pnpm --filter general-simulator-gui build",
+    "dev:webviews": "pnpm --filter @gensim/frontend dev",
+    "test": "pnpm --filter @gensim/frontend test && pnpm --filter general-simulator-gui test",
+    "test:webviews": "pnpm --filter @gensim/frontend test",
+    "test:extension": "pnpm --filter general-simulator-gui test",
+    "test:extension:integration": "pnpm --filter general-simulator-gui test:integration",
+    "typecheck": "pnpm --filter @gensim/frontend typecheck && pnpm --filter general-simulator-gui typecheck",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint": "biome check --write .",
+    "lint:check": "biome check .",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "package": "pnpm build && pnpm --filter general-simulator-gui package"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@playwright/test": "^1.48.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  },
+  "description": "General Simulator GUI for VS Code - schematic capture, component authoring and simulation for the general-simulator engine."
+}

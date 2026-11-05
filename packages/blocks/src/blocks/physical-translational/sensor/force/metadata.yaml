@@ -1,0 +1,15 @@
+name: physical_translational.sensor.force
+type: physical-translational.sensor.force
+label: Force Sensor
+version: 1
+category: sensor
+description: Translational force sensor — outputs force as physical-signal.
+paradigm: physical-network
+domain: physical-translational
+aliases: [force_sensor]
+tags: [physical, translational, sensor]
+ports: {inputs: [{id: p, label: p, kind: {domain: physical-translational}, side: left, offset: 20}, {id: n, label: n, kind: {domain: physical-translational}, side: right, offset: 20}], outputs: [{id: out, label: F, kind: {domain: physical-signal}, side: top, offset: 20}]}
+params: []
+fidelities: [{tier: ideal, doc: Ideal force sensor.}, {tier: behavioral, doc: Behavioral force sensor.}]
+symbol: {bbox: [70, 40], shape: rect, text: FS}
+behavior: {causality: acausal, domain: mechanical, state_count: 0, equation_template: physical_translational.sensor.force}

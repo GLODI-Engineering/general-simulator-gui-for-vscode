@@ -1,0 +1,16 @@
+[project]
+name = "engine-xyce"
+version = "0.1.0"
+description = "Xyce solver adapter. Phase 1 ships via subprocess (netlist in, results out); native binding TBD."
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "h5py>=3.11",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/engine_xyce"]

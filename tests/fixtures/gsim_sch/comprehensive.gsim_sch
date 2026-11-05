@@ -1,0 +1,480 @@
+{
+  "schema_version": 2,
+  "model": {
+    "id": "comprehensive-v2",
+    "name": "Comprehensive v2 Fixture",
+    "grid": 10,
+    "params": [
+      {
+        "name": "A",
+        "value": 5.0
+      },
+      {
+        "name": "B",
+        "value": "{A * 2}"
+      }
+    ],
+    "blocks": [
+      {
+        "id": "const1",
+        "type": "signal.constant",
+        "paradigm": "signal-flow",
+        "domain": "signal",
+        "fidelity": "n_a",
+        "position": [
+          0,
+          0
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "value": "A"
+        },
+        "ic": {},
+        "label": "Source A"
+      },
+      {
+        "id": "goto1",
+        "type": "routing.goto",
+        "paradigm": "routing",
+        "domain": "signal",
+        "fidelity": "n_a",
+        "position": [
+          100,
+          0
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "tag": "v_op",
+          "visibility": "global"
+        },
+        "ic": {}
+      },
+      {
+        "id": "from1",
+        "type": "routing.from",
+        "paradigm": "routing",
+        "domain": "signal",
+        "fidelity": "n_a",
+        "position": [
+          200,
+          0
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "tag": "v_op"
+        },
+        "ic": {}
+      },
+      {
+        "id": "gain1",
+        "type": "control.gain",
+        "paradigm": "signal-flow",
+        "domain": "signal",
+        "fidelity": "n_a",
+        "position": [
+          300,
+          0
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "k": "B"
+        },
+        "ic": {},
+        "label": "Gain B"
+      },
+      {
+        "id": "scope_op",
+        "type": "sinks.scope",
+        "paradigm": "signal-flow",
+        "domain": "signal",
+        "fidelity": "n_a",
+        "position": [
+          400,
+          0
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {},
+        "ic": {},
+        "label": "v_out"
+      },
+      {
+        "id": "const2",
+        "type": "signal.constant",
+        "paradigm": "signal-flow",
+        "domain": "signal",
+        "fidelity": "n_a",
+        "position": [
+          0,
+          100
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "value": 1.0
+        },
+        "ic": {},
+        "label": "Source 1"
+      },
+      {
+        "id": "integ1",
+        "type": "control.integrator",
+        "paradigm": "signal-flow",
+        "domain": "signal",
+        "fidelity": "n_a",
+        "position": [
+          100,
+          100
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "hi": 1000000.0,
+          "lo": -1000000.0,
+          "x0": 0.0
+        },
+        "ic": {
+          "x": 0.0
+        },
+        "label": "Integrator"
+      },
+      {
+        "id": "scope_tran",
+        "type": "sinks.scope",
+        "paradigm": "signal-flow",
+        "domain": "signal",
+        "fidelity": "n_a",
+        "position": [
+          200,
+          100
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {},
+        "ic": {},
+        "label": "x_tran"
+      },
+      {
+        "id": "const3",
+        "type": "signal.constant",
+        "paradigm": "signal-flow",
+        "domain": "signal",
+        "fidelity": "n_a",
+        "position": [
+          0,
+          200
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "value": 3.0
+        },
+        "ic": {}
+      },
+      {
+        "id": "conv1",
+        "type": "converter.signal_to_physical_signal",
+        "paradigm": "converter",
+        "domain": "physical-signal",
+        "fidelity": "n_a",
+        "position": [
+          100,
+          200
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "gain": 1.0
+        },
+        "ic": {}
+      },
+      {
+        "id": "conv2",
+        "type": "converter.physical_signal_to_signal",
+        "paradigm": "converter",
+        "domain": "signal",
+        "fidelity": "n_a",
+        "position": [
+          200,
+          200
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "gain": 1.0
+        },
+        "ic": {}
+      },
+      {
+        "id": "scope_conv",
+        "type": "sinks.scope",
+        "paradigm": "signal-flow",
+        "domain": "signal",
+        "fidelity": "n_a",
+        "position": [
+          300,
+          200
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {},
+        "ic": {}
+      },
+      {
+        "id": "sub1",
+        "type": "hierarchy.subsystem.virtual",
+        "paradigm": "hierarchy",
+        "domain": "signal",
+        "fidelity": "n_a",
+        "position": [
+          0,
+          300
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {},
+        "ic": {},
+        "subsystem": {
+          "id": "sub1-model",
+          "name": "Outer Subsystem",
+          "grid": 10,
+          "params": [],
+          "blocks": [
+            {
+              "id": "sub2",
+              "type": "hierarchy.subsystem.virtual",
+              "paradigm": "hierarchy",
+              "domain": "signal",
+              "fidelity": "n_a",
+              "position": [
+                100,
+                0
+              ],
+              "rotation": 0,
+              "mirror": "none",
+              "params": {},
+              "ic": {},
+              "subsystem": {
+                "id": "sub2-model",
+                "name": "Inner Subsystem",
+                "grid": 10,
+                "params": [],
+                "blocks": [
+                  {
+                    "id": "gain_inner",
+                    "type": "control.gain",
+                    "paradigm": "signal-flow",
+                    "domain": "signal",
+                    "fidelity": "n_a",
+                    "position": [
+                      100,
+                      0
+                    ],
+                    "rotation": 0,
+                    "mirror": "none",
+                    "params": {
+                      "k": 1.0
+                    },
+                    "ic": {}
+                  }
+                ],
+                "wires": [],
+                "lines": [],
+                "nets": [],
+                "simulation": {},
+                "metadata": {},
+                "parent_param_aliases": [],
+                "ports": []
+              }
+            }
+          ],
+          "wires": [],
+          "lines": [],
+          "nets": [],
+          "simulation": {},
+          "metadata": {},
+          "parent_param_aliases": [],
+          "ports": []
+        }
+      }
+    ],
+    "wires": [
+      {
+        "id": "w_c1_goto",
+        "from": {
+          "block": "const1",
+          "port": "out"
+        },
+        "to": {
+          "block": "goto1",
+          "port": "in"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": "v_gain",
+        "kind": "signal",
+        "label": null
+      },
+      {
+        "id": "w_from_g1",
+        "from": {
+          "block": "from1",
+          "port": "out"
+        },
+        "to": {
+          "block": "gain1",
+          "port": "in"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "signal",
+        "label": null
+      },
+      {
+        "id": "w_g1_sop",
+        "from": {
+          "block": "gain1",
+          "port": "out"
+        },
+        "to": {
+          "block": "scope_op",
+          "port": "in"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "signal",
+        "label": null
+      },
+      {
+        "id": "w_c2_int",
+        "from": {
+          "block": "const2",
+          "port": "out"
+        },
+        "to": {
+          "block": "integ1",
+          "port": "in"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "signal",
+        "label": null
+      },
+      {
+        "id": "w_int_stran",
+        "from": {
+          "block": "integ1",
+          "port": "out"
+        },
+        "to": {
+          "block": "scope_tran",
+          "port": "in"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "signal",
+        "label": null
+      },
+      {
+        "id": "w_c3_cv1",
+        "from": {
+          "block": "const3",
+          "port": "out"
+        },
+        "to": {
+          "block": "conv1",
+          "port": "in"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "signal",
+        "label": null
+      },
+      {
+        "id": "w_cv1_cv2",
+        "from": {
+          "block": "conv1",
+          "port": "out"
+        },
+        "to": {
+          "block": "conv2",
+          "port": "in"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-signal",
+        "label": null
+      },
+      {
+        "id": "w_cv2_sconv",
+        "from": {
+          "block": "conv2",
+          "port": "out"
+        },
+        "to": {
+          "block": "scope_conv",
+          "port": "in"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "signal",
+        "label": null
+      }
+    ],
+    "lines": [
+      {
+        "id": "ann1",
+        "kind": "text",
+        "position": [
+          0,
+          400
+        ],
+        "text": "BE-41 comprehensive v2 fixture: goto/from, converters, depth-2 subsystem, OP+TRAN"
+      }
+    ],
+    "nets": [
+      {
+        "name": "v_gain",
+        "kind": "signal",
+        "scope": "local"
+      }
+    ],
+    "simulation": {
+      "default_analysis": "tran1",
+      "analyses": [
+        {
+          "id": "op1",
+          "type": "OP"
+        },
+        {
+          "id": "tran1",
+          "type": "TRAN",
+          "t_end": 2.0,
+          "t_step": 0.02
+        }
+      ],
+      "initial_conditions": [
+        {
+          "kind": "node",
+          "name": "v_gain",
+          "value": "A"
+        }
+      ]
+    },
+    "metadata": {
+      "description": "Comprehensive v2 fixture shared with FE-63",
+      "epic": "BE-41"
+    }
+  }
+}

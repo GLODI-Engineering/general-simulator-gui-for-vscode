@@ -1,0 +1,15 @@
+name: physical_electrical.passive.inductor
+type: physical-electrical.passive.inductor
+label: Electrical Inductor
+version: 1
+category: passive
+description: Physical electrical inductor.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [inductor, L]
+tags: [physical, electrical, passive]
+ports: {inputs: [{id: p, label: "+", kind: {domain: physical-electrical}, side: left, offset: 20}], outputs: [{id: n, label: "-", kind: {domain: physical-electrical}, side: right, offset: 20}]}
+params: [{name: L, label: Inductance, type: number, default: 0.000001}]
+fidelities: [{tier: ideal, ports: [{id: p, kind: physical-electrical, direction: inout}, {id: n, kind: physical-electrical, direction: inout}], params: [{id: L, type: number, default: 0.000001}], doc: Ideal inductor.}, {tier: behavioral, ports: [{id: p, kind: physical-electrical, direction: inout}, {id: n, kind: physical-electrical, direction: inout}], params: [{id: L, type: number, default: 0.000001}], doc: Behavioral inductor.}, {tier: spice, ports: [{id: p, kind: physical-electrical, direction: inout}, {id: n, kind: physical-electrical, direction: inout}], params: [{id: L, type: number, default: 0.000001}], doc: SPICE inductor.}]
+symbol: {bbox: [60, 40], shape: rect, text: L}
+behavior: {causality: acausal, domain: electrical, state_count: 1, equation_template: physical_electrical.passive.inductor}

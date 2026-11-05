@@ -1,0 +1,60 @@
+name: source.current.sffm
+label: "I (SFFM)"
+version: 1
+category: sources
+description: Single-frequency FM current source. SPICE element I with SFFM waveform.
+
+aliases: [ISFFM, FM current source]
+tags: [source, electrical, current, sffm, fm, transient]
+
+ports:
+  inputs:
+    - id: p
+      label: "+"
+      kind: { domain: electrical }
+      side: left
+      offset: 20
+  outputs:
+    - id: n
+      label: "-"
+      kind: { domain: electrical }
+      side: right
+      offset: 20
+
+params:
+  - name: VO
+    label: Offset Current
+    type: number
+    default: 0
+    description: Offset current in amperes.
+  - name: VA
+    label: Amplitude
+    type: number
+    default: 1
+    description: Amplitude in amperes.
+  - name: FC
+    label: Carrier Frequency
+    type: number
+    default: 1000
+    description: Carrier frequency in hertz.
+  - name: MDI
+    label: Modulation Index
+    type: number
+    default: 0.5
+    description: Modulation index.
+  - name: FS
+    label: Signal Frequency
+    type: number
+    default: 100
+    description: Signal frequency in hertz.
+
+symbol:
+  bbox: [60, 40]
+  shape: circle
+  text: "I (SFFM)"
+
+behavior:
+  causality: source
+  domain: electrical
+  state_count: 0
+  equation_template: source.current.sffm

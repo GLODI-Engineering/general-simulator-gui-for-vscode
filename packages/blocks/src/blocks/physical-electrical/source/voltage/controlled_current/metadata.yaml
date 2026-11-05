@@ -1,0 +1,15 @@
+name: physical_electrical.source.voltage.controlled_current
+type: physical-electrical.source.voltage.controlled_current
+label: Controlled Current Source
+version: 1
+category: sources
+description: Signal-controlled physical electrical current source.
+paradigm: converter
+domain: physical-electrical
+aliases: [controlled current]
+tags: [physical, electrical, source]
+ports: {inputs: [{id: in, label: ctrl, kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: [{id: p, label: "+", kind: {domain: physical-electrical}, side: right, offset: 14}, {id: n, label: "-", kind: {domain: physical-electrical}, side: right, offset: 26}]}
+params: [{name: gain, label: Gain, type: number, default: 1.0}]
+fidelities: [{tier: ideal, ports: [{id: in, kind: signal, direction: in}, {id: p, kind: physical-electrical, direction: inout}, {id: n, kind: physical-electrical, direction: inout}], params: [{id: gain, type: number, default: 1.0}], doc: Signal-controlled current source.}]
+symbol: {bbox: [80, 40], shape: rect, text: Ictrl}
+behavior: {causality: acausal, domain: mixed, state_count: 0, equation_template: physical_electrical.source.voltage.controlled_current}

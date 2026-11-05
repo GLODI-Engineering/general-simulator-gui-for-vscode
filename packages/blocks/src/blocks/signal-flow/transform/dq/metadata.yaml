@@ -1,0 +1,21 @@
+name: signal_flow.transform.dq
+type: signal-flow.transform.dq
+label: DQ Transform
+version: 1
+category: control
+description: Stationary (alpha-beta) to rotating (d-q) frame transform.
+paradigm: signal-flow
+domain: signal
+aliases: [park transform, alpha-beta to dq]
+tags: [signal-flow, transform, motor-control]
+ports: {inputs: [{id: alpha, label: "α", kind: {domain: signal, dims: scalar}, side: left, offset: 10}, {id: beta, label: "β", kind: {domain: signal, dims: scalar}, side: left, offset: 20}, {id: theta, label: "θ", kind: {domain: signal, dims: scalar}, side: left, offset: 30}], outputs: [{id: d, label: d, kind: {domain: signal, dims: scalar}, side: right, offset: 14}, {id: q, label: q, kind: {domain: signal, dims: scalar}, side: right, offset: 26}]}
+params: []
+fidelities: [{tier: n_a, ports: [{id: alpha, kind: signal, direction: in, side: left, offset: 10}, {id: beta, kind: signal, direction: in, side: left, offset: 20}, {id: theta, kind: signal, direction: in, side: left, offset: 30}, {id: d, kind: signal, direction: out, side: right, offset: 14}, {id: q, kind: signal, direction: out, side: right, offset: 26}], params: [], doc: alpha-beta to dq transform.}]
+symbol: {bbox: [70, 60], shape: rect, text: "αβ→dq"}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.transform.dq}
+port_sigs:
+  alpha: "inherit"
+  beta: "inherit"
+  theta: "inherit"
+  d: "from(alpha)"
+  q: "from(alpha)"

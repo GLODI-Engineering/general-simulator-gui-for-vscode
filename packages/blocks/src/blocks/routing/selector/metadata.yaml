@@ -1,0 +1,40 @@
+name: routing.selector
+label: Selector
+version: 1
+description: Extracts a subset of elements from a vector or matrix by index.
+paradigm: routing
+domain: signal
+aliases: [selector, index select, element select]
+tags: [routing, vector, signal-flow]
+params:
+  - name: indices
+    label: Indices
+    type: vector
+    default: [0]
+    description: Zero-based indices of elements to select from the input vector/matrix.
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 20
+  outputs:
+    - id: out
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: right
+      offset: 20
+fidelities:
+  - tier: n_a
+    ports:
+      - {id: in, kind: signal, direction: in, side: left, offset: 20}
+      - {id: out, kind: signal, direction: out, side: right, offset: 20}
+    params:
+      - {id: indices, type: vector, default: [0], doc: Zero-based element indices.}
+    doc: Selects elements from input vector/matrix by zero-based indices.
+symbol: {bbox: [60, 40], shape: rect, text: Sel}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: routing.selector}
+port_sigs:
+  in: "inherit"
+  out: "index(in, indices)"

@@ -1,0 +1,29 @@
+name: physical_thermal.reference.absolute
+type: physical-thermal.reference.absolute
+label: Absolute Temperature Reference
+version: 1
+category: power
+description: Thermal absolute temperature reference (pins temperature to T_ref).
+paradigm: physical-network
+domain: physical-thermal
+aliases: [absolute, thermal ground]
+tags: [physical, thermal, reference]
+ports:
+  inputs:
+    - {id: p, label: p, kind: {domain: physical-thermal}, side: left, offset: 20}
+  outputs: []
+params:
+  - {name: T, label: Reference Temperature, type: number, default: 293.15}
+fidelities:
+  - tier: ideal
+    ports:
+      - {id: p, kind: physical-thermal, direction: inout}
+    params:
+      - {id: T, type: number, default: 293.15}
+    doc: Thermal absolute reference — pins temperature to T (K or °C).
+symbol: {bbox: [40, 40], shape: rect, text: Tref}
+behavior:
+  causality: reference
+  domain: thermal
+  state_count: 0
+  equation_template: physical_thermal.reference.absolute

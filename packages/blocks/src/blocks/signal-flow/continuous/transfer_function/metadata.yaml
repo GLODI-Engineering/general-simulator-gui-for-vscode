@@ -1,0 +1,18 @@
+name: signal_flow.continuous.transfer_function
+type: signal-flow.continuous.transfer_function
+label: Transfer Function
+version: 1
+category: control
+description: Continuous transfer function.
+paradigm: signal-flow
+domain: signal
+aliases: [transfer function]
+tags: [signal-flow, continuous]
+ports: {inputs: [{id: in, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: [{name: num, label: Numerator, type: vector, default: [1.0]}, {name: den, label: Denominator, type: vector, default: [1.0, 1.0]}]
+fidelities: [{tier: n_a, ports: [{id: in, kind: signal, direction: in, side: left, offset: 20}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: num, type: vector, default: [1.0]}, {id: den, type: vector, default: [1.0, 1.0]}], doc: Continuous transfer function.}]
+symbol: {bbox: [80, 40], shape: rect, text: H(s)}
+behavior: {causality: causal, domain: signal, state_count: dynamic, equation_template: signal_flow.continuous.transfer_function}
+port_sigs:
+  in: "inherit"
+  out: "from(in)"

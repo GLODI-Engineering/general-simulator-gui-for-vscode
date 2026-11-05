@@ -1,0 +1,18 @@
+[project]
+name = "schemas"
+version = "0.1.0"
+description = "Cross-language schema source of truth — IPC messages, native model format, IR-1, IR-2. Generates Pydantic + TS types."
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.9",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["generated/python"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"definitions" = "schemas/definitions"

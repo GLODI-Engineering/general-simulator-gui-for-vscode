@@ -1,0 +1,18 @@
+name: signal_flow.lookup.table_1d
+type: signal-flow.lookup.1d
+label: Lookup 1D
+version: 1
+category: control
+description: One-dimensional lookup table.
+paradigm: signal-flow
+domain: signal
+aliases: [lookup 1d]
+tags: [signal-flow, lookup]
+ports: {inputs: [{id: in, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: [{name: x, label: Breakpoints, type: vector, default: [0.0, 1.0]}, {name: y, label: Values, type: vector, default: [0.0, 1.0]}]
+fidelities: [{tier: n_a, ports: [{id: in, kind: signal, direction: in, side: left, offset: 20}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: x, type: vector, default: [0.0, 1.0]}, {id: y, type: vector, default: [0.0, 1.0]}], doc: One-dimensional lookup table.}]
+symbol: {bbox: [80, 40], shape: rect, text: LUT1}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.lookup.table_1d}
+port_sigs:
+  in: "inherit"
+  out: "from(in)"

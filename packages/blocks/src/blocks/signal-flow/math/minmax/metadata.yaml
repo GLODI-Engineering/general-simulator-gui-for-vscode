@@ -1,0 +1,19 @@
+name: signal_flow.math.minmax
+type: signal-flow.math.minmax
+label: MinMax
+version: 1
+category: control
+description: Element-wise minimum or maximum of two signals.
+paradigm: signal-flow
+domain: signal
+aliases: [minmax, min max]
+tags: [signal-flow, math]
+ports: {inputs: [{id: in0, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 14}, {id: in1, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 26}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: [{name: function, label: Function, type: enum, default: max, choices: [min, max]}]
+fidelities: [{tier: n_a, ports: [{id: in0, kind: signal, direction: in, side: left, offset: 14}, {id: in1, kind: signal, direction: in, side: left, offset: 26}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: function, type: enum, default: max, choices: [min, max]}], doc: Element-wise minimum or maximum block.}]
+symbol: {bbox: [70, 60], shape: rect, text: MinMax}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.math.minmax}
+port_sigs:
+  in0: "inherit"
+  in1: "inherit"
+  out: "from(in0)"

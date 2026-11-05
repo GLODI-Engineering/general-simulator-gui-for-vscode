@@ -1,0 +1,15 @@
+name: physical_electrical.passive.capacitor
+type: physical-electrical.passive.capacitor
+label: Electrical Capacitor
+version: 1
+category: passive
+description: Physical electrical capacitor.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [capacitor, C]
+tags: [physical, electrical, passive]
+ports: {inputs: [{id: p, label: "+", kind: {domain: physical-electrical}, side: left, offset: 20}], outputs: [{id: n, label: "-", kind: {domain: physical-electrical}, side: right, offset: 20}]}
+params: [{name: C, label: Capacitance, type: number, default: 0.000001}]
+fidelities: [{tier: ideal, ports: [{id: p, kind: physical-electrical, direction: inout}, {id: n, kind: physical-electrical, direction: inout}], params: [{id: C, type: number, default: 0.000001}], doc: Ideal capacitor.}, {tier: behavioral, ports: [{id: p, kind: physical-electrical, direction: inout}, {id: n, kind: physical-electrical, direction: inout}], params: [{id: C, type: number, default: 0.000001}], doc: Behavioral capacitor.}, {tier: spice, ports: [{id: p, kind: physical-electrical, direction: inout}, {id: n, kind: physical-electrical, direction: inout}], params: [{id: C, type: number, default: 0.000001}], doc: SPICE capacitor.}]
+symbol: {bbox: [60, 40], shape: rect, text: C}
+behavior: {causality: acausal, domain: electrical, state_count: 1, equation_template: physical_electrical.passive.capacitor}

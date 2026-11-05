@@ -1,0 +1,347 @@
+manifest_version: 1
+created_at: 2026-05-31
+project: general-simulator
+simulator: ngspice
+sources:
+  - working-tools/pdf-to-md/output/ngspice-46-manual.md
+  - Misc/spice-simulator-analsys/NGSPICE-COMPONENT-CATALOG.md
+  - Misc/spice-simulator-analsys/NGSPICE-XSPICE-MODEL-CATALOG.md
+
+legend:
+  origin:
+    ngspice: Native SPICE/ngspice element
+    xspice: XSPICE predefined code model
+    cider: CIDER numerical model
+    osdi: OpenVAF/OSDI external Verilog-A compact model support in ngspice
+
+primary_elements:
+  - id: A
+    designator: A
+    name: XSPICE code model instance
+    origin: xspice
+    class: behavioral_mixed_signal
+    port_spec: model_defined
+    netlist_template: "A<name> <ports...> <modelName>"
+    model_required: true
+  - id: B
+    designator: B
+    name: Behavioral source (ASRC)
+    origin: ngspice
+    class: source_behavioral
+    port_spec: [n_plus, n_minus]
+    netlist_template: "B<name> n+ n- V=<expr>|I=<expr>"
+    model_required: false
+  - id: C
+    designator: C
+    name: Capacitor
+    origin: ngspice
+    class: passive
+    port_spec: [n_plus, n_minus]
+    netlist_template: "C<name> n+ n- <value|model>"
+    model_required: false
+  - id: D
+    designator: D
+    name: Diode
+    origin: ngspice
+    class: semiconductor
+    port_spec: [anode, cathode]
+    netlist_template: "D<name> anode cathode <model>"
+    model_required: true
+  - id: E
+    designator: E
+    name: VCVS
+    origin: ngspice
+    class: controlled_source
+    port_spec: [n_plus, n_minus, nc_plus, nc_minus]
+    netlist_template: "E<name> n+ n- nc+ nc- <gain|behavioral form>"
+    model_required: false
+  - id: F
+    designator: F
+    name: CCCS
+    origin: ngspice
+    class: controlled_source
+    port_spec: [n_plus, n_minus]
+    control_reference: voltage_source_name
+    netlist_template: "F<name> n+ n- <vnam> <gain>"
+    model_required: false
+  - id: G
+    designator: G
+    name: VCCS
+    origin: ngspice
+    class: controlled_source
+    port_spec: [n_plus, n_minus, nc_plus, nc_minus]
+    netlist_template: "G<name> n+ n- nc+ nc- <gm|behavioral form>"
+    model_required: false
+  - id: H
+    designator: H
+    name: CCVS
+    origin: ngspice
+    class: controlled_source
+    port_spec: [n_plus, n_minus]
+    control_reference: voltage_source_name
+    netlist_template: "H<name> n+ n- <vnam> <rtrans>"
+    model_required: false
+  - id: I
+    designator: I
+    name: Independent current source
+    origin: ngspice
+    class: source
+    port_spec: [n_plus, n_minus]
+    netlist_template: "I<name> n+ n- <dc/ac/transient>"
+    model_required: false
+  - id: J
+    designator: J
+    name: JFET
+    origin: ngspice
+    class: semiconductor_transistor
+    port_spec: [drain, gate, source]
+    netlist_template: "J<name> d g s <model>"
+    model_required: true
+  - id: K
+    designator: K
+    name: Mutual inductive coupling
+    origin: ngspice
+    class: magnetic_annotation
+    port_spec: []
+    references: [inductor_name_1, inductor_name_2_or_more]
+    netlist_template: "K<name> L1 L2 [L3 ...] <k>"
+    model_required: false
+  - id: L
+    designator: L
+    name: Inductor
+    origin: ngspice
+    class: passive
+    port_spec: [n_plus, n_minus]
+    netlist_template: "L<name> n+ n- <value|model>"
+    model_required: false
+  - id: M
+    designator: M
+    name: MOSFET
+    origin: ngspice
+    class: semiconductor_transistor
+    port_spec: [drain, gate, source, bulk]
+    netlist_template: "M<name> d g s b <model>"
+    model_required: true
+  - id: N
+    designator: N
+    name: Verilog-A compact model instance
+    origin: osdi
+    class: compact_model_instance
+    port_spec: model_defined
+    netlist_template: "N<name> <ports...> <osdi_model>"
+    model_required: true
+  - id: O
+    designator: O
+    name: Lossy transmission line (LTRA)
+    origin: ngspice
+    class: transmission_line
+    port_spec: [p1_plus, p1_minus, p2_plus, p2_minus]
+    netlist_template: "O<name> n1 n2 n3 n4 <model>"
+    model_required: true
+  - id: P
+    designator: P
+    name: Coupled multiconductor line (CPL)
+    origin: ngspice
+    class: transmission_line_coupled
+    port_spec: vector_ports
+    netlist_template: "P<name> ni1..nix gnd1 no1..nox gnd2 <model>"
+    model_required: true
+  - id: Q
+    designator: Q
+    name: BJT
+    origin: ngspice
+    class: semiconductor_transistor
+    port_spec: [collector, base, emitter, substrate_optional, thermal_optional]
+    netlist_template: "Q<name> c b e [s] [t] <model>"
+    model_required: true
+  - id: R
+    designator: R
+    name: Resistor
+    origin: ngspice
+    class: passive
+    port_spec: [n_plus, n_minus]
+    netlist_template: "R<name> n+ n- <value|model|expr>"
+    model_required: false
+  - id: S
+    designator: S
+    name: Voltage-controlled switch
+    origin: ngspice
+    class: switch
+    port_spec: [path_plus, path_minus, ctrl_plus, ctrl_minus]
+    netlist_template: "S<name> n+ n- nc+ nc- <model>"
+    model_required: true
+  - id: T
+    designator: T
+    name: Lossless transmission line
+    origin: ngspice
+    class: transmission_line
+    port_spec: [p1_plus, p1_minus, p2_plus, p2_minus]
+    netlist_template: "T<name> n1 n2 n3 n4 Z0=<...> TD=<...>"
+    model_required: false
+  - id: U_URC
+    designator: U
+    name: Uniform distributed RC line (URC)
+    origin: ngspice
+    class: distributed_passive
+    port_spec: [n1, n2, n3]
+    netlist_template: "U<name> n1 n2 n3 <model> L=<len>"
+    model_required: true
+  - id: U_DIGITAL
+    designator: U
+    name: Digital primitive in PSPICE compatibility mode
+    origin: xspice
+    class: digital_primitive_compat
+    port_spec: model_defined
+    netlist_template: "U<name> <basic_type> ..."
+    model_required: true
+  - id: V
+    designator: V
+    name: Independent voltage source
+    origin: ngspice
+    class: source
+    port_spec: [n_plus, n_minus]
+    netlist_template: "V<name> n+ n- <dc/ac/transient>"
+    model_required: false
+  - id: W
+    designator: W
+    name: Current-controlled switch
+    origin: ngspice
+    class: switch
+    port_spec: [path_plus, path_minus]
+    control_reference: voltage_source_name
+    netlist_template: "W<name> n+ n- <vnam> <model>"
+    model_required: true
+  - id: X
+    designator: X
+    name: Subcircuit instance
+    origin: ngspice
+    class: hierarchical_subckt
+    port_spec: model_defined
+    netlist_template: "X<name> <ports...> <subckt_name>"
+    model_required: false
+  - id: Y
+    designator: Y
+    name: Single lossy transmission line (TXL)
+    origin: ngspice
+    class: transmission_line
+    port_spec: [n1, n2]
+    netlist_template: "Y<name> n1 0 n2 0 <model>"
+    model_required: true
+  - id: Z
+    designator: Z
+    name: MESFET
+    origin: ngspice
+    class: semiconductor_transistor
+    port_spec: [drain, gate, source]
+    netlist_template: "Z<name> d g s <model>"
+    model_required: true
+
+xspice_models:
+  analog:
+    - { section: "8.2.1", keyword: gain, title: "Gain", ports: [in, out], symbol_template: op_block_2pin }
+    - { section: "8.2.2", keyword: summer, title: "Summer", ports: "in[] -> out", symbol_template: op_block_vector_in }
+    - { section: "8.2.3", keyword: mult, title: "Multiplier", ports: "in[] -> out", symbol_template: op_block_vector_in }
+    - { section: "8.2.4", keyword: divide, title: "Divider", ports: [num, den, out], symbol_template: op_block_3pin }
+    - { section: "8.2.5", keyword: limit, title: "Limiter", ports: [in, out], symbol_template: limiter }
+    - { section: "8.2.6", keyword: climit, title: "Controlled Limiter", ports: [in, cntl_upper, cntl_lower, out], symbol_template: limiter_controlled }
+    - { section: "8.2.7", keyword: pwl, title: "PWL Controlled Source", ports: [in, out], symbol_template: transfer_pwl }
+    - { section: "8.2.8", keyword: pwlts, title: "Time PWL Source", ports: [out], symbol_template: source_waveform }
+    - { section: "8.2.9", keyword: filesource, title: "File Source", ports: [out], symbol_template: source_waveform }
+    - { section: "8.2.10", keyword: multi_input_pwl, title: "Multi-input PWL", ports: "in[] -> out", symbol_template: transfer_multi_input }
+    - { section: "8.2.11", keyword: aswitch, title: "Analog Switch", ports: model_defined, symbol_template: analog_switch }
+    - { section: "8.2.12", keyword: pswitch, title: "Alternative Analog Switch", ports: model_defined, symbol_template: analog_switch }
+    - { section: "8.2.13", keyword: zener, title: "Zener Diode", ports: [a, k], symbol_template: diode_zener }
+    - { section: "8.2.14", keyword: ilimit, title: "Current Limiter", ports: model_defined, symbol_template: current_limiter }
+    - { section: "8.2.15", keyword: hyst, title: "Hysteresis Block", ports: [in, out], symbol_template: hysteresis }
+    - { section: "8.2.16", keyword: d_dt, title: "Differentiator", ports: [in, out], symbol_template: operator_d_dt }
+    - { section: "8.2.17", keyword: int, title: "Integrator", ports: [in, out], symbol_template: operator_int }
+    - { section: "8.2.18", keyword: s_xfer, title: "S-Domain Transfer", ports: [in, out], symbol_template: transfer_laplace }
+    - { section: "8.2.19", keyword: xfer, title: "PWL Transfer Function", ports: [in, out], symbol_template: transfer_freq }
+    - { section: "8.2.20", keyword: slew, title: "Slew Rate Block", ports: [in, out], symbol_template: slew_limiter }
+    - { section: "8.2.21", keyword: lcouple, title: "Inductive Coupling", ports: [l, mmf_out], symbol_template: magnetic_coupler }
+    - { section: "8.2.22", keyword: core, title: "Magnetic Core", ports: [mc], symbol_template: magnetic_core }
+    - { section: "8.2.23", keyword: sine, title: "Controlled Sine Oscillator", ports: [cntl_in, out], symbol_template: oscillator_controlled }
+    - { section: "8.2.24", keyword: triangle, title: "Controlled Triangle Oscillator", ports: [cntl_in, out], symbol_template: oscillator_controlled }
+    - { section: "8.2.25", keyword: square, title: "Controlled Square Oscillator", ports: [cntl_in, out], symbol_template: oscillator_controlled }
+    - { section: "8.2.26", keyword: oneshot, title: "Controlled One-Shot", ports: [cntl_in, out], symbol_template: pulse_generator }
+    - { section: "8.2.27", keyword: cmeter, title: "Capacitance Meter", ports: [in, out], symbol_template: meter_block }
+    - { section: "8.2.28", keyword: lmeter, title: "Inductance Meter", ports: [in, out], symbol_template: meter_block }
+    - { section: "8.2.29", keyword: memristor, title: "Memristor", ports: [p, n], symbol_template: memristor_2t }
+    - { section: "8.2.30", keyword: table2d, title: "2D Table Model", ports: [inx, iny, out], symbol_template: table_nl }
+    - { section: "8.2.31", keyword: table3d, title: "3D Table Model", ports: [inx, iny, inz, out], symbol_template: table_nl }
+    - { section: "8.2.32", keyword: sidiode, title: "Simple Diode", ports: [a, k], symbol_template: diode_simple }
+    - { section: "8.2.33", keyword: delay, title: "Analog Delay", ports: [in, out], symbol_template: delay_block }
+    - { section: "8.2.34", keyword: potentiometer, title: "Potentiometer", ports: model_defined, symbol_template: potentiometer }
+    - { section: "8.2.35", keyword: astate, title: "Delayed State Node", ports: [in, out], symbol_template: state_delay }
+
+  hybrid:
+    - { section: "8.3.1", keyword: dac_bridge, title: "Digital-to-Analog Bridge", ports: "in[d][] -> out[analog][]", symbol_template: bridge_d2a }
+    - { section: "8.3.2", keyword: adc_bridge, title: "Analog-to-Digital Bridge", ports: "in[analog][] -> out[d][]", symbol_template: bridge_a2d }
+    - { section: "8.3.3", keyword: bidi_bridge, title: "Bidirectional A/D Bridge", ports: "a[] <-> d[] (+dir[] optional)", symbol_template: bridge_bidir }
+    - { section: "8.3.4", keyword: d_osc, title: "Controlled Digital Oscillator", ports: [cntl_in, out], symbol_template: osc_digital }
+    - { section: "8.3.5", keyword: d_to_real, title: "Digital to Real Bridge", ports: [in, enable, out], symbol_template: bridge_d2real }
+    - { section: "8.3.6", keyword: real_delay, title: "Real Delay (Z^-1)", ports: [in, clk, out], symbol_template: delay_sampled }
+    - { section: "8.3.7", keyword: real_gain, title: "Real Gain", ports: [in, out], symbol_template: real_gain }
+    - { section: "8.3.8", keyword: real_to_v, title: "Real to Analog Voltage", ports: [in, out], symbol_template: bridge_real2v }
+    - { section: "8.3.9", keyword: d_pwm, title: "Controlled PWM Oscillator", ports: [cntl_in, out], symbol_template: pwm_generator }
+
+  digital:
+    - { section: "8.4.1", keyword: d_buffer, title: "Buffer", ports: [in, out], symbol_template: gate_buf }
+    - { section: "8.4.2", keyword: d_inverter, title: "Inverter", ports: [in, out], symbol_template: gate_inv }
+    - { section: "8.4.3", keyword: d_and, title: "AND", ports: "in[] -> out", symbol_template: gate_and }
+    - { section: "8.4.4", keyword: d_nand, title: "NAND", ports: "in[] -> out", symbol_template: gate_nand }
+    - { section: "8.4.5", keyword: d_or, title: "OR", ports: "in[] -> out", symbol_template: gate_or }
+    - { section: "8.4.6", keyword: d_nor, title: "NOR", ports: "in[] -> out", symbol_template: gate_nor }
+    - { section: "8.4.7", keyword: d_xor, title: "XOR", ports: "in[] -> out", symbol_template: gate_xor }
+    - { section: "8.4.8", keyword: d_xnor, title: "XNOR", ports: "in[] -> out", symbol_template: gate_xnor }
+    - { section: "8.4.9", keyword: d_tristate, title: "Tristate", ports: [in, enable, out], symbol_template: gate_tristate }
+    - { section: "8.4.10", keyword: d_pullup, title: "Pullup", ports: [out], symbol_template: pullup }
+    - { section: "8.4.11", keyword: d_pulldown, title: "Pulldown", ports: [out], symbol_template: pulldown }
+    - { section: "8.4.12", keyword: d_dff, title: "D Flip-Flop", ports: model_defined, symbol_template: ff_d }
+    - { section: "8.4.13", keyword: d_jkff, title: "JK Flip-Flop", ports: model_defined, symbol_template: ff_jk }
+    - { section: "8.4.14", keyword: d_tff, title: "Toggle Flip-Flop", ports: model_defined, symbol_template: ff_t }
+    - { section: "8.4.15", keyword: d_srff, title: "Set-Reset Flip-Flop", ports: model_defined, symbol_template: ff_sr }
+    - { section: "8.4.16", keyword: d_dlatch, title: "D Latch", ports: model_defined, symbol_template: latch_d }
+    - { section: "8.4.17", keyword: d_srlatch, title: "SR Latch", ports: model_defined, symbol_template: latch_sr }
+    - { section: "8.4.18", keyword: d_state, title: "State Machine", ports: model_defined, symbol_template: fsm }
+    - { section: "8.4.19", keyword: d_fdiv, title: "Frequency Divider", ports: [freq_in, out], symbol_template: divider }
+    - { section: "8.4.20", keyword: d_ram, title: "RAM", ports: "data_in[] data_out[] address[] write_en select[]", symbol_template: ram }
+    - { section: "8.4.21", keyword: d_source, title: "Digital Source", ports: "out[]", symbol_template: digital_source }
+    - { section: "8.4.22", keyword: d_lut, title: "LUT", ports: "in[] -> out", symbol_template: lut }
+    - { section: "8.4.23", keyword: d_genlut, title: "General LUT", ports: "in[] -> out[]", symbol_template: lut_multiout }
+    - { section: "8.4.24", keyword: d_process, title: "External Process Bridge", ports: "in[] clk reset out[]", symbol_template: cosim_process }
+    - { section: "8.4.25", keyword: d_cosim, title: "Digital Co-simulation Container", ports: "d_in[] d_out[] d_inout[]", symbol_template: cosim_library }
+
+  transmission:
+    - { section: "8.5.1", keyword: tline, title: "Generic Transmission Line", ports: [in_pair, out_pair], symbol_template: tline_2port }
+    - { section: "8.5.2", keyword: cpline, title: "Generic Coupled Lines", ports: model_defined, symbol_template: tline_coupled }
+    - { section: "8.5.3", keyword: mlin, title: "Microstrip Line", ports: [in_pair, out_pair], symbol_template: microstrip }
+    - { section: "8.5.4", keyword: cpmline, title: "Coupled Microstrip", ports: model_defined, symbol_template: microstrip_coupled }
+    - { section: "8.5.5", keyword: msopen, title: "Microstrip Open End", ports: model_defined, symbol_template: microstrip_open }
+
+cider_numerical_models:
+  - id: NUMD
+    section: "26.17"
+    element_designator: D
+    class: numerical_two_terminal
+    ports: [n1, n2]
+    description: Numerical 1D/2D two-terminal device model
+  - id: NBJT
+    section: "26.18"
+    element_designator: Q
+    class: numerical_three_terminal
+    ports: [n1, n2, n3]
+    description: Numerical 1D/2D three-terminal model (BJT/JFET/MESFET contexts)
+  - id: NUMOS
+    section: "26.19"
+    element_designator: M
+    class: numerical_four_terminal
+    ports: [n1, n2, n3, n4]
+    description: Numerical 2D four-terminal model (MOSFET and others)
+
+cad_generation_rules:
+  - "If designator is A, generate symbol from model keyword metadata (xspice_models)"
+  - "If ports is model_defined, require explicit pin-map entry in component instance"
+  - "For vector ports, support bus pins and width parameters"
+  - "For F/H/W/K, support non-pin control/reference links in netlist metadata"
+  - "Treat U designator as disambiguated by context (URC vs digital primitive)"

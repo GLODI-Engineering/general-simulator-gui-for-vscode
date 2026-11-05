@@ -1,0 +1,76 @@
+name: power.pwm2
+label: "Phase-Shift PWM Modulator"
+version: 1
+category: power
+description: "Phase-shift PWM modulator driven by live frequency, phase and duty signals."
+
+aliases: [pspwm, pwm2, phase-shift pwm]
+tags: [power, pwm, modulator, phase-shift, general-simulator]
+
+ports:
+  inputs:
+    - id: freq
+      label: "freq"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 16
+    - id: phase
+      label: "phase"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 33
+    - id: duty
+      label: "duty"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 50
+  outputs:
+    - id: main
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 22
+    - id: comp
+      label: "comp"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 44
+
+params:
+  - name: f_min
+    label: "Minimum frequency"
+    type: number
+    default: 1000.0
+    min: 0
+    description: "Lower carrier-frequency bound in Hz."
+  - name: f_max
+    label: "Maximum frequency"
+    type: number
+    default: 50000.0
+    min: 0
+    description: "Upper carrier-frequency bound in Hz."
+  - name: red
+    label: "Rising dead time"
+    type: number
+    default: 0.0
+    min: 0
+    description: "Rising-edge dead time in seconds."
+  - name: fed
+    label: "Falling dead time"
+    type: number
+    default: 0.0
+    min: 0
+    description: "Falling-edge dead time in seconds."
+
+symbol:
+  bbox: [70, 66]
+  shape: rect
+  text: "PS-PWM"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 0
+  equation_template: power.pwm2
+
+main_param: f_max

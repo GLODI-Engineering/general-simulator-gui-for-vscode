@@ -1,0 +1,197 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Architectural invariants (fast, no deps — runs first as a gating signal).
+  # See docs/agent-rules/architecture-invariants.md
+  # ---------------------------------------------------------------------------
+  invariants:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./scripts/check-invariants.sh
+
+  # ---------------------------------------------------------------------------
+  # Python: ruff format check + ruff lint + mypy + tests
+  # ---------------------------------------------------------------------------
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: uv sync --all-packages --group dev
+      - name: ruff format check
+        run: uv run ruff format --check .
+      - name: ruff lint
+        run: uv run ruff check .
+      - name: mypy
+        run: uv run mypy
+      - name: pytest
+        run: uv run pytest tests/integration tests/validation -x
+
+  # ---------------------------------------------------------------------------
+  # Frontend: biome + tsc + vitest + production build
+  # ---------------------------------------------------------------------------
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: biome check
+        run: pnpm exec biome check .
+      - name: typecheck
+        run: pnpm --filter @gensim/frontend typecheck
+      - name: build
+        run: pnpm --filter @gensim/frontend build
+      - name: test
+        run: pnpm --filter @gensim/frontend test
+
+  # ---------------------------------------------------------------------------
+  # VS Code extension: tsc + vitest, then a real VS Code extension host driven
+  # by @vscode/test-electron (needs the built webview bundles and a display).
+  # ---------------------------------------------------------------------------
+  vscode-extension:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: typecheck
+        run: pnpm --filter ./apps/vscode-extension typecheck
+      - name: build
+        run: pnpm --filter ./apps/vscode-extension build
+      - name: unit tests
+        run: pnpm --filter ./apps/vscode-extension test
+      - name: build frontend for webviews
+        run: pnpm --filter @gensim/frontend build
+      - name: integration tests (real VS Code)
+        run: xvfb-run -a pnpm --filter ./apps/vscode-extension test:integration
+
+  # ---------------------------------------------------------------------------
+  # Rust (Tauri shell): fmt + clippy. Build is skipped here — Tauri builds happen
+  # in a release workflow on tag, not on every PR.
+  # ---------------------------------------------------------------------------
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: install tauri build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+      - name: cargo fmt
+        run: cargo fmt --manifest-path apps/desktop/src-tauri/Cargo.toml --check
+      - name: cargo clippy
+        run: cargo clippy --manifest-path apps/desktop/src-tauri/Cargo.toml -- -D warnings
+
+  # ---------------------------------------------------------------------------
+  # E2E: Playwright smoke + undo/redo + persistence + perf (FE-40)
+  # Runs after the frontend build succeeds; uploads artifacts on failure.
+  # ---------------------------------------------------------------------------
+  e2e:
+    runs-on: ubuntu-latest
+    needs: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: install playwright browsers
+        run: pnpm exec playwright install --with-deps
+      - name: build frontend for preview
+        run: pnpm --filter @gensim/frontend build
+      - name: run e2e tests
+        run: pnpm e2e
+        env:
+          CI: "true"
+      - name: upload test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  # Schema codegen drift check (FE-02): re-runs codegen and diffs against the
+  # committed generated files. Fails if generated/typescript/index.ts or
+  # generated/python/__init__.py are out of sync with the schema sources.
+  # ---------------------------------------------------------------------------
+  schema-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: codegen drift check
+        run: pnpm -F @gensim/schemas codegen:check
+
+  # ---------------------------------------------------------------------------
+  # Keymap drift check (FE-07): parses keyboard-map.md §1–§9 and asserts every
+  # declared chord is registered in apps/frontend/src/canvas/keymap.ts.
+  # ---------------------------------------------------------------------------
+  keymap-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: keymap drift check
+        run: node scripts/check-keymap.mjs
+
+  # ---------------------------------------------------------------------------
+  # Conventional Commits: lint every commit message in the PR.
+  # Only runs on pull_request — push to main is assumed to come from merged PRs.
+  # ---------------------------------------------------------------------------
+  commit-lint:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: webiny/action-conventional-commits@v1.3.0

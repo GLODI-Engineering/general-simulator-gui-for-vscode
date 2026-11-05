@@ -1,0 +1,49 @@
+name: control.vco
+label: "VCO"
+version: 1
+category: control
+description: "Voltage-controlled oscillator: maps the input signal onto a frequency ramp."
+
+aliases: [vco, oscillator, voltage controlled oscillator]
+tags: [control, signal, oscillator, general-simulator]
+
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 20
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params:
+  - name: f_min
+    label: "Minimum frequency"
+    type: number
+    default: 1.0
+    min: 0
+    description: "Frequency at the lowest input, in Hz."
+  - name: f_max
+    label: "Maximum frequency"
+    type: number
+    default: 1000.0
+    min: 0
+    description: "Frequency at the highest input, in Hz."
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "VCO"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 0
+  equation_template: control.vco
+
+main_param: f_max

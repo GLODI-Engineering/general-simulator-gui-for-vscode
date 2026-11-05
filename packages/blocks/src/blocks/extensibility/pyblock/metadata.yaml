@@ -1,0 +1,80 @@
+name: extensibility.pyblock
+label: "Python Block"
+version: 1
+category: user
+description: "Stateful block hosted in a Python module."
+
+aliases: [pyblock, script, custom block]
+tags: [extensibility, script, custom, general-simulator]
+
+ports:
+  inputs:
+    - id: in0
+      label: "u"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 20
+  outputs:
+    - id: out0
+      label: "y"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+  variadic_inputs:
+    count_from: input_names
+    template:
+      id: in
+      label: "u"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 20
+  variadic_outputs:
+    count_from: output_names
+    template:
+      id: out
+      label: "y"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params:
+  - name: path
+    label: "Path"
+    type: string
+    default: ""
+    description: "Path to the script file."
+  - name: input_names
+    label: "Input names"
+    type: list
+    default: [u]
+    description: "One input port is created per entry."
+  - name: output_names
+    label: "Output names"
+    type: list
+    default: [y]
+    description: "One output port is created per entry."
+  - name: ts
+    label: "Sample time"
+    type: string
+    default: ""
+    description: "Sample period in seconds, or \"variable\". Empty means continuous."
+  - name: xc_count
+    label: "Continuous states"
+    type: integer
+    default: 0
+    min: 0
+    description: "Number of continuous states the script owns."
+
+symbol:
+  bbox: [70, 40]
+  shape: rect
+  text: "PY"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: dynamic
+  equation_template: extensibility.pyblock
+
+main_param: path

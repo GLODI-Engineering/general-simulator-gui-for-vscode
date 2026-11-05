@@ -1,0 +1,65 @@
+name: passive.resistor
+label: Resistor
+version: 1
+category: passive
+description: Linear resistor. SPICE element R.
+paradigm: physical-network
+domain: physical-electrical
+
+aliases: [R, resistor, linear resistor]
+tags: [passive, electrical, resistor, linear]
+
+ports:
+  inputs:
+    - id: p
+      label: "+"
+      kind: { domain: electrical }
+      side: left
+      offset: 20
+  outputs:
+    - id: n
+      label: "-"
+      kind: { domain: electrical }
+      side: right
+      offset: 20
+
+params:
+  - name: R
+    label: Resistance
+    type: number
+    default: 1000.0
+    description: Resistance in ohms.
+
+fidelities:
+  - tier: ideal
+    ports:
+      - id: p
+        kind: physical-electrical
+        direction: inout
+        label: "+"
+        side: left
+        offset: 20
+      - id: n
+        kind: physical-electrical
+        direction: inout
+        label: "-"
+        side: right
+        offset: 20
+    params:
+      - id: R
+        type: number
+        default: 1000.0
+        unit: Ω
+        doc: Resistance in ohms.
+    doc: Ideal linear resistor.
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: R
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: passive.resistor

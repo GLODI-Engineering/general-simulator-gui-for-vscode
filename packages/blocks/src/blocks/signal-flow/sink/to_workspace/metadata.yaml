@@ -1,0 +1,18 @@
+name: signal_flow.sink.to_workspace
+type: signal-flow.sink.to_workspace
+label: To Workspace
+version: 1
+category: sinks
+description: Writes a signal to the workspace.
+paradigm: signal-flow
+domain: signal
+aliases: [to workspace]
+tags: [signal-flow, sink]
+ports: {inputs: [{id: in, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: []}
+params: [{name: variable_name, label: Variable, type: string, default: y}]
+fidelities: [{tier: n_a, ports: [{id: in, kind: signal, direction: in, side: left, offset: 20}], params: [{id: variable_name, type: string, default: y}], doc: Writes a signal to the workspace.}]
+symbol: {bbox: [80, 40], shape: rect, text: to}
+behavior: {causality: sink, domain: signal, state_count: 0, equation_template: signal_flow.sink.to_workspace}
+main_param: variable_name
+port_sigs:
+  in: "inherit"

@@ -1,0 +1,439 @@
+{
+  "schema_version": 2,
+  "model": {
+    "id": "buck-converter-direct-ngspice",
+    "name": "Buck converter \u2014 direct ngspice netlist",
+    "grid": 10,
+    "params": [],
+    "blocks": [
+      {
+        "id": "vin",
+        "type": "physical-electrical.source.voltage_dc",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          120,
+          240
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "V": 12
+        },
+        "ic": {}
+      },
+      {
+        "id": "sw",
+        "type": "passive.switch.voltage",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          290,
+          240
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "model": "SWMOD"
+        },
+        "ic": {}
+      },
+      {
+        "id": "vgate",
+        "type": "source.voltage.pulse",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          290,
+          120
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "V1": 0,
+          "V2": 5,
+          "TD": 0,
+          "TR": 2e-08,
+          "TF": 2e-08,
+          "PW": 5e-06,
+          "PER": 1e-05
+        },
+        "ic": {}
+      },
+      {
+        "id": "d1",
+        "type": "physical-electrical.semiconductor.diode",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          280,
+          360
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "model": "DMOD"
+        },
+        "ic": {}
+      },
+      {
+        "id": "l1",
+        "type": "passive.inductor",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          460,
+          240
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "L": 0.0001,
+          "IC": 0
+        },
+        "ic": {}
+      },
+      {
+        "id": "c1",
+        "type": "passive.capacitor",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          640,
+          200
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "C": 0.0001,
+          "IC": 0
+        },
+        "ic": {}
+      },
+      {
+        "id": "rload",
+        "type": "passive.resistor",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          640,
+          320
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "R": 10
+        },
+        "ic": {}
+      }
+    ],
+    "wires": [
+      {
+        "id": "w-vin-sw",
+        "from": {
+          "block": "vin",
+          "port": "p"
+        },
+        "to": {
+          "block": "sw",
+          "port": "p"
+        },
+        "waypoints": [
+          [
+            230,
+            260
+          ]
+        ],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-sw-l",
+        "from": {
+          "block": "sw",
+          "port": "n"
+        },
+        "to": {
+          "block": "l1",
+          "port": "p"
+        },
+        "waypoints": [
+          [
+            380,
+            260
+          ]
+        ],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-sw-d",
+        "from": {
+          "block": "sw",
+          "port": "n"
+        },
+        "to": {
+          "block": "d1",
+          "port": "k"
+        },
+        "waypoints": [
+          [
+            370,
+            300
+          ],
+          [
+            370,
+            380
+          ]
+        ],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-d-gnd",
+        "from": {
+          "block": "d1",
+          "port": "a"
+        },
+        "to": {
+          "block": "vin",
+          "port": "n"
+        },
+        "waypoints": [
+          [
+            250,
+            390
+          ],
+          [
+            250,
+            280
+          ]
+        ],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-l-c",
+        "from": {
+          "block": "l1",
+          "port": "n"
+        },
+        "to": {
+          "block": "c1",
+          "port": "p"
+        },
+        "waypoints": [
+          [
+            570,
+            260
+          ],
+          [
+            570,
+            220
+          ]
+        ],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-l-r",
+        "from": {
+          "block": "l1",
+          "port": "n"
+        },
+        "to": {
+          "block": "rload",
+          "port": "p"
+        },
+        "waypoints": [
+          [
+            570,
+            260
+          ],
+          [
+            570,
+            340
+          ]
+        ],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-c-gnd",
+        "from": {
+          "block": "c1",
+          "port": "n"
+        },
+        "to": {
+          "block": "vin",
+          "port": "n"
+        },
+        "waypoints": [
+          [
+            700,
+            280
+          ],
+          [
+            250,
+            280
+          ]
+        ],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-r-gnd",
+        "from": {
+          "block": "rload",
+          "port": "n"
+        },
+        "to": {
+          "block": "vin",
+          "port": "n"
+        },
+        "waypoints": [
+          [
+            700,
+            380
+          ],
+          [
+            250,
+            380
+          ],
+          [
+            250,
+            280
+          ]
+        ],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-vgate-cp",
+        "from": {
+          "block": "vgate",
+          "port": "p"
+        },
+        "to": {
+          "block": "sw",
+          "port": "cp"
+        },
+        "waypoints": [
+          [
+            270,
+            140
+          ],
+          [
+            250,
+            140
+          ],
+          [
+            250,
+            270
+          ]
+        ],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-vgate-cn",
+        "from": {
+          "block": "vgate",
+          "port": "n"
+        },
+        "to": {
+          "block": "sw",
+          "port": "cn"
+        },
+        "waypoints": [
+          [
+            370,
+            140
+          ],
+          [
+            390,
+            140
+          ],
+          [
+            390,
+            270
+          ]
+        ],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-ctrl-return",
+        "from": {
+          "block": "vgate",
+          "port": "n"
+        },
+        "to": {
+          "block": "vin",
+          "port": "n"
+        },
+        "waypoints": [
+          [
+            370,
+            140
+          ],
+          [
+            420,
+            140
+          ],
+          [
+            420,
+            410
+          ],
+          [
+            250,
+            410
+          ],
+          [
+            250,
+            280
+          ]
+        ],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      }
+    ],
+    "lines": [],
+    "nets": [],
+    "simulation": {
+      "analyses": [
+        {
+          "id": "buck_tran",
+          "type": "TRAN",
+          "t_end": 0.002,
+          "n_samples": 10000,
+          "uic": true
+        }
+      ],
+      "default_analysis": "buck_tran"
+    },
+    "metadata": {
+      "spice_netlist": "* Buck converter direct SPICE demo\nVin vin 0 DC 12\nVgate gate 0 PULSE(0 5 0 20n 20n 5u 10u)\nSsw vin sw gate 0 SWMOD\n.model SWMOD SW(Ron=0.02 Roff=1e6 Vt=2.5 Vh=0.5)\nDfree 0 sw DMOD\n.model DMOD D(Is=1n Rs=0.05 N=1)\nL1 sw out 100u IC=0\nC1 out 0 100u IC=0\nRload out 0 10\n.save v(out) v(sw) i(L1)\n.tran 0.2u 2m UIC\n.end\n",
+      "spice_path": "schematic->netlist->ngspice->waveform",
+      "notes": "Direct SPICE netlist path; no IR lowering used for this demo. The visual schematic includes the PULSE gate source and 4-terminal voltage-controlled switch used by Ssw vin sw gate 0."
+    }
+  }
+}

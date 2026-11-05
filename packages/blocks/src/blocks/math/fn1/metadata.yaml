@@ -1,0 +1,43 @@
+name: math.fn1
+label: "Math Function (unary)"
+version: 1
+category: signal
+description: "Unary waveform-arithmetic function applied to one signal."
+
+aliases: [fn1, unary function, math function]
+tags: [math, signal, arithmetic, general-simulator]
+
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 20
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params:
+  - name: fn
+    label: "Function"
+    type: enum
+    choices: [abs, acos, acosh, asin, asinh, atan, atanh, buf, ceil, cos, cosh, exp, floor, int, inv, ln, log10, round, sgn, sin, sinh, sqrt, tan, tanh, u, uramp]
+    default: sin
+    description: "Unary waveform function to apply."
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "{fn}"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 0
+  equation_template: math.fn1
+
+main_param: fn

@@ -1,0 +1,15 @@
+name: physical_electrical.source.voltage_dc
+type: physical-electrical.source.voltage_dc
+label: DC Voltage Source
+version: 1
+category: sources
+description: Physical electrical DC Voltage Source.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [voltage_dc]
+tags: [physical, electrical, source]
+ports: {inputs: [{id: p, label: "+", kind: {domain: physical-electrical}, side: left, offset: 20}], outputs: [{id: n, label: "-", kind: {domain: physical-electrical}, side: right, offset: 20}]}
+params: [{name: V, label: Voltage, type: number, default: 0.0}]
+fidelities: [{tier: ideal, doc: Ideal DC Voltage Source.}]
+symbol: {bbox: [60, 40], shape: rect, text: VOLTAGE_DC}
+behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.source.voltage_dc}

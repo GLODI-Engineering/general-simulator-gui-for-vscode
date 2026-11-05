@@ -1,0 +1,41 @@
+name: hierarchy.outport
+label: Outport
+version: 1
+category: subsystems
+description: "Boundary outport — placed inside a subsystem body to define an output port on the parent-side block (spec §11). The `id` param is the port id; `kind` selects the signal domain."
+
+aliases: [outport, boundary outport]
+tags: [hierarchy, subsystem, outport, boundary]
+
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 20
+  outputs: []
+
+params:
+  - name: id
+    label: Port id
+    type: string
+    default: "out1"
+    description: Port identifier on the parent-side subsystem block.
+  - name: kind
+    label: Signal kind
+    type: enum
+    default: "signal"
+    choices: ["signal", "physical-electrical", "physical-thermal", "physical-translational", "physical-rotational"]
+    description: Port kind domain exposed to the parent.
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "Out"
+
+behavior:
+  causality: sink
+  domain: signal
+  state_count: 0
+  equation_template: hierarchy.outport

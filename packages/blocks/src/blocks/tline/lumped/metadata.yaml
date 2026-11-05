@@ -1,0 +1,60 @@
+name: tline.lumped
+label: "Lumped TL (Xyce)"
+version: 1
+category: tline
+description: "Lumped-element transmission line approximation. Xyce only."
+
+aliases: [lumped TL]
+tags: [tline, electrical, lumped, transmission-line, xyce-only]
+
+ports:
+  inputs:
+    - id: a1
+      label: "A1"
+      kind: { domain: electrical }
+      side: left
+      offset: 10
+    - id: b1
+      label: "B1"
+      kind: { domain: electrical }
+      side: left
+      offset: 30
+  outputs:
+    - id: a2
+      label: "A2"
+      kind: { domain: electrical }
+      side: right
+      offset: 10
+    - id: b2
+      label: "B2"
+      kind: { domain: electrical }
+      side: right
+      offset: 30
+
+params:
+  - name: Z0
+    label: Z0
+    type: number
+    default: 50.0
+    description: "Characteristic impedance in ohms"
+  - name: TD
+    label: TD
+    type: number
+    default: 1e-9
+    description: "One-way delay in seconds"
+  - name: LUMPS
+    label: LUMPS
+    type: integer
+    default: 10
+    description: "Number of lumped LC sections"
+
+symbol:
+  bbox: [80, 60]
+  shape: rect
+  text: "TL (L)"
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: tline.lumped

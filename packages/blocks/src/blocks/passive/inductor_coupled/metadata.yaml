@@ -1,0 +1,60 @@
+name: passive.inductor.coupled
+label: Coupled Inductors
+version: 1
+category: passive
+description: Coupled inductors (mutual inductance). SPICE element K.
+
+aliases: [K, coupled inductors, mutual inductance]
+tags: [passive, electrical, inductor, coupled, mutual]
+
+ports:
+  inputs:
+    - id: p1
+      label: "p1"
+      kind: { domain: electrical }
+      side: left
+      offset: 10
+    - id: n1
+      label: "n1"
+      kind: { domain: electrical }
+      side: left
+      offset: 30
+  outputs:
+    - id: p2
+      label: "p2"
+      kind: { domain: electrical }
+      side: right
+      offset: 10
+    - id: n2
+      label: "n2"
+      kind: { domain: electrical }
+      side: right
+      offset: 30
+
+params:
+  - name: K
+    label: Coupling Factor
+    type: number
+    default: 0.99
+    description: Magnetic coupling factor (0 < K <= 1).
+  - name: L1
+    label: Inductor 1 Name
+    type: string
+    default: ""
+    description: Instance name of the first inductor.
+  - name: L2
+    label: Inductor 2 Name
+    type: string
+    default: ""
+    description: Instance name of the second inductor.
+
+symbol:
+  bbox: [60, 60]
+  shape: rect
+  text: K
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: passive.inductor.coupled

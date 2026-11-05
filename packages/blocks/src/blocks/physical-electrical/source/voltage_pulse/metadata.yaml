@@ -1,0 +1,22 @@
+name: physical_electrical.source.voltage_pulse
+type: physical-electrical.source.voltage_pulse
+label: Voltage Pulse Source
+version: 1
+category: sources
+description: Physical electrical Voltage Pulse Source.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [voltage_pulse]
+tags: [physical, electrical, source]
+ports: {inputs: [{id: p, label: "+", kind: {domain: physical-electrical}, side: left, offset: 20}], outputs: [{id: n, label: "-", kind: {domain: physical-electrical}, side: right, offset: 20}]}
+params:
+  - {name: V1, label: Initial Voltage, type: number, default: 0.0}
+  - {name: V2, label: Pulsed Voltage, type: number, default: 1.0}
+  - {name: TD, label: Delay Time, type: number, default: 0.0}
+  - {name: TR, label: Rise Time, type: number, default: 1.0e-9}
+  - {name: TF, label: Fall Time, type: number, default: 1.0e-9}
+  - {name: PW, label: Pulse Width, type: number, default: 500.0e-9}
+  - {name: PER, label: Period, type: number, default: 1.0e-6}
+fidelities: [{tier: ideal, doc: Ideal Voltage Pulse Source (SPICE PULSE waveform).}]
+symbol: {bbox: [60, 40], shape: rect, text: VOLTAGE_PULSE}
+behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.source.voltage_pulse}

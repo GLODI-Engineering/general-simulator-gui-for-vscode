@@ -1,0 +1,33 @@
+name: routing.data_store_read
+label: Data Store Read
+version: 1
+description: Reads the current value of a named data store.
+paradigm: routing
+domain: signal
+aliases: [data store read, read store, global read]
+tags: [routing, data-store, signal-flow]
+params:
+  - name: store
+    label: Store name
+    type: string
+    default: "store1"
+    description: Name of the data_store_memory block to read from.
+ports:
+  inputs: []
+  outputs:
+    - id: out
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: right
+      offset: 20
+fidelities:
+  - tier: n_a
+    ports:
+      - {id: out, kind: signal, direction: out, side: right, offset: 20}
+    params:
+      - {id: store, type: string, default: "store1", doc: Name of the data store to read.}
+    doc: Reads the current value from a named data store.
+symbol: {bbox: [70, 40], shape: rect, text: DSR}
+behavior: {causality: source, domain: signal, state_count: 0, equation_template: routing.data_store_read}
+port_sigs:
+  out: "inherit"

@@ -1,0 +1,18 @@
+name: signal_flow.continuous.state_space
+type: signal-flow.continuous.state_space
+label: State Space
+version: 1
+category: control
+description: Continuous state-space system.
+paradigm: signal-flow
+domain: signal
+aliases: [state space]
+tags: [signal-flow, continuous]
+ports: {inputs: [{id: in, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: [{name: A, label: A, type: matrix, default: [[0.0]]}, {name: B, label: B, type: matrix, default: [[1.0]]}, {name: C, label: C, type: matrix, default: [[1.0]]}, {name: D, label: D, type: matrix, default: [[0.0]]}, {name: ic, label: Initial state, type: vector, default: [0.0]}]
+fidelities: [{tier: n_a, ports: [{id: in, kind: signal, direction: in, side: left, offset: 20}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: A, type: matrix, default: [[0.0]]}, {id: B, type: matrix, default: [[1.0]]}, {id: C, type: matrix, default: [[1.0]]}, {id: D, type: matrix, default: [[0.0]]}, {id: ic, type: vector, default: [0.0]}], doc: Continuous state-space system.}]
+symbol: {bbox: [80, 40], shape: rect, text: SS}
+behavior: {causality: causal, domain: signal, state_count: dynamic, equation_template: signal_flow.continuous.state_space}
+port_sigs:
+  in: "inherit"
+  out: "from(in)"

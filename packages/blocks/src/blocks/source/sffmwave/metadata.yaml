@@ -1,0 +1,60 @@
+name: source.sffmwave
+label: "SFFM Wave Source"
+version: 1
+category: sources
+description: "Single-frequency FM signal source, using ngspice SFFM() semantics."
+
+aliases: [sffmwave, sffm, fm source]
+tags: [source, signal, fm, transient, general-simulator]
+
+ports:
+  inputs: []
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params:
+  - name: va
+    label: "Amplitude"
+    type: number
+    default: 1.0
+    description: "Peak amplitude."
+  - name: fc
+    label: "Carrier frequency"
+    type: number
+    default: 1000.0
+    min: 0
+    description: "Carrier frequency in Hz."
+  - name: fs
+    label: "Signal frequency"
+    type: number
+    default: 100.0
+    min: 0
+    description: "Modulating frequency in Hz."
+  - name: v0
+    label: "Offset"
+    type: number
+    default: 0.0
+    description: "DC offset."
+  - name: mdi
+    label: "Modulation index"
+    type: number
+    default: 0.0
+    min: 0
+    description: "Modulation index."
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "SFFM"
+
+behavior:
+  causality: source
+  domain: signal
+  state_count: 0
+  equation_template: source.sffmwave
+
+main_param: fc

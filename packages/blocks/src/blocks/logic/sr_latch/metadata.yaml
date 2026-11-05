@@ -1,0 +1,48 @@
+name: logic.sr_latch
+label: "SR Latch"
+version: 1
+category: signal
+description: "Level-triggered set/reset latch with a configurable priority input."
+
+aliases: [sr latch, latch, set reset]
+tags: [logic, signal, latch, general-simulator]
+
+ports:
+  inputs:
+    - id: set
+      label: "S"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 15
+    - id: reset
+      label: "R"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 29
+  outputs:
+    - id: q
+      label: "Q"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 22
+
+params:
+  - name: priority
+    label: "Priority"
+    type: enum
+    choices: [set, reset]
+    default: set
+    description: "Which input wins when both are asserted."
+
+symbol:
+  bbox: [50, 44]
+  shape: rect
+  text: "SR"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 1
+  equation_template: logic.sr_latch
+
+main_param: priority

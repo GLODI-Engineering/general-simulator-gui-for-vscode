@@ -1,0 +1,15 @@
+name: physical_electrical.semiconductor.igbt_n
+type: physical-electrical.semiconductor.igbt_n
+label: N-channel IGBT
+version: 1
+category: semiconductor
+description: N-channel Insulated Gate Bipolar Transistor.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [igbt, igbt_n]
+tags: [physical, electrical, semiconductor]
+ports: {inputs: [{id: g, label: G, kind: {domain: physical-electrical}, side: left, offset: 20}], outputs: [{id: c, label: C, kind: {domain: physical-electrical}, side: right, offset: 12}, {id: e, label: E, kind: {domain: physical-electrical}, side: right, offset: 28}]}
+params: [{name: model, label: Model, type: string, default: IGBT}, {name: V_th, label: Threshold voltage, type: number, default: 4.5}, {name: K, label: Transconductance, type: number, default: 0.01}]
+fidelities: [{tier: ideal, doc: Ideal IGBT.}, {tier: behavioral, doc: Behavioral IGBT.}, {tier: spice, doc: SPICE IGBT model.}]
+symbol: {bbox: [70, 40], shape: rect, text: IGBT}
+behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.semiconductor.igbt_n}

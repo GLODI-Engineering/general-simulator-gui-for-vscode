@@ -1,0 +1,53 @@
+name: control.discrete_transfer_function
+label: "Discrete Transfer Function"
+version: 1
+category: control
+description: "Discrete-time SISO transfer function num(z)/den(z) at a fixed sample period."
+
+aliases: [discrete transfer function, dtf, z transform]
+tags: [control, signal, discrete, transfer-function, general-simulator]
+
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 20
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params:
+  - name: num
+    label: "Numerator"
+    type: vector
+    default: [0.1]
+    description: "Numerator coefficients in descending powers of z."
+  - name: den
+    label: "Denominator"
+    type: vector
+    default: [1.0, -1.0]
+    description: "Denominator coefficients; den[0] must be nonzero."
+  - name: ts
+    label: "Sample time"
+    type: number
+    default: 0.1
+    min: 0
+    description: "Fixed sample period in seconds."
+
+symbol:
+  bbox: [80, 40]
+  shape: rect
+  text: "N(z)/D(z)"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: dynamic
+  equation_template: control.discrete_transfer_function
+
+main_param: ts

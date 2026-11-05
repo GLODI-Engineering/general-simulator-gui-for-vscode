@@ -1,0 +1,52 @@
+name: control.integrator
+label: Integrator
+version: 1
+category: control
+description: Continuous-time integrator `dx/dt = u`, with optional output limits.
+
+aliases: ["1/s", integrate, integrator block]
+tags: [integrator, continuous, control, linear]
+
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 20
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params:
+  - name: x0
+    label: Initial state
+    type: number
+    default: 0.0
+    description: Integrator state at t = 0.
+  - name: lo
+    label: Lower limit
+    type: number
+    default: -1.0e30
+    description: Output clamp lower bound. Set to a very negative number to disable.
+  - name: hi
+    label: Upper limit
+    type: number
+    default: 1.0e30
+    description: Output clamp upper bound. Set to a very large number to disable.
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "1/s"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 1
+  equation_template: control.integrator
+
+main_param: x0

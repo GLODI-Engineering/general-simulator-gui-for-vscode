@@ -1,0 +1,41 @@
+name: signal_flow.attributes.ic
+type: signal-flow.attributes.ic
+label: IC on Wire
+version: 1
+category: signal
+description: >
+  Sets the initial condition of a signal wire at t=0. Passes the upstream
+  signal through unchanged for t > t_start.
+paradigm: signal-flow
+domain: signal
+aliases: [ic_on_wire, initial condition]
+tags: [signal-flow, attributes, initial-condition]
+params:
+  - name: value
+    label: Initial Value
+    type: number
+    default: 0.0
+    description: The output value at t = t_start (simulation start).
+  - name: t_start
+    label: Start Time
+    type: number
+    default: 0.0
+    description: Simulation start time (injected by the compiler).
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 20
+  outputs:
+    - id: out
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: right
+      offset: 20
+symbol: {bbox: [70, 40], shape: rect, text: IC}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.attributes.ic}
+port_sigs:
+  in: "inherit"
+  out: "from(in)"

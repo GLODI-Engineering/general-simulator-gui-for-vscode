@@ -1,0 +1,51 @@
+name: backend-v2-e2e
+
+# Runs the v2 end-to-end and roundtrip gate tests (BE-41) on every PR and push.
+# These tests exercise the full v2 pipeline: load → flatten → resolve_goto_from
+# → substitute_params → build_ir1 → extract_simulation → lower_ir2 → compile → solve.
+# No host SPICE simulator is required.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: backend-v2-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  v2-e2e:
+    name: v2 end-to-end gate (BE-41)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install workspace packages
+        run: uv sync --all-packages --group dev
+
+      - name: ruff lint (simulator)
+        run: uv run ruff check packages/simulator/src/
+
+      - name: mypy (simulator)
+        run: uv run mypy packages/simulator/src/
+
+      - name: v2 comprehensive e2e test
+        run: |
+          uv run pytest \
+            tests/backend/e2e/test_v2_comprehensive.py \
+            tests/backend/e2e/test_v2_roundtrip.py \
+            -v --tb=short
+
+      - name: Upload test artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v2-e2e-test-results
+          path: |
+            .pytest_cache/
+          retention-days: 7

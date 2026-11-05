@@ -1,0 +1,16 @@
+name: signal_flow.routing.mux
+type: signal-flow.routing.mux
+label: Mux
+version: 1
+category: routing
+description: Concatenates multiple signal vectors into a single output vector.
+paradigm: signal-flow
+domain: signal
+aliases: [mux, multiplexer]
+tags: [signal-flow, routing, vector]
+params: [{name: n_inputs, label: Number of inputs, type: integer, default: 2}]
+symbol: {bbox: [60, 60], shape: rect, text: Mux}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.routing.mux}
+port_sigs:
+  "in*": "inherit"
+  out: "sum(in*)"

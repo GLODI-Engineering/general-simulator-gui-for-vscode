@@ -1,0 +1,49 @@
+name: source.dependent.vcvs
+label: VCVS
+version: 1
+category: dependent
+description: Voltage-controlled voltage source. SPICE element E.
+
+aliases: [E, vcvs, voltage-controlled voltage source]
+tags: [source, electrical, dependent, vcvs]
+
+ports:
+  inputs:
+    - id: cp
+      label: "C+"
+      kind: { domain: electrical }
+      side: left
+      offset: 1
+    - id: cn
+      label: "C-"
+      kind: { domain: electrical }
+      side: left
+      offset: 43
+  outputs:
+    - id: p
+      label: "+"
+      kind: { domain: electrical }
+      side: right
+      offset: 1
+    - id: n
+      label: "-"
+      kind: { domain: electrical }
+      side: right
+      offset: 43
+params:
+  - name: gain
+    label: Gain
+    type: number
+    default: 1
+    description: Voltage gain.
+
+symbol:
+  bbox: [120, 44]
+  shape: rect
+  text: E
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: source.dependent.vcvs

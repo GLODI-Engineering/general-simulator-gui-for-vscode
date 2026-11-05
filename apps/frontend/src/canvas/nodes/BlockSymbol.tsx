@@ -1,0 +1,536 @@
+import { isAutoRefdes } from "../../library/refdes";
+import type { BlockMetadata, Mirror, ParamValue, Rotation } from "../../model/types";
+import { WIRE_STROKE } from "../edges/WireEdge";
+import { Port } from "./Port";
+import type { PortSide } from "./Port";
+import { formatEngineering, getSchematicSymbol } from "./component-symbols";
+import { SYMBOL_SCALE, getMetadataPortCenters } from "./port-hit-test";
+import { type Primitive, metadataToPrimitives } from "./primitive-renderer";
+import { resolveBlockBbox, resolveBlockPorts } from "./resolve-ports";
+
+// Default stroke width for primitive shapes (in pre-scale coords). Derived from
+// WIRE_STROKE (rather than a separately hand-picked constant, previously a
+// hardcoded 2.1 that only approximated it — 2.1*1.6 ≈ 3.36px against
+// WIRE_STROKE's actual ≈3.84px, a visible mismatch once anything with bold
+// linework, like the MOSFET-style switch glyph, sits next to a wire) so a
+// primitive-drawn shape's line weight exactly matches the wires connecting it.
+const PRIM_SW = WIRE_STROKE / SYMBOL_SCALE;
+
+function PrimitiveShape({ p }: { p: Primitive }) {
+  const stroke = p.color ?? "#111827";
+  switch (p.type) {
+    case "rect":
+      return (
+        <rect
+          x={p.x}
+          y={p.y}
+          width={p.w}
+          height={p.h}
+          fill={p.filled ? stroke : "#ffffff"}
+          stroke={stroke}
+          strokeWidth={p.lw ?? PRIM_SW}
+          transform={
+            p.rotation ? `rotate(${p.rotation} ${p.x + p.w / 2} ${p.y + p.h / 2})` : undefined
+          }
+        />
+      );
+    case "circle":
+      return (
+        <circle
+          cx={p.cx}
+          cy={p.cy}
+          r={p.r}
+          fill={p.filled ? stroke : "#ffffff"}
+          stroke={stroke}
+          strokeWidth={p.lw ?? PRIM_SW}
+        />
+      );
+    case "rectf":
+      // Filled-only rectangle. Used (with an rgba colour) as the translucent
+      // "cover" over a subcircuit's internal-content preview.
+      return (
+        <rect
+          x={p.x}
+          y={p.y}
+          width={p.w}
+          height={p.h}
+          fill={stroke}
+          stroke="none"
+          transform={
+            p.rotation ? `rotate(${p.rotation} ${p.x + p.w / 2} ${p.y + p.h / 2})` : undefined
+          }
+        />
+      );
+    case "line":
+      return (
+        <line
+          x1={p.x1}
+          y1={p.y1}
+          x2={p.x2}
+          y2={p.y2}
+          stroke={stroke}
+          strokeWidth={p.lw ?? PRIM_SW}
+        />
+      );
+    case "polygon":
+      return (
+        <polygon
+          points={p.pts.map(([x, y]) => `${x},${y}`).join(" ")}
+          fill={p.filled ? stroke : "#ffffff"}
+          stroke={stroke}
+          strokeWidth={p.lw ?? PRIM_SW}
+        />
+      );
+    case "polyline":
+      return (
+        <polyline
+          points={p.pts.map(([x, y]) => `${x},${y}`).join(" ")}
+          fill="none"
+          stroke={stroke}
+          strokeWidth={p.lw ?? PRIM_SW}
+        />
+      );
+    case "text":
+      return (
+        <text
+          x={p.x}
+          y={p.y}
+          textAnchor="middle"
+          fontSize={p.size ?? 12}
+          fill={stroke}
+          transform={p.rotation ? `rotate(${p.rotation} ${p.x} ${p.y})` : undefined}
+        >
+          {p.text}
+        </text>
+      );
+    default:
+      return null;
+  }
+}
+
+function primitiveKey(p: Primitive): string {
+  switch (p.type) {
+    case "rect":
+    case "rectf":
+      return `${p.type}-${p.x}-${p.y}-${p.w}-${p.h}`;
+    case "circle":
+      return `circle-${p.cx}-${p.cy}-${p.r}`;
+    case "line":
+      return `line-${p.x1}-${p.y1}-${p.x2}-${p.y2}`;
+    case "arc":
+      return `arc-${p.cx}-${p.cy}-${p.r}-${p.a0}-${p.a1}`;
+    case "polygon":
+    case "polyline":
+      return `${p.type}-${p.pts.map(([x, y]) => `${x}_${y}`).join("-")}`;
+    case "text":
+      return `text-${p.x}-${p.y}-${p.text}`;
+  }
+}
+
+function symbolTransform(rotation: Rotation, mirror: Mirror, bbox: [number, number]) {
+  const [w, h] = bbox;
+  // Origin-aligned rotation/mirror that matches getPortCenter in port-hit-test
+  // exactly. SVG applies a transform list right-to-left, so to compute
+  // R(M(point)) the rotation must be written before the mirror.
+  const parts: string[] = [];
+  switch (rotation) {
+    case 90:
+      parts.push(`translate(${h} 0) rotate(90)`);
+      break;
+    case 180:
+      parts.push(`translate(${w} ${h}) rotate(180)`);
+      break;
+    case 270:
+      parts.push(`translate(0 ${w}) rotate(270)`);
+      break;
+    default:
+      break;
+  }
+  if (mirror === "x") {
+    parts.push(`translate(0 ${h}) scale(1 -1)`);
+  } else if (mirror === "y") {
+    parts.push(`translate(${w} 0) scale(-1 1)`);
+  }
+  return parts.join(" ");
+}
+
+function renderText(
+  template: string | undefined,
+  params: Record<string, ParamValue>,
+): string | undefined {
+  if (!template) {
+    return undefined;
+  }
+  return template.replace(/\{([a-z][a-z0-9_]*)\}/gi, (_, name: string) =>
+    String(params[name] ?? `{${name}}`),
+  );
+}
+
+/**
+ * Gap, in screen px, between the symbol's bounding box and a label beside it.
+ * A 14px label needs a few px so its descenders clear the box outline.
+ */
+const LABEL_GAP = 8;
+
+/**
+ * Extra clearance for a label forced onto a face that already carries ports.
+ * `Port.tsx` draws a 16-unit stub with a 3.5-radius terminal dot outside the
+ * box, so ~22px puts the label past the tip of the stub.
+ */
+const PORT_CLEARANCE = 22;
+
+/** Vertical pitch between the static label and the value label when stacked. */
+const LABEL_ROW = 15;
+
+const LABEL_SIDE_PREFERENCE: readonly PortSide[] = ["top", "bottom", "right", "left"];
+
+/**
+ * Which face of the block the static label (and the value under it) sits on.
+ *
+ * The old rule picked from the aspect ratio — a block taller than it is wide
+ * got its label to the *right*. That is precisely where a right-ported block
+ * already draws its output stubs and their 10px labels, so every tall block
+ * with outputs (`machine.pmsm`, the dq transforms, a multi-output script
+ * block) stacked its name on top of its own port names.
+ *
+ * Ports are what the label has to avoid, so ports are what the rule reads.
+ * `top` first because a name above the box is the schematic convention; a
+ * two-terminal part drawn vertically has ports top *and* bottom and so falls
+ * through to `right`, which is the convention for that case and is what it
+ * already did.
+ */
+export function pickLabelSide(occupiedSides: ReadonlySet<PortSide>): PortSide {
+  return LABEL_SIDE_PREFERENCE.find((side) => !occupiedSides.has(side)) ?? "top";
+}
+
+/**
+ * Where the value label (`10 kΩ`, `100 µF`) goes, given where the name went.
+ *
+ * A name above the part puts its value below it and vice versa — the two read
+ * as a pair bracketing the symbol, which is how every schematic draws a
+ * two-terminal component laid out horizontally. A name beside the part (the
+ * vertical case) keeps the value beside it too, on the next line down.
+ */
+export function pickValuePlacement(
+  labelSide: PortSide,
+  occupiedSides: ReadonlySet<PortSide>,
+  hasName: boolean,
+): [PortSide, number] {
+  if (labelSide === "top" || labelSide === "bottom") {
+    const opposite = labelSide === "top" ? "bottom" : "top";
+    if (!occupiedSides.has(opposite)) {
+      return [opposite, 0];
+    }
+  }
+  return [labelSide, hasName ? 1 : 0];
+}
+
+interface LabelAnchor {
+  x: number;
+  y: number;
+  textAnchor: "start" | "middle" | "end";
+}
+
+/**
+ * Where to put the `row`-th label (0 = name, 1 = value) on `side` of a
+ * `width`×`height` box. `crowded` means every face has ports, so the label has
+ * to clear the stubs rather than merely the outline.
+ */
+export function labelAnchorFor(
+  side: PortSide,
+  row: number,
+  width: number,
+  height: number,
+  crowded: boolean,
+): LabelAnchor {
+  const gap = LABEL_GAP + (crowded ? PORT_CLEARANCE : 0);
+  switch (side) {
+    case "top":
+      return { x: width / 2, y: -gap - row * LABEL_ROW, textAnchor: "middle" };
+    case "bottom":
+      return { x: width / 2, y: height + gap + 8 + row * LABEL_ROW, textAnchor: "middle" };
+    case "left":
+      return { x: -gap, y: height / 2 - 1 + row * LABEL_ROW, textAnchor: "end" };
+    default:
+      return { x: width + gap, y: height / 2 - 1 + row * LABEL_ROW, textAnchor: "start" };
+  }
+}
+
+/** Average glyph advance as a fraction of the font size, for the UI sans stack. */
+const AVG_GLYPH_ADVANCE = 0.62;
+
+/** Body text is drawn at this size, in pre-scale bbox units (see metadataToPrimitives). */
+const BODY_TEXT_SIZE = 12;
+
+/**
+ * Usable text width inside a shape of the given bbox, in bbox units. A circle
+ * is only as wide as its inscribed diameter; a triangle narrows toward its tip,
+ * and its text sits at the half-width point.
+ */
+function innerTextWidth(shape: string | undefined, width: number, height: number): number {
+  switch (shape) {
+    case "circle":
+      return Math.min(width, height) * 0.9;
+    case "triangle":
+      return width * 0.5;
+    default:
+      return width - 6;
+  }
+}
+
+/**
+ * Whether `label` says nothing `typeText` (the type's own default caption)
+ * does not already say, once both are trimmed and case-folded.
+ *
+ * Split out from {@link authoredLabel} because the two callers need different
+ * things done with a redundant label: `authoredLabel` drops it outright
+ * (nothing new to promote into the box), while the top-label fallback in
+ * `BlockSymbol` must still show a *reference designator* above the box even
+ * when it, too, is "redundant" in the different sense `authoredLabel` also
+ * rejects (`isAutoRefdes`) — only a label that duplicates the caption text
+ * itself should disappear entirely.
+ */
+function duplicatesTypeText(label: string | undefined, typeText: string | undefined): boolean {
+  const trimmed = label?.trim();
+  return !!trimmed && !!typeText && trimmed.toLowerCase() === typeText.trim().toLowerCase();
+}
+
+/**
+ * The block's own name, when the author actually gave it one.
+ *
+ * Rejects the auto-assigned reference designator (`Sum1`, `Pid3`) and a label
+ * that merely repeats the type's own abbreviation — neither says anything the
+ * symbol does not already say.
+ */
+function authoredLabel(
+  label: string | undefined,
+  type: string,
+  typeText: string | undefined,
+): string | undefined {
+  const trimmed = label?.trim();
+  if (!trimmed || isAutoRefdes(trimmed, type)) {
+    return undefined;
+  }
+  if (duplicatesTypeText(trimmed, typeText)) {
+    return undefined;
+  }
+  return trimmed;
+}
+
+interface BlockSymbolProps {
+  metadata: BlockMetadata;
+  rotation: Rotation;
+  mirror: Mirror;
+  params: Record<string, ParamValue>;
+  blockPosition?: [number, number];
+  showLabels?: boolean;
+  /** Instance label / reference designator (R1, C3 …) shown above the symbol. */
+  label?: string;
+}
+
+export function BlockSymbol({
+  metadata,
+  rotation,
+  mirror,
+  params,
+  blockPosition = [0, 0],
+  showLabels = true,
+  label,
+}: BlockSymbolProps) {
+  const resolvedBbox = resolveBlockBbox(metadata, params);
+  const [width, height] = resolvedBbox;
+  const fakeBlock = {
+    id: metadata.name,
+    type: metadata.name,
+    paradigm: "signal-flow" as const,
+    domain: "signal" as const,
+    fidelity: "n_a" as const,
+    position: blockPosition,
+    rotation,
+    mirror,
+    params,
+    ic: {},
+  };
+  const ports = getMetadataPortCenters(fakeBlock, metadata);
+  // Same expansion getMetadataPortCenters applied, for the per-port kind/label/direction
+  // lookup below — a variadic port is not in metadata.ports.inputs.
+  const resolvedPorts = resolveBlockPorts(metadata, params);
+
+  const metadataType = "type" in metadata ? String(metadata.type) : undefined;
+  const metadataAliases = Array.isArray(metadata.aliases) ? metadata.aliases : [];
+  const schematic = getSchematicSymbol(metadata.name, metadataType, ...metadataAliases);
+  // No padding: the SVG origin aligns exactly with the block's model position.
+  // This keeps ReactFlow Handle coordinates identical to model port centres so
+  // wire start/end points match the routing waypoints and wires stay orthogonal.
+  // Port stubs and labels extend beyond the SVG bounds; overflow:visible renders
+  // them correctly.
+  const rotated = rotation === 90 || rotation === 270;
+  const scaledWidth = (rotated ? height : width) * SYMBOL_SCALE;
+  const scaledHeight = (rotated ? width : height) * SYMBOL_SCALE;
+  const svgWidth = scaledWidth;
+  const svgHeight = scaledHeight;
+
+  let valueLabel: string | undefined;
+  if (schematic?.valueParam) {
+    const raw = params[schematic.valueParam];
+    if (typeof raw === "number") {
+      valueLabel = formatEngineering(raw, schematic.unit ?? "");
+    } else if (typeof raw === "string" && raw.length > 0) {
+      valueLabel = schematic.unit ? `${raw} ${schematic.unit}` : raw;
+    }
+  }
+  // A `{param}` placeholder makes the body text carry real instance data (a
+  // gain's k, a gate's operator), so it is never displaced. A literal one is
+  // the type's abbreviation — 478 of the catalog's 485 texted blocks — and an
+  // authored name is strictly more informative than that.
+  const typeTextIsStatic =
+    metadata.symbol.text !== undefined && !/\{[a-z][a-z0-9_]*\}/i.test(metadata.symbol.text);
+  const typeText = renderText(metadata.symbol.text, params);
+  const instanceLabel = authoredLabel(label, metadata.name, typeText);
+  // Promote the authored name into the box only when it genuinely fits: a name
+  // wider than the box would spill over the outline and the ports, which is
+  // worse than the stacked pair it replaces. It then keeps its place above.
+  const bodyLabel =
+    schematic === undefined &&
+    metadata.symbol.shape !== "custom" &&
+    typeTextIsStatic &&
+    instanceLabel !== undefined &&
+    instanceLabel.length * AVG_GLYPH_ADVANCE * BODY_TEXT_SIZE <=
+      innerTextWidth(metadata.symbol.shape, width, height)
+      ? instanceLabel
+      : undefined;
+
+  // With the name inside the box, repeating it above is the redundancy this
+  // whole branch exists to remove — but only when the label actually duplicates
+  // the type's own caption. A reference designator ("R1", "Pmsm1") is also
+  // dropped from `instanceLabel`, for a different reason (it is auto-assigned,
+  // not descriptive), yet must still surface here: that is the only place it is
+  // ever drawn. Using `instanceLabel` for this fallback conflated the two cases
+  // and made every auto-refdes part draw with no label above it at all;
+  // `labelForTop` narrows the drop to just the genuine duplicate — an authored
+  // label that happens to equal the type's default text (e.g. naming a
+  // `control.transform.clarke_park_inv` block "dq0/abc", which is that type's
+  // own default caption) is already shown once, unconditionally, via
+  // `inlineFallbackLabel` below, so showing it again above would be the exact
+  // overlapping duplicate this mechanism exists to prevent.
+  // Dropping a duplicate top label is only safe when that same text is already drawn
+  // somewhere else on the symbol. For a generic shape (`schematic === undefined`) that is
+  // always true regardless of whether `bodyLabel` itself fits: either the name is inside
+  // the box (`bodyLabel`), or -- when it does not fit, or the shape is "custom" -- the top
+  // falls through to `metadata.label`, the catalogue's own display name, which is never the
+  // bare duplicate (that is the mechanism row 1/row 3's fixes already established and
+  // tested; do not re-decide it here). A SCHEMATIC_SYMBOLS entry is different: it never has
+  // a `bodyLabel` (the branch above requires `schematic === undefined`), so the *only* place
+  // its name can ever be shown is this top label, unless the entry declares its own
+  // `staticLabel` (the diode's "D", shown via `semi.diode`'s `staticLabel`). Most entries --
+  // the passives (`passive.resistor`/`.capacitor`/`.inductor`) and the switch family --
+  // declare no `staticLabel`, because their hand-drawn glyph never renders any inline text
+  // of its own. For those, an authored label equal to the type's own caption (the natural
+  // thing to type -- "R" on a resistor, "L" on an inductor, "SW" on a switch, exactly what a
+  // hand-drawn schematic's own reference designator looks like) was suppressed here on the
+  // wrong assumption that the body already showed it. It never did: the block lost its name
+  // entirely, invisible both inside and above. A switch loses all labelling this way (no
+  // `valueParam` either); a resistor/inductor/capacitor still shows its value but silently
+  // loses its own letter.
+  const suppressDuplicateTopLabel =
+    schematic === undefined || schematic.staticLabel !== undefined;
+  const labelForTop =
+    duplicatesTypeText(label, typeText) && suppressDuplicateTopLabel ? undefined : label;
+  const topLabel = bodyLabel
+    ? undefined
+    : (labelForTop ?? schematic?.staticLabel ?? (schematic ? undefined : metadata.label));
+  const inlineFallbackLabel = schematic === undefined ? (typeText ?? metadata.label) : undefined;
+
+  const occupiedSides = new Set<PortSide>(ports.map((port) => port.rotatedSide as PortSide));
+  const labelSide = pickLabelSide(occupiedSides);
+  const crowded = occupiedSides.has(labelSide);
+  const [valueSide, valueRow] = pickValuePlacement(
+    labelSide,
+    occupiedSides,
+    topLabel !== undefined,
+  );
+
+  return (
+    // biome-ignore lint/a11y/noSvgWithoutTitle: <title> rendered only when showLabels=true; sidebar preview sets aria-hidden via parent and omits the title to avoid duplicate text in screen readers.
+    <svg
+      width={svgWidth}
+      height={svgHeight}
+      viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+      className="block-symbol"
+      aria-hidden={!showLabels || undefined}
+      style={{ overflow: "visible" }}
+    >
+      {showLabels ? <title>{metadata.label}</title> : null}
+      <g transform={`scale(${SYMBOL_SCALE}) ${symbolTransform(rotation, mirror, resolvedBbox)}`}>
+        {schematic ? (
+          schematic.render({ width, height, params })
+        ) : (
+          <>
+            {metadata.symbol.shape === "custom" && metadata.symbol.path ? (
+              <path d={metadata.symbol.path} fill="#ffffff" stroke="#111827" strokeWidth={1.5} />
+            ) : (
+              metadataToPrimitives(metadata, params, { text: bodyLabel }).map((p) => (
+                <PrimitiveShape key={primitiveKey(p)} p={p} />
+              ))
+            )}
+            {showLabels && inlineFallbackLabel && metadata.symbol.shape === "custom" ? (
+              <text
+                x={width / 2}
+                y={height / 2 + 4}
+                textAnchor="middle"
+                fontSize={12}
+                fill="#111827"
+              >
+                {inlineFallbackLabel}
+              </text>
+            ) : null}
+          </>
+        )}
+      </g>
+      {showLabels && topLabel ? (
+        <text
+          {...labelAnchorFor(labelSide, 0, scaledWidth, scaledHeight, crowded)}
+          fontSize={14}
+          fontWeight={700}
+          fill="#0f172a"
+        >
+          {topLabel}
+        </text>
+      ) : null}
+      {showLabels && valueLabel ? (
+        <text
+          {...labelAnchorFor(valueSide, valueRow, scaledWidth, scaledHeight, crowded)}
+          fontSize={13}
+          fontWeight={500}
+          fill="#1f2937"
+        >
+          {valueLabel}
+        </text>
+      ) : null}
+      {ports.map((port) => {
+        const inputPort = resolvedPorts.inputs.find((candidate) => candidate.id === port.id);
+        const outputPort = resolvedPorts.outputs.find((candidate) => candidate.id === port.id);
+        const portDef = inputPort ?? outputPort;
+        if (!portDef) {
+          return null;
+        }
+        const direction = inputPort ? "in" : outputPort ? "out" : "inout";
+        return (
+          <Port
+            key={port.id}
+            id={port.id}
+            x={port.center.x - blockPosition[0]}
+            y={port.center.y - blockPosition[1]}
+            kind={portDef.kind}
+            direction={direction}
+            label={portDef.label}
+            side={port.rotatedSide}
+            decorate={!schematic?.selfDrawnPorts}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+export default BlockSymbol;

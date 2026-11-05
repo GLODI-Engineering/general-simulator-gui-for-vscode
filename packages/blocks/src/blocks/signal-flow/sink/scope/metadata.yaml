@@ -1,0 +1,17 @@
+name: signal_flow.sink.scope
+type: signal-flow.sink.scope
+label: Scope
+version: 1
+category: sinks
+description: Signal scope sink.
+paradigm: signal-flow
+domain: signal
+aliases: [scope]
+tags: [signal-flow, sink]
+ports: {inputs: [{id: in, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: []}
+params: [{name: t_window, label: Time window, type: number, default: 10.0}]
+fidelities: [{tier: n_a, ports: [{id: in, kind: signal, direction: in, side: left, offset: 20}], params: [{id: t_window, type: number, default: 10.0}], doc: Signal scope sink.}]
+symbol: {bbox: [70, 40], shape: rect, text: scope}
+behavior: {causality: sink, domain: signal, state_count: 0, equation_template: signal_flow.sink.scope}
+port_sigs:
+  in: "inherit"

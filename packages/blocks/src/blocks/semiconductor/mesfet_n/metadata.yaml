@@ -1,0 +1,50 @@
+name: semi.mesfet.n
+label: N-MESFET
+version: 1
+category: semiconductor
+description: "N-channel metal-semiconductor FET (Statz model, Level 1)."
+
+aliases: [Z, mesfet, mesfet n, MESFET]
+tags: [semiconductor, electrical, mesfet, n-channel, transistor]
+
+ports:
+  inputs:
+    - id: g
+      label: Gate
+      kind: { domain: electrical }
+      side: left
+      offset: 56
+  outputs:
+    - id: d
+      label: Drain
+      kind: { domain: electrical }
+      side: top
+      offset: 56
+    - id: s
+      label: Source
+      kind: { domain: electrical }
+      side: bottom
+      offset: 56
+
+params:
+  - name: model
+    label: Model
+    type: string
+    default: ""
+    description: SPICE model name.
+  - name: area
+    label: Area
+    type: number
+    default: 1.0
+    description: Area multiplier.
+
+symbol:
+  bbox: [56, 106]
+  shape: rect
+  text: MESFET
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: semi.mesfet.n

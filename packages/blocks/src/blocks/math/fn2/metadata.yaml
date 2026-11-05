@@ -1,0 +1,48 @@
+name: math.fn2
+label: "Math Function (binary)"
+version: 1
+category: signal
+description: "Binary waveform-arithmetic function applied to two signals."
+
+aliases: [fn2, binary function, math function]
+tags: [math, signal, arithmetic, general-simulator]
+
+ports:
+  inputs:
+    - id: in1
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 15
+    - id: in2
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 29
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 22
+
+params:
+  - name: fn
+    label: "Function"
+    type: enum
+    choices: [atan2, anglewrap, hypot, max, min, pow, pwr, pwrs]
+    default: max
+    description: "Binary waveform function to apply."
+
+symbol:
+  bbox: [60, 44]
+  shape: rect
+  text: "{fn}"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 0
+  equation_template: math.fn2
+
+main_param: fn

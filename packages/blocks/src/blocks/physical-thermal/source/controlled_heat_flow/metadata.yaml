@@ -1,0 +1,15 @@
+name: physical_thermal.source.controlled_heat_flow
+type: physical-thermal.source.controlled_heat_flow
+label: Controlled Heat Flow Source
+version: 1
+category: source
+description: Controlled Heat Flow Source.
+paradigm: physical-network
+domain: physical-thermal
+aliases: [controlled_heat_flow]
+tags: [physical, thermal]
+ports: {inputs: [{id: a, label: a, kind: {domain: physical-thermal}, side: left, offset: 20}], outputs: [{id: b, label: b, kind: {domain: physical-thermal}, side: right, offset: 20}]}
+params: []
+fidelities: [{tier: ideal, doc: Ideal Controlled Heat Flow Source.}]
+symbol: {bbox: [70, 40], shape: rect, text: CONTROLLED_HEAT_FLOW}
+behavior: {causality: acausal, domain: thermal, state_count: 0, equation_template: physical_thermal.source.controlled_heat_flow}

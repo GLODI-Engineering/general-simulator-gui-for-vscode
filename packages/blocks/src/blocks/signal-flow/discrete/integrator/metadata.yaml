@@ -1,0 +1,18 @@
+name: signal_flow.discrete.integrator
+type: signal-flow.discrete.integrator
+label: Discrete Integrator
+version: 1
+category: control
+description: Discrete-time integrator.
+paradigm: signal-flow
+domain: signal
+aliases: [discrete integrator]
+tags: [signal-flow, discrete]
+ports: {inputs: [{id: in, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: [{name: method, label: Method, type: enum, default: forward, choices: [forward, backward, trapezoidal]}, {name: ic, label: Initial condition, type: number, default: 0.0}, {name: sample_time, label: Sample time, type: number, default: 0.01}]
+fidelities: [{tier: n_a, ports: [{id: in, kind: signal, direction: in, side: left, offset: 20}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: method, type: enum, default: forward, choices: [forward, backward, trapezoidal]}, {id: ic, type: number, default: 0.0}, {id: sample_time, type: number, default: 0.01}], doc: Discrete-time integrator.}]
+symbol: {bbox: [70, 40], shape: rect, text: 1/z}
+behavior: {causality: causal, domain: signal, state_count: 1, equation_template: signal_flow.discrete.integrator}
+port_sigs:
+  in: "inherit"
+  out: "from(in)"

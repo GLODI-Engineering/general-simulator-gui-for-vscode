@@ -1,0 +1,45 @@
+name: source.behavioral
+label: Behavioral Source
+version: 1
+category: sources
+description: Nonlinear behavioral B-source with voltage or current expression. SPICE element B.
+
+aliases: [B source, behavioral source]
+tags: [source, electrical, behavioral, nonlinear]
+
+ports:
+  inputs:
+    - id: p
+      label: "+"
+      kind: { domain: electrical }
+      side: left
+      offset: 20
+  outputs:
+    - id: n
+      label: "-"
+      kind: { domain: electrical }
+      side: right
+      offset: 20
+
+params:
+  - name: expr_v
+    label: Voltage Expression
+    type: string
+    default: ""
+    description: Voltage expression for BV behavior.
+  - name: expr_i
+    label: Current Expression
+    type: string
+    default: ""
+    description: Current expression for BI behavior.
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: B
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: source.behavioral

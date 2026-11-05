@@ -1,0 +1,36 @@
+name: converter.rotational_to_electrical
+type: converter.rotational_to_electrical
+label: Rotational to Electrical
+version: 1
+category: power
+description: Converts rotational mechanical energy to electrical energy (generator model).
+paradigm: converter
+domain: physical-electrical
+aliases: [rotational to electrical, generator]
+tags: [converter]
+ports:
+  inputs:
+    - {id: r, label: r, kind: {domain: physical-rotational}, side: left, offset: 20}
+  outputs:
+    - {id: e, label: e, kind: {domain: physical-electrical}, side: right, offset: 20}
+params:
+  - {name: kt, label: Torque constant (N·m/A), type: number, default: 0.01}
+  - {name: ke, label: Back-EMF constant (V·s/rad), type: number, default: 0.01}
+fidelities:
+  - tier: ideal
+    ports:
+      - {id: r, kind: physical-rotational, direction: inout}
+      - {id: e, kind: physical-electrical, direction: inout}
+    params:
+      - {id: kt, type: number, default: 0.01}
+      - {id: ke, type: number, default: 0.01}
+    doc: Ideal generator coupling between rotational and electrical domains.
+symbol:
+  bbox: [90, 40]
+  shape: rect
+  text: r-e
+behavior:
+  causality: acausal
+  domain: mixed
+  state_count: 0
+  equation_template: converter.rotational_to_electrical

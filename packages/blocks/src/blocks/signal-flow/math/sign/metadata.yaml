@@ -1,0 +1,18 @@
+name: signal_flow.math.sign
+type: signal-flow.math.sign
+label: Sign
+version: 1
+category: control
+description: Sign block.
+paradigm: signal-flow
+domain: signal
+aliases: [sign]
+tags: [signal-flow, math]
+ports: {inputs: [{id: in, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: []
+fidelities: [{tier: n_a, ports: [{id: in, kind: signal, direction: in, side: left, offset: 20}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [], doc: Sign block.}]
+symbol: {bbox: [60, 40], shape: rect, text: sign}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.math.sign}
+port_sigs:
+  in: "inherit"
+  out: "from(in)"

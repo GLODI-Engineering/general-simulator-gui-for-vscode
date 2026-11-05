@@ -1,0 +1,17 @@
+name: signal_flow.sink.terminator
+type: signal-flow.sink.terminator
+label: Terminator
+version: 1
+category: sinks
+description: Terminates an unused signal.
+paradigm: signal-flow
+domain: signal
+aliases: [terminator]
+tags: [signal-flow, sink]
+ports: {inputs: [{id: in, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: []}
+params: []
+fidelities: [{tier: n_a, ports: [{id: in, kind: signal, direction: in, side: left, offset: 20}], params: [], doc: Terminates an unused signal.}]
+symbol: {bbox: [60, 40], shape: rect, text: term}
+behavior: {causality: sink, domain: signal, state_count: 0, equation_template: signal_flow.sink.terminator}
+port_sigs:
+  in: "inherit"

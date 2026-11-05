@@ -1,0 +1,27 @@
+name: physical_translational.reference.world
+type: physical-translational.reference.world
+label: World (Translational Reference)
+version: 1
+category: power
+description: Translational mechanical world reference (pins velocity to zero).
+paradigm: physical-network
+domain: physical-translational
+aliases: [world, ground]
+tags: [physical, translational, reference]
+ports:
+  inputs:
+    - {id: p, label: p, kind: {domain: physical-translational}, side: left, offset: 20}
+  outputs: []
+params: []
+fidelities:
+  - tier: ideal
+    ports:
+      - {id: p, kind: physical-translational, direction: inout}
+    params: []
+    doc: Translational world reference — pins velocity to zero.
+symbol: {bbox: [40, 40], shape: rect, text: GND}
+behavior:
+  causality: reference
+  domain: mechanical
+  state_count: 0
+  equation_template: physical_translational.reference.world

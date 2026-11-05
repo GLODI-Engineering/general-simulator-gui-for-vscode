@@ -1,0 +1,18 @@
+name: signal_flow.logic.dff
+type: signal-flow.logic.dff
+label: D Flip-Flop
+version: 1
+category: control
+description: Edge-triggered D flip-flop.
+paradigm: signal-flow
+domain: signal
+aliases: [d flip-flop, dff]
+tags: [signal-flow, logic, sequential]
+ports: {inputs: [{id: clk, label: clk, kind: {domain: signal, dims: scalar}, side: top, offset: 20}, {id: d, label: D, kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: [{id: q, label: Q, kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: []
+fidelities: [{tier: n_a, ports: [{id: clk, kind: signal, direction: in, side: top, offset: 20}, {id: d, kind: signal, direction: in, side: left, offset: 20}, {id: q, kind: signal, direction: out, side: right, offset: 20}], params: [], doc: Edge-triggered D flip-flop.}]
+symbol: {bbox: [70, 60], shape: rect, text: DFF}
+behavior: {causality: causal, domain: signal, state_count: 1, equation_template: signal_flow.logic.dff}
+port_sigs:
+  d: "inherit"
+  q: "from(d)"

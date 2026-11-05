@@ -1,0 +1,18 @@
+name: signal_flow.logic.sample_hold
+type: signal-flow.logic.sample_hold
+label: Sample and Hold
+version: 1
+category: control
+description: Samples the input while clk is high and holds the last value while clk is low.
+paradigm: signal-flow
+domain: signal
+aliases: [sample and hold, track and hold]
+tags: [signal-flow, logic, sequential]
+ports: {inputs: [{id: in, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 20}, {id: clk, label: clk, kind: {domain: signal, dims: scalar}, side: top, offset: 20}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: [{name: threshold, label: Clock threshold, type: number, default: 0.5}]
+fidelities: [{tier: n_a, ports: [{id: in, kind: signal, direction: in, side: left, offset: 20}, {id: clk, kind: signal, direction: in, side: top, offset: 20}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: threshold, type: number, default: 0.5}], doc: Track-and-hold sampler.}]
+symbol: {bbox: [70, 60], shape: rect, text: S/H}
+behavior: {causality: causal, domain: signal, state_count: 1, equation_template: signal_flow.logic.sample_hold}
+port_sigs:
+  in: "inherit"
+  out: "from(in)"

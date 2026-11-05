@@ -1,0 +1,15 @@
+name: physical_translational.element.hard_stop
+type: physical-translational.element.hard_stop
+label: Translational Hard Stop
+version: 1
+category: element
+description: Mechanical hard stop (position limits with stiffness/damping).
+paradigm: physical-network
+domain: physical-translational
+aliases: [hard_stop]
+tags: [physical, translational]
+ports: {inputs: [{id: p, label: p, kind: {domain: physical-translational}, side: left, offset: 20}], outputs: [{id: n, label: n, kind: {domain: physical-translational}, side: right, offset: 20}]}
+params: [{name: lo, label: Lower limit m, type: number, default: -0.1}, {name: hi, label: Upper limit m, type: number, default: 0.1}, {name: stiffness, label: Contact stiffness N/m, type: number, default: 100000.0}, {name: damping, label: Contact damping Ns/m, type: number, default: 100.0}]
+fidelities: [{tier: ideal, doc: Ideal hard stop.}, {tier: behavioral, doc: Behavioral hard stop.}]
+symbol: {bbox: [70, 40], shape: rect, text: HS}
+behavior: {causality: acausal, domain: mechanical, state_count: 0, equation_template: physical_translational.element.hard_stop}

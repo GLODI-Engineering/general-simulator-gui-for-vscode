@@ -1,0 +1,18 @@
+name: signal_flow.source.constant
+type: signal-flow.source.constant
+label: Constant
+version: 1
+category: signal
+description: Constant signal source.
+paradigm: signal-flow
+domain: signal
+aliases: [constant]
+tags: [signal-flow, source]
+ports: {inputs: [], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: [{name: value, label: Value, type: number, default: 1.0, description: Constant value.}]
+fidelities: [{tier: n_a, ports: [{id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: value, type: number, default: 1.0}], doc: Constant signal source.}]
+symbol: {bbox: [60, 40], shape: rect, text: C}
+behavior: {causality: source, domain: signal, state_count: 0, equation_template: signal_flow.source.constant}
+main_param: value
+port_sigs:
+  out: "shape(value)"
