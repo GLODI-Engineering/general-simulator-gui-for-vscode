@@ -227,15 +227,18 @@ function sourceCircle(ctx: SymbolContext, glyph: ReactNode): ReactNode {
 }
 
 // Voltage glyphs
-function dcVoltageGlyph(y: number, ctx: SymbolContext): ReactNode {
+function dcVoltageGlyph(y: number, _ctx: SymbolContext): ReactNode {
+  // Plain text: `sourceCircle` already wraps every glyph in the counter-
+  // rotation, so undoing the rotation here as well turned it the wrong way
+  // by twice the angle and put the minus sign back on its side.
   return (
     <g>
-      <UprightText ctx={ctx} x={26} y={y - 1} fontSize={8} fill={STROKE} textAnchor="middle">
+      <text x={26} y={y - 1} fontSize={8} fill={STROKE} textAnchor="middle">
         +
-      </UprightText>
-      <UprightText ctx={ctx} x={34} y={y + 3} fontSize={10} fill={STROKE} textAnchor="middle">
+      </text>
+      <text x={34} y={y + 3} fontSize={10} fill={STROKE} textAnchor="middle">
         −
-      </UprightText>
+      </text>
     </g>
   );
 }
