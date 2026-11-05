@@ -11,18 +11,18 @@ ports:
   inputs:
     - id: g
       label: Gate
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: left
       offset: 59
   outputs:
     - id: d
       label: Drain
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: top
       offset: 38
     - id: s
       label: Source
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: bottom
       offset: 38
 params:

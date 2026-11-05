@@ -11,7 +11,7 @@ ports:
   inputs:
     - id: d
       label: "D"
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: top
       offset: 51
     - id: g
@@ -22,7 +22,7 @@ ports:
   outputs:
     - id: s
       label: "S"
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: bottom
       offset: 51
 

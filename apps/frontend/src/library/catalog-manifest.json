@@ -3698,7 +3698,7 @@
           {
             "id": "out",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "",
             "offset": 20,
@@ -7246,7 +7246,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -7257,7 +7257,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -7360,7 +7360,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -7371,7 +7371,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -7500,7 +7500,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -7511,7 +7511,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -7640,7 +7640,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -7651,7 +7651,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -7802,7 +7802,7 @@
           {
             "id": "a",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A",
             "offset": 20,
@@ -7813,7 +7813,7 @@
           {
             "id": "k",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "K",
             "offset": 20,
@@ -7965,7 +7965,7 @@
           {
             "id": "a",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A",
             "offset": 20,
@@ -7976,7 +7976,7 @@
           {
             "id": "k",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "K",
             "offset": 20,
@@ -8197,7 +8197,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -8208,7 +8208,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -8311,7 +8311,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -8322,7 +8322,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -8455,7 +8455,7 @@
           {
             "id": "p1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "p1",
             "offset": 10,
@@ -8464,7 +8464,7 @@
           {
             "id": "n1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "n1",
             "offset": 30,
@@ -8475,7 +8475,7 @@
           {
             "id": "p2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "p2",
             "offset": 10,
@@ -8484,7 +8484,7 @@
           {
             "id": "n2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "n2",
             "offset": 30,
@@ -8618,7 +8618,7 @@
           {
             "id": "p1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "p1",
             "offset": 10,
@@ -8627,7 +8627,7 @@
           {
             "id": "n1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "n1",
             "offset": 30,
@@ -8638,7 +8638,7 @@
           {
             "id": "p2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "p2",
             "offset": 10,
@@ -8647,7 +8647,7 @@
           {
             "id": "n2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "n2",
             "offset": 30,
@@ -8738,7 +8738,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -8749,7 +8749,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -8955,7 +8955,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -8966,7 +8966,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -9069,7 +9069,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -9080,7 +9080,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -9209,7 +9209,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -9220,7 +9220,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -9349,7 +9349,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -9360,7 +9360,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -9464,7 +9464,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -9475,7 +9475,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -9579,7 +9579,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -9590,7 +9590,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -9681,7 +9681,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -9692,7 +9692,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -9784,7 +9784,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -9795,7 +9795,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -9970,7 +9970,7 @@
           {
             "id": "d",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "D",
             "offset": 51,
@@ -9991,7 +9991,7 @@
           {
             "id": "s",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "S",
             "offset": 51,
@@ -10166,7 +10166,7 @@
           {
             "id": "d",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "D",
             "offset": 51,
@@ -10187,7 +10187,7 @@
           {
             "id": "s",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "S",
             "offset": 51,
@@ -10295,7 +10295,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "p",
             "offset": 10,
@@ -10304,7 +10304,7 @@
           {
             "id": "cp",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "c+",
             "offset": 30,
@@ -10315,7 +10315,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "n",
             "offset": 10,
@@ -10324,7 +10324,7 @@
           {
             "id": "cn",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "c-",
             "offset": 30,
@@ -10431,7 +10431,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "p",
             "offset": 10,
@@ -10440,7 +10440,7 @@
           {
             "id": "cp",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "c+",
             "offset": 30,
@@ -10451,7 +10451,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "n",
             "offset": 10,
@@ -10460,7 +10460,7 @@
           {
             "id": "cn",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "c-",
             "offset": 30,
@@ -30476,7 +30476,7 @@
           {
             "id": "gnd",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "GND",
             "offset": 20,
@@ -30546,7 +30546,7 @@
           {
             "id": "gnd",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "GND",
             "offset": 20,
@@ -31437,7 +31437,7 @@
           {
             "id": "b",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Base",
             "offset": 41,
@@ -31448,7 +31448,7 @@
           {
             "id": "c",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Collector",
             "offset": 46,
@@ -31457,7 +31457,7 @@
           {
             "id": "e",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Emitter",
             "offset": 46,
@@ -31584,7 +31584,7 @@
           {
             "id": "b",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Base",
             "offset": 41,
@@ -31595,7 +31595,7 @@
           {
             "id": "c",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Collector",
             "offset": 46,
@@ -31604,7 +31604,7 @@
           {
             "id": "e",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Emitter",
             "offset": 46,
@@ -31731,7 +31731,7 @@
           {
             "id": "b",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Base",
             "offset": 41,
@@ -31742,7 +31742,7 @@
           {
             "id": "c",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Collector",
             "offset": 46,
@@ -31751,7 +31751,7 @@
           {
             "id": "e",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Emitter",
             "offset": 46,
@@ -31878,7 +31878,7 @@
           {
             "id": "b",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Base",
             "offset": 41,
@@ -31889,7 +31889,7 @@
           {
             "id": "c",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Collector",
             "offset": 46,
@@ -31898,7 +31898,7 @@
           {
             "id": "e",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Emitter",
             "offset": 46,
@@ -32003,7 +32003,7 @@
           {
             "id": "a",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Anode",
             "offset": 20,
@@ -32014,7 +32014,7 @@
           {
             "id": "k",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Cathode",
             "offset": 20,
@@ -32117,7 +32117,7 @@
           {
             "id": "a",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Anode",
             "offset": 20,
@@ -32128,7 +32128,7 @@
           {
             "id": "k",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Cathode",
             "offset": 20,
@@ -32231,7 +32231,7 @@
           {
             "id": "a",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Anode",
             "offset": 20,
@@ -32242,7 +32242,7 @@
           {
             "id": "k",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Cathode",
             "offset": 20,
@@ -32346,7 +32346,7 @@
           {
             "id": "a",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Anode",
             "offset": 20,
@@ -32357,7 +32357,7 @@
           {
             "id": "k",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Cathode",
             "offset": 20,
@@ -32470,7 +32470,7 @@
           {
             "id": "g",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Gate",
             "offset": 42,
@@ -32481,7 +32481,7 @@
           {
             "id": "d",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Drain",
             "offset": 43,
@@ -32490,7 +32490,7 @@
           {
             "id": "s",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Source",
             "offset": 43,
@@ -32604,7 +32604,7 @@
           {
             "id": "g",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Gate",
             "offset": 42,
@@ -32615,7 +32615,7 @@
           {
             "id": "d",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Drain",
             "offset": 43,
@@ -32624,7 +32624,7 @@
           {
             "id": "s",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Source",
             "offset": 43,
@@ -32738,7 +32738,7 @@
           {
             "id": "g",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Gate",
             "offset": 42,
@@ -32749,7 +32749,7 @@
           {
             "id": "d",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Drain",
             "offset": 43,
@@ -32758,7 +32758,7 @@
           {
             "id": "s",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Source",
             "offset": 43,
@@ -32872,7 +32872,7 @@
           {
             "id": "g",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Gate",
             "offset": 42,
@@ -32883,7 +32883,7 @@
           {
             "id": "d",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Drain",
             "offset": 43,
@@ -32892,7 +32892,7 @@
           {
             "id": "s",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Source",
             "offset": 43,
@@ -33006,7 +33006,7 @@
           {
             "id": "g",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Gate",
             "offset": 56,
@@ -33017,7 +33017,7 @@
           {
             "id": "d",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Drain",
             "offset": 56,
@@ -33026,7 +33026,7 @@
           {
             "id": "s",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Source",
             "offset": 56,
@@ -33140,7 +33140,7 @@
           {
             "id": "g",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Gate",
             "offset": 56,
@@ -33151,7 +33151,7 @@
           {
             "id": "d",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Drain",
             "offset": 56,
@@ -33160,7 +33160,7 @@
           {
             "id": "s",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Source",
             "offset": 56,
@@ -33352,7 +33352,7 @@
           {
             "id": "g",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Gate",
             "offset": 81,
@@ -33361,7 +33361,7 @@
           {
             "id": "d",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Drain",
             "offset": 51,
@@ -33370,7 +33370,7 @@
           {
             "id": "s",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Source",
             "offset": 51,
@@ -33563,7 +33563,7 @@
           {
             "id": "g",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Gate",
             "offset": 81,
@@ -33572,7 +33572,7 @@
           {
             "id": "d",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Drain",
             "offset": 51,
@@ -33581,7 +33581,7 @@
           {
             "id": "s",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Source",
             "offset": 51,
@@ -33774,7 +33774,7 @@
           {
             "id": "g",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Gate",
             "offset": 59,
@@ -33785,7 +33785,7 @@
           {
             "id": "d",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Drain",
             "offset": 38,
@@ -33794,7 +33794,7 @@
           {
             "id": "s",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Source",
             "offset": 38,
@@ -33986,7 +33986,7 @@
           {
             "id": "g",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Gate",
             "offset": 59,
@@ -33997,7 +33997,7 @@
           {
             "id": "d",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Drain",
             "offset": 38,
@@ -34006,7 +34006,7 @@
           {
             "id": "s",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Source",
             "offset": 38,
@@ -34133,7 +34133,7 @@
           {
             "id": "g",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Gate",
             "offset": 81,
@@ -34144,7 +34144,7 @@
           {
             "id": "d",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Drain",
             "offset": 51,
@@ -34153,7 +34153,7 @@
           {
             "id": "s",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Source",
             "offset": 51,
@@ -34281,7 +34281,7 @@
           {
             "id": "g",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Gate",
             "offset": 81,
@@ -34292,7 +34292,7 @@
           {
             "id": "d",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Drain",
             "offset": 51,
@@ -34301,7 +34301,7 @@
           {
             "id": "s",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "Source",
             "offset": 51,
@@ -47123,7 +47123,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -47134,7 +47134,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -47237,7 +47237,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -47248,7 +47248,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -47463,7 +47463,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -47474,7 +47474,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -47604,7 +47604,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -47615,7 +47615,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -47706,7 +47706,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -47717,7 +47717,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -47807,7 +47807,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -47818,7 +47818,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -47973,7 +47973,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -47984,7 +47984,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -48140,7 +48140,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -48151,7 +48151,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -48320,7 +48320,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -48331,7 +48331,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -48500,7 +48500,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -48511,7 +48511,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -48602,7 +48602,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -48613,7 +48613,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -48704,7 +48704,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -48715,7 +48715,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -48858,7 +48858,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -48869,7 +48869,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -49013,7 +49013,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -49024,7 +49024,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -49181,7 +49181,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -49192,7 +49192,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -49349,7 +49349,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -49360,7 +49360,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -49461,7 +49461,7 @@
           {
             "id": "ctrl",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "CTRL",
             "offset": 30,
@@ -49472,7 +49472,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 15,
@@ -49481,7 +49481,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 35,
@@ -49580,7 +49580,7 @@
           {
             "id": "ctrl",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "CTRL",
             "offset": 30,
@@ -49591,7 +49591,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 15,
@@ -49600,7 +49600,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 35,
@@ -49699,7 +49699,7 @@
           {
             "id": "ctrl",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "CTRL",
             "offset": 30,
@@ -49710,7 +49710,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 15,
@@ -49719,7 +49719,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 35,
@@ -49818,7 +49818,7 @@
           {
             "id": "ctrl",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "CTRL",
             "offset": 30,
@@ -49829,7 +49829,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 15,
@@ -49838,7 +49838,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 35,
@@ -49945,7 +49945,7 @@
           {
             "id": "cp",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "C+",
             "offset": 1,
@@ -49954,7 +49954,7 @@
           {
             "id": "cn",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "C-",
             "offset": 43,
@@ -49965,7 +49965,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 1,
@@ -49974,7 +49974,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 43,
@@ -50081,7 +50081,7 @@
           {
             "id": "cp",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "C+",
             "offset": 1,
@@ -50090,7 +50090,7 @@
           {
             "id": "cn",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "C-",
             "offset": 43,
@@ -50101,7 +50101,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 1,
@@ -50110,7 +50110,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 43,
@@ -50217,7 +50217,7 @@
           {
             "id": "cp",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "C+",
             "offset": 1,
@@ -50226,7 +50226,7 @@
           {
             "id": "cn",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "C-",
             "offset": 43,
@@ -50237,7 +50237,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 1,
@@ -50246,7 +50246,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 43,
@@ -50353,7 +50353,7 @@
           {
             "id": "cp",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "C+",
             "offset": 1,
@@ -50362,7 +50362,7 @@
           {
             "id": "cn",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "C-",
             "offset": 43,
@@ -50373,7 +50373,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 1,
@@ -50382,7 +50382,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 43,
@@ -50632,7 +50632,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -50643,7 +50643,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -50733,7 +50733,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -50744,7 +50744,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -51420,7 +51420,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -51431,7 +51431,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -51561,7 +51561,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -51572,7 +51572,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -51663,7 +51663,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -51674,7 +51674,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -51764,7 +51764,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -51775,7 +51775,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -51930,7 +51930,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -51941,7 +51941,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -52097,7 +52097,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -52108,7 +52108,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -52212,7 +52212,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -52223,7 +52223,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -52327,7 +52327,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -52338,7 +52338,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -52507,7 +52507,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -52518,7 +52518,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -52687,7 +52687,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -52698,7 +52698,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -52789,7 +52789,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -52800,7 +52800,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -52891,7 +52891,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -52902,7 +52902,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -53045,7 +53045,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -53056,7 +53056,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -53199,7 +53199,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -53210,7 +53210,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -53328,7 +53328,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -53339,7 +53339,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -53458,7 +53458,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -53469,7 +53469,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -53613,7 +53613,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -53624,7 +53624,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -53768,7 +53768,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -53779,7 +53779,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -53936,7 +53936,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -53947,7 +53947,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -54104,7 +54104,7 @@
           {
             "id": "p",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "+",
             "offset": 20,
@@ -54115,7 +54115,7 @@
           {
             "id": "n",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "-",
             "offset": 20,
@@ -54237,7 +54237,7 @@
           {
             "id": "a1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A1",
             "offset": 10,
@@ -54246,7 +54246,7 @@
           {
             "id": "b1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B1",
             "offset": 30,
@@ -54257,7 +54257,7 @@
           {
             "id": "a2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A2",
             "offset": 10,
@@ -54266,7 +54266,7 @@
           {
             "id": "b2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B2",
             "offset": 30,
@@ -54387,7 +54387,7 @@
           {
             "id": "a1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A1",
             "offset": 10,
@@ -54396,7 +54396,7 @@
           {
             "id": "b1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B1",
             "offset": 30,
@@ -54407,7 +54407,7 @@
           {
             "id": "a2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A2",
             "offset": 10,
@@ -54416,7 +54416,7 @@
           {
             "id": "b2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B2",
             "offset": 30,
@@ -54537,7 +54537,7 @@
           {
             "id": "a1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A1",
             "offset": 10,
@@ -54546,7 +54546,7 @@
           {
             "id": "b1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B1",
             "offset": 30,
@@ -54557,7 +54557,7 @@
           {
             "id": "a2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A2",
             "offset": 10,
@@ -54566,7 +54566,7 @@
           {
             "id": "b2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B2",
             "offset": 30,
@@ -54686,7 +54686,7 @@
           {
             "id": "a1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A1",
             "offset": 10,
@@ -54695,7 +54695,7 @@
           {
             "id": "b1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B1",
             "offset": 30,
@@ -54706,7 +54706,7 @@
           {
             "id": "a2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A2",
             "offset": 10,
@@ -54715,7 +54715,7 @@
           {
             "id": "b2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B2",
             "offset": 30,
@@ -54874,7 +54874,7 @@
           {
             "id": "a1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A1",
             "offset": 10,
@@ -54883,7 +54883,7 @@
           {
             "id": "b1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B1",
             "offset": 30,
@@ -54894,7 +54894,7 @@
           {
             "id": "a2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A2",
             "offset": 10,
@@ -54903,7 +54903,7 @@
           {
             "id": "b2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B2",
             "offset": 30,
@@ -55063,7 +55063,7 @@
           {
             "id": "a1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A1",
             "offset": 10,
@@ -55072,7 +55072,7 @@
           {
             "id": "b1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B1",
             "offset": 30,
@@ -55083,7 +55083,7 @@
           {
             "id": "a2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A2",
             "offset": 10,
@@ -55092,7 +55092,7 @@
           {
             "id": "b2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B2",
             "offset": 30,
@@ -55224,7 +55224,7 @@
           {
             "id": "a1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A1",
             "offset": 10,
@@ -55233,7 +55233,7 @@
           {
             "id": "b1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B1",
             "offset": 30,
@@ -55244,7 +55244,7 @@
           {
             "id": "a2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A2",
             "offset": 10,
@@ -55253,7 +55253,7 @@
           {
             "id": "b2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B2",
             "offset": 30,
@@ -55385,7 +55385,7 @@
           {
             "id": "a1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A1",
             "offset": 10,
@@ -55394,7 +55394,7 @@
           {
             "id": "b1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B1",
             "offset": 30,
@@ -55405,7 +55405,7 @@
           {
             "id": "a2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A2",
             "offset": 10,
@@ -55414,7 +55414,7 @@
           {
             "id": "b2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B2",
             "offset": 30,
@@ -55586,7 +55586,7 @@
           {
             "id": "a1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A1",
             "offset": 10,
@@ -55595,7 +55595,7 @@
           {
             "id": "b1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B1",
             "offset": 30,
@@ -55606,7 +55606,7 @@
           {
             "id": "a2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A2",
             "offset": 10,
@@ -55615,7 +55615,7 @@
           {
             "id": "b2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B2",
             "offset": 30,
@@ -55787,7 +55787,7 @@
           {
             "id": "a1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A1",
             "offset": 10,
@@ -55796,7 +55796,7 @@
           {
             "id": "b1",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B1",
             "offset": 30,
@@ -55807,7 +55807,7 @@
           {
             "id": "a2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "A2",
             "offset": 10,
@@ -55816,7 +55816,7 @@
           {
             "id": "b2",
             "kind": {
-              "domain": "electrical"
+              "domain": "physical-electrical"
             },
             "label": "B2",
             "offset": 30,

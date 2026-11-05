@@ -11,7 +11,7 @@ ports:
   inputs:
     - id: gnd
       label: "GND"
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: top
       offset: 20
   outputs: []

@@ -11,13 +11,13 @@ ports:
   inputs:
     - id: a
       label: Anode
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: left
       offset: 20
   outputs:
     - id: k
       label: Cathode
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: right
       offset: 20
 

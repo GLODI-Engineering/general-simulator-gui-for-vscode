@@ -11,23 +11,23 @@ ports:
   inputs:
     - id: cp
       label: "C+"
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: left
       offset: 1
     - id: cn
       label: "C-"
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: left
       offset: 43
   outputs:
     - id: p
       label: "+"
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: right
       offset: 1
     - id: n
       label: "-"
-      kind: { domain: electrical }
+      kind: { domain: physical-electrical }
       side: right
       offset: 43
 params:
