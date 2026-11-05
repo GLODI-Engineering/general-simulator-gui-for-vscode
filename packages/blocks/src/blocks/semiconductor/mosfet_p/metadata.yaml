@@ -13,18 +13,18 @@ ports:
       label: Gate
       kind: { domain: physical-electrical }
       side: left
-      offset: 59
+      offset: 30
   outputs:
     - id: d
       label: Drain
       kind: { domain: physical-electrical }
       side: top
-      offset: 38
+      offset: 30
     - id: s
       label: Source
       kind: { domain: physical-electrical }
       side: bottom
-      offset: 38
+      offset: 30
 params:
   - name: model
     label: Model
@@ -68,7 +68,7 @@ params:
     description: Source diffusion perimeter.
 
 symbol:
-  bbox: [59, 80]
+  bbox: [60, 60]
   shape: rect
   text: PMOS
 

@@ -8393,7 +8393,7 @@
               "id": "p1",
               "kind": "physical-electrical",
               "label": "p1",
-              "offset": 10,
+              "offset": 20,
               "side": "left"
             },
             {
@@ -8401,7 +8401,7 @@
               "id": "n1",
               "kind": "physical-electrical",
               "label": "n1",
-              "offset": 30,
+              "offset": 40,
               "side": "left"
             },
             {
@@ -8409,7 +8409,7 @@
               "id": "p2",
               "kind": "physical-electrical",
               "label": "p2",
-              "offset": 10,
+              "offset": 20,
               "side": "right"
             },
             {
@@ -8417,7 +8417,7 @@
               "id": "n2",
               "kind": "physical-electrical",
               "label": "n2",
-              "offset": 30,
+              "offset": 40,
               "side": "right"
             }
           ],
@@ -8458,7 +8458,7 @@
               "domain": "physical-electrical"
             },
             "label": "p1",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -8467,7 +8467,7 @@
               "domain": "physical-electrical"
             },
             "label": "n1",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -8478,7 +8478,7 @@
               "domain": "physical-electrical"
             },
             "label": "p2",
-            "offset": 10,
+            "offset": 20,
             "side": "right"
           },
           {
@@ -8487,7 +8487,7 @@
               "domain": "physical-electrical"
             },
             "label": "n2",
-            "offset": 30,
+            "offset": 40,
             "side": "right"
           }
         ]
@@ -8556,7 +8556,7 @@
               "id": "p1",
               "kind": "physical-electrical",
               "label": "p1",
-              "offset": 10,
+              "offset": 20,
               "side": "left"
             },
             {
@@ -8564,7 +8564,7 @@
               "id": "n1",
               "kind": "physical-electrical",
               "label": "n1",
-              "offset": 30,
+              "offset": 40,
               "side": "left"
             },
             {
@@ -8572,7 +8572,7 @@
               "id": "p2",
               "kind": "physical-electrical",
               "label": "p2",
-              "offset": 10,
+              "offset": 20,
               "side": "right"
             },
             {
@@ -8580,7 +8580,7 @@
               "id": "n2",
               "kind": "physical-electrical",
               "label": "n2",
-              "offset": 30,
+              "offset": 40,
               "side": "right"
             }
           ],
@@ -8621,7 +8621,7 @@
               "domain": "physical-electrical"
             },
             "label": "p1",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -8630,7 +8630,7 @@
               "domain": "physical-electrical"
             },
             "label": "n1",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -8641,7 +8641,7 @@
               "domain": "physical-electrical"
             },
             "label": "p2",
-            "offset": 10,
+            "offset": 20,
             "side": "right"
           },
           {
@@ -8650,7 +8650,7 @@
               "domain": "physical-electrical"
             },
             "label": "n2",
-            "offset": 30,
+            "offset": 40,
             "side": "right"
           }
         ]
@@ -9890,7 +9890,7 @@
               "id": "d",
               "kind": "physical-electrical",
               "label": "D",
-              "offset": 51,
+              "offset": 30,
               "side": "top"
             },
             {
@@ -9898,7 +9898,7 @@
               "id": "g",
               "kind": "signal",
               "label": "gate",
-              "offset": 81,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -9906,7 +9906,7 @@
               "id": "s",
               "kind": "physical-electrical",
               "label": "S",
-              "offset": 51,
+              "offset": 30,
               "side": "bottom"
             }
           ],
@@ -9973,7 +9973,7 @@
               "domain": "physical-electrical"
             },
             "label": "D",
-            "offset": 51,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -9983,7 +9983,7 @@
               "domain": "signal"
             },
             "label": "gate",
-            "offset": 81,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -9994,15 +9994,15 @@
               "domain": "physical-electrical"
             },
             "label": "S",
-            "offset": 51,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          110
+          60,
+          60
         ],
         "shape": "rect",
         "text": "SW"
@@ -10086,7 +10086,7 @@
               "id": "d",
               "kind": "physical-electrical",
               "label": "D",
-              "offset": 51,
+              "offset": 30,
               "side": "top"
             },
             {
@@ -10094,7 +10094,7 @@
               "id": "g",
               "kind": "signal",
               "label": "gate",
-              "offset": 81,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -10102,7 +10102,7 @@
               "id": "s",
               "kind": "physical-electrical",
               "label": "S",
-              "offset": 51,
+              "offset": 30,
               "side": "bottom"
             }
           ],
@@ -10169,7 +10169,7 @@
               "domain": "physical-electrical"
             },
             "label": "D",
-            "offset": 51,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -10179,7 +10179,7 @@
               "domain": "signal"
             },
             "label": "gate",
-            "offset": 81,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -10190,15 +10190,15 @@
               "domain": "physical-electrical"
             },
             "label": "S",
-            "offset": 51,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          110
+          60,
+          60
         ],
         "shape": "rect",
         "text": "SW"
@@ -10547,7 +10547,7 @@
               "domain": "physical-electrical"
             },
             "label": "V+",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -10556,7 +10556,7 @@
               "domain": "physical-electrical"
             },
             "label": "V-",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -10567,7 +10567,7 @@
               "domain": "physical-electrical"
             },
             "label": "out",
-            "offset": 20,
+            "offset": 30,
             "side": "right"
           }
         ]
@@ -10651,7 +10651,7 @@
               "domain": "physical-electrical"
             },
             "label": "V+",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -10660,7 +10660,7 @@
               "domain": "physical-electrical"
             },
             "label": "V-",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -10671,7 +10671,7 @@
               "domain": "physical-electrical"
             },
             "label": "out",
-            "offset": 20,
+            "offset": 30,
             "side": "right"
           }
         ]
@@ -10755,7 +10755,7 @@
               "domain": "physical-electrical"
             },
             "label": "V+",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -10764,7 +10764,7 @@
               "domain": "physical-electrical"
             },
             "label": "V-",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -10775,7 +10775,7 @@
               "domain": "physical-electrical"
             },
             "label": "out",
-            "offset": 20,
+            "offset": 30,
             "side": "right"
           }
         ]
@@ -10853,7 +10853,7 @@
               "domain": "physical-electrical"
             },
             "label": "V+",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -10862,7 +10862,7 @@
               "domain": "physical-electrical"
             },
             "label": "V-",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -10873,7 +10873,7 @@
               "domain": "physical-electrical"
             },
             "label": "out",
-            "offset": 20,
+            "offset": 30,
             "side": "right"
           }
         ]
@@ -10951,7 +10951,7 @@
               "domain": "physical-electrical"
             },
             "label": "V+",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -10960,7 +10960,7 @@
               "domain": "physical-electrical"
             },
             "label": "V-",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -10971,7 +10971,7 @@
               "domain": "physical-electrical"
             },
             "label": "out",
-            "offset": 20,
+            "offset": 30,
             "side": "right"
           }
         ]
@@ -11049,7 +11049,7 @@
               "domain": "physical-electrical"
             },
             "label": "V+",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -11058,7 +11058,7 @@
               "domain": "physical-electrical"
             },
             "label": "V-",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -11069,7 +11069,7 @@
               "domain": "physical-electrical"
             },
             "label": "out",
-            "offset": 20,
+            "offset": 30,
             "side": "right"
           }
         ]
@@ -11141,7 +11141,7 @@
               "domain": "physical-electrical"
             },
             "label": "V+",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -11150,7 +11150,7 @@
               "domain": "physical-electrical"
             },
             "label": "V-",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -11161,7 +11161,7 @@
               "domain": "physical-electrical"
             },
             "label": "out",
-            "offset": 20,
+            "offset": 30,
             "side": "right"
           }
         ]
@@ -11233,7 +11233,7 @@
               "domain": "physical-electrical"
             },
             "label": "V+",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -11242,7 +11242,7 @@
               "domain": "physical-electrical"
             },
             "label": "V-",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -11253,7 +11253,7 @@
               "domain": "physical-electrical"
             },
             "label": "out",
-            "offset": 20,
+            "offset": 30,
             "side": "right"
           }
         ]
@@ -11325,7 +11325,7 @@
               "domain": "physical-electrical"
             },
             "label": "V+",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -11334,7 +11334,7 @@
               "domain": "physical-electrical"
             },
             "label": "V-",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -11345,7 +11345,7 @@
               "domain": "physical-electrical"
             },
             "label": "out",
-            "offset": 20,
+            "offset": 30,
             "side": "right"
           }
         ]
@@ -11405,7 +11405,7 @@
               "domain": "physical-electrical"
             },
             "label": "V+",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -11414,7 +11414,7 @@
               "domain": "physical-electrical"
             },
             "label": "V-",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -11425,7 +11425,7 @@
               "domain": "physical-electrical"
             },
             "label": "out",
-            "offset": 20,
+            "offset": 30,
             "side": "right"
           }
         ]
@@ -11485,7 +11485,7 @@
               "domain": "physical-electrical"
             },
             "label": "V+",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -11494,7 +11494,7 @@
               "domain": "physical-electrical"
             },
             "label": "V-",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -11505,7 +11505,7 @@
               "domain": "physical-electrical"
             },
             "label": "out",
-            "offset": 20,
+            "offset": 30,
             "side": "right"
           }
         ]
@@ -11565,7 +11565,7 @@
               "domain": "physical-electrical"
             },
             "label": "V+",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -11574,7 +11574,7 @@
               "domain": "physical-electrical"
             },
             "label": "V-",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -11585,7 +11585,7 @@
               "domain": "physical-electrical"
             },
             "label": "out",
-            "offset": 20,
+            "offset": 30,
             "side": "right"
           }
         ]
@@ -13078,7 +13078,7 @@
               "domain": "physical-electrical"
             },
             "label": "+1",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -13087,7 +13087,7 @@
               "domain": "physical-electrical"
             },
             "label": "-1",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -13098,7 +13098,7 @@
               "domain": "physical-electrical"
             },
             "label": "+2",
-            "offset": 10,
+            "offset": 20,
             "side": "right"
           },
           {
@@ -13107,14 +13107,14 @@
               "domain": "physical-electrical"
             },
             "label": "-2",
-            "offset": 30,
+            "offset": 40,
             "side": "right"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
+          60,
           60
         ],
         "shape": "rect",
@@ -13190,7 +13190,7 @@
               "domain": "physical-electrical"
             },
             "label": "+1",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -13199,7 +13199,7 @@
               "domain": "physical-electrical"
             },
             "label": "-1",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -13210,7 +13210,7 @@
               "domain": "physical-electrical"
             },
             "label": "+2",
-            "offset": 10,
+            "offset": 20,
             "side": "right"
           },
           {
@@ -13219,14 +13219,14 @@
               "domain": "physical-electrical"
             },
             "label": "-2",
-            "offset": 30,
+            "offset": 40,
             "side": "right"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
+          60,
           60
         ],
         "shape": "rect",
@@ -13302,7 +13302,7 @@
               "domain": "physical-electrical"
             },
             "label": "+1",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -13311,7 +13311,7 @@
               "domain": "physical-electrical"
             },
             "label": "-1",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -13322,7 +13322,7 @@
               "domain": "physical-electrical"
             },
             "label": "+2",
-            "offset": 10,
+            "offset": 20,
             "side": "right"
           },
           {
@@ -13331,14 +13331,14 @@
               "domain": "physical-electrical"
             },
             "label": "-2",
-            "offset": 30,
+            "offset": 40,
             "side": "right"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
+          60,
           60
         ],
         "shape": "rect",
@@ -13819,7 +13819,7 @@
               "domain": "physical-electrical"
             },
             "label": "+1",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -13828,7 +13828,7 @@
               "domain": "physical-electrical"
             },
             "label": "-1",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -13839,7 +13839,7 @@
               "domain": "physical-electrical"
             },
             "label": "+2",
-            "offset": 10,
+            "offset": 20,
             "side": "right"
           },
           {
@@ -13848,14 +13848,14 @@
               "domain": "physical-electrical"
             },
             "label": "-2",
-            "offset": 30,
+            "offset": 40,
             "side": "right"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
+          60,
           60
         ],
         "shape": "rect",
@@ -13919,7 +13919,7 @@
               "domain": "physical-electrical"
             },
             "label": "+1",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -13928,7 +13928,7 @@
               "domain": "physical-electrical"
             },
             "label": "-1",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -13939,7 +13939,7 @@
               "domain": "physical-electrical"
             },
             "label": "+2",
-            "offset": 10,
+            "offset": 20,
             "side": "right"
           },
           {
@@ -13948,14 +13948,14 @@
               "domain": "physical-electrical"
             },
             "label": "-2",
-            "offset": 30,
+            "offset": 40,
             "side": "right"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
+          60,
           60
         ],
         "shape": "rect",
@@ -14019,7 +14019,7 @@
               "domain": "physical-electrical"
             },
             "label": "+1",
-            "offset": 10,
+            "offset": 20,
             "side": "left"
           },
           {
@@ -14028,7 +14028,7 @@
               "domain": "physical-electrical"
             },
             "label": "-1",
-            "offset": 30,
+            "offset": 40,
             "side": "left"
           }
         ],
@@ -14039,7 +14039,7 @@
               "domain": "physical-electrical"
             },
             "label": "+2",
-            "offset": 10,
+            "offset": 20,
             "side": "right"
           },
           {
@@ -14048,14 +14048,14 @@
               "domain": "physical-electrical"
             },
             "label": "-2",
-            "offset": 30,
+            "offset": 40,
             "side": "right"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
+          60,
           60
         ],
         "shape": "rect",
@@ -14680,7 +14680,7 @@
               "domain": "physical-electrical"
             },
             "label": "B",
-            "offset": 41,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -14691,7 +14691,7 @@
               "domain": "physical-electrical"
             },
             "label": "C",
-            "offset": 46,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -14700,15 +14700,15 @@
               "domain": "physical-electrical"
             },
             "label": "E",
-            "offset": 46,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          80
+          60,
+          60
         ],
         "primitives": [
           {
@@ -14864,7 +14864,7 @@
               "domain": "physical-electrical"
             },
             "label": "B",
-            "offset": 41,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -14875,7 +14875,7 @@
               "domain": "physical-electrical"
             },
             "label": "C",
-            "offset": 46,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -14884,15 +14884,15 @@
               "domain": "physical-electrical"
             },
             "label": "E",
-            "offset": 46,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          80
+          60,
+          60
         ],
         "primitives": [
           {
@@ -15048,7 +15048,7 @@
               "domain": "physical-electrical"
             },
             "label": "B",
-            "offset": 41,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -15059,7 +15059,7 @@
               "domain": "physical-electrical"
             },
             "label": "C",
-            "offset": 46,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -15068,15 +15068,15 @@
               "domain": "physical-electrical"
             },
             "label": "E",
-            "offset": 46,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          80
+          60,
+          60
         ],
         "primitives": [
           {
@@ -15214,7 +15214,7 @@
               "domain": "physical-electrical"
             },
             "label": "B",
-            "offset": 41,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -15225,7 +15225,7 @@
               "domain": "physical-electrical"
             },
             "label": "C",
-            "offset": 46,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -15234,15 +15234,15 @@
               "domain": "physical-electrical"
             },
             "label": "E",
-            "offset": 46,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          80
+          60,
+          60
         ],
         "shape": "rect",
         "text": "PNP"
@@ -15311,7 +15311,7 @@
               "domain": "physical-electrical"
             },
             "label": "B",
-            "offset": 41,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -15322,7 +15322,7 @@
               "domain": "physical-electrical"
             },
             "label": "C",
-            "offset": 46,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -15331,15 +15331,15 @@
               "domain": "physical-electrical"
             },
             "label": "E",
-            "offset": 46,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          80
+          60,
+          60
         ],
         "shape": "rect",
         "text": "PNP"
@@ -15408,7 +15408,7 @@
               "domain": "physical-electrical"
             },
             "label": "B",
-            "offset": 41,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -15419,7 +15419,7 @@
               "domain": "physical-electrical"
             },
             "label": "C",
-            "offset": 46,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -15428,15 +15428,15 @@
               "domain": "physical-electrical"
             },
             "label": "E",
-            "offset": 46,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          80
+          60,
+          60
         ],
         "shape": "rect",
         "text": "PNP"
@@ -16437,7 +16437,7 @@
               "domain": "physical-electrical"
             },
             "label": "G",
-            "offset": 81,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -16448,7 +16448,7 @@
               "domain": "physical-electrical"
             },
             "label": "D",
-            "offset": 51,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -16457,15 +16457,15 @@
               "domain": "physical-electrical"
             },
             "label": "S",
-            "offset": 51,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          110
+          60,
+          60
         ],
         "primitives": [
           {
@@ -16717,7 +16717,7 @@
               "domain": "physical-electrical"
             },
             "label": "G",
-            "offset": 81,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -16728,7 +16728,7 @@
               "domain": "physical-electrical"
             },
             "label": "D",
-            "offset": 51,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -16737,15 +16737,15 @@
               "domain": "physical-electrical"
             },
             "label": "S",
-            "offset": 51,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          110
+          60,
+          60
         ],
         "primitives": [
           {
@@ -16997,7 +16997,7 @@
               "domain": "physical-electrical"
             },
             "label": "G",
-            "offset": 81,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -17008,7 +17008,7 @@
               "domain": "physical-electrical"
             },
             "label": "D",
-            "offset": 51,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -17017,15 +17017,15 @@
               "domain": "physical-electrical"
             },
             "label": "S",
-            "offset": 51,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          110
+          60,
+          60
         ],
         "primitives": [
           {
@@ -17276,7 +17276,7 @@
               "domain": "physical-electrical"
             },
             "label": "G",
-            "offset": 81,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -17287,7 +17287,7 @@
               "domain": "physical-electrical"
             },
             "label": "D",
-            "offset": 51,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -17296,15 +17296,15 @@
               "domain": "physical-electrical"
             },
             "label": "S",
-            "offset": 51,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          110
+          60,
+          60
         ],
         "shape": "rect",
         "text": "PMOS"
@@ -17413,7 +17413,7 @@
               "domain": "physical-electrical"
             },
             "label": "G",
-            "offset": 81,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -17424,7 +17424,7 @@
               "domain": "physical-electrical"
             },
             "label": "D",
-            "offset": 51,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -17433,15 +17433,15 @@
               "domain": "physical-electrical"
             },
             "label": "S",
-            "offset": 51,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          110
+          60,
+          60
         ],
         "shape": "rect",
         "text": "PMOS"
@@ -17550,7 +17550,7 @@
               "domain": "physical-electrical"
             },
             "label": "G",
-            "offset": 81,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -17561,7 +17561,7 @@
               "domain": "physical-electrical"
             },
             "label": "D",
-            "offset": 51,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -17570,15 +17570,15 @@
               "domain": "physical-electrical"
             },
             "label": "S",
-            "offset": 51,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          110
+          60,
+          60
         ],
         "shape": "rect",
         "text": "PMOS"
@@ -17961,7 +17961,7 @@
             },
             "label": "G",
             "offset": 20,
-            "side": "left"
+            "side": "bottom"
           }
         ],
         "outputs": [
@@ -17971,8 +17971,8 @@
               "domain": "physical-electrical"
             },
             "label": "A",
-            "offset": 12,
-            "side": "right"
+            "offset": 20,
+            "side": "left"
           },
           {
             "id": "k",
@@ -17980,14 +17980,14 @@
               "domain": "physical-electrical"
             },
             "label": "K",
-            "offset": 28,
+            "offset": 20,
             "side": "right"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          70,
+          60,
           40
         ],
         "shape": "rect",
@@ -18065,7 +18065,7 @@
             },
             "label": "G",
             "offset": 20,
-            "side": "left"
+            "side": "bottom"
           }
         ],
         "outputs": [
@@ -18075,8 +18075,8 @@
               "domain": "physical-electrical"
             },
             "label": "A",
-            "offset": 12,
-            "side": "right"
+            "offset": 20,
+            "side": "left"
           },
           {
             "id": "k",
@@ -18084,14 +18084,14 @@
               "domain": "physical-electrical"
             },
             "label": "K",
-            "offset": 28,
+            "offset": 20,
             "side": "right"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          70,
+          60,
           40
         ],
         "shape": "rect",
@@ -18169,7 +18169,7 @@
             },
             "label": "G",
             "offset": 20,
-            "side": "left"
+            "side": "bottom"
           }
         ],
         "outputs": [
@@ -18179,8 +18179,8 @@
               "domain": "physical-electrical"
             },
             "label": "A",
-            "offset": 12,
-            "side": "right"
+            "offset": 20,
+            "side": "left"
           },
           {
             "id": "k",
@@ -18188,14 +18188,14 @@
               "domain": "physical-electrical"
             },
             "label": "K",
-            "offset": 28,
+            "offset": 20,
             "side": "right"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          70,
+          60,
           40
         ],
         "shape": "rect",
@@ -31383,7 +31383,7 @@
               "id": "b",
               "kind": "physical-electrical",
               "label": "Base",
-              "offset": 41,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -31391,7 +31391,7 @@
               "id": "c",
               "kind": "physical-electrical",
               "label": "Collector",
-              "offset": 46,
+              "offset": 30,
               "side": "top"
             },
             {
@@ -31399,7 +31399,7 @@
               "id": "e",
               "kind": "physical-electrical",
               "label": "Emitter",
-              "offset": 46,
+              "offset": 30,
               "side": "bottom"
             }
           ],
@@ -31440,7 +31440,7 @@
               "domain": "physical-electrical"
             },
             "label": "Base",
-            "offset": 41,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -31451,7 +31451,7 @@
               "domain": "physical-electrical"
             },
             "label": "Collector",
-            "offset": 46,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -31460,15 +31460,15 @@
               "domain": "physical-electrical"
             },
             "label": "Emitter",
-            "offset": 46,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          80
+          60,
+          60
         ],
         "shape": "rect",
         "text": "NPN"
@@ -31530,7 +31530,7 @@
               "id": "b",
               "kind": "physical-electrical",
               "label": "Base",
-              "offset": 41,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -31538,7 +31538,7 @@
               "id": "c",
               "kind": "physical-electrical",
               "label": "Collector",
-              "offset": 46,
+              "offset": 30,
               "side": "top"
             },
             {
@@ -31546,7 +31546,7 @@
               "id": "e",
               "kind": "physical-electrical",
               "label": "Emitter",
-              "offset": 46,
+              "offset": 30,
               "side": "bottom"
             }
           ],
@@ -31587,7 +31587,7 @@
               "domain": "physical-electrical"
             },
             "label": "Base",
-            "offset": 41,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -31598,7 +31598,7 @@
               "domain": "physical-electrical"
             },
             "label": "Collector",
-            "offset": 46,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -31607,15 +31607,15 @@
               "domain": "physical-electrical"
             },
             "label": "Emitter",
-            "offset": 46,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          80
+          60,
+          60
         ],
         "shape": "rect",
         "text": "NPN"
@@ -31677,7 +31677,7 @@
               "id": "b",
               "kind": "physical-electrical",
               "label": "Base",
-              "offset": 41,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -31685,7 +31685,7 @@
               "id": "c",
               "kind": "physical-electrical",
               "label": "Collector",
-              "offset": 46,
+              "offset": 30,
               "side": "top"
             },
             {
@@ -31693,7 +31693,7 @@
               "id": "e",
               "kind": "physical-electrical",
               "label": "Emitter",
-              "offset": 46,
+              "offset": 30,
               "side": "bottom"
             }
           ],
@@ -31734,7 +31734,7 @@
               "domain": "physical-electrical"
             },
             "label": "Base",
-            "offset": 41,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -31745,7 +31745,7 @@
               "domain": "physical-electrical"
             },
             "label": "Collector",
-            "offset": 46,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -31754,15 +31754,15 @@
               "domain": "physical-electrical"
             },
             "label": "Emitter",
-            "offset": 46,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          80
+          60,
+          60
         ],
         "shape": "rect",
         "text": "PNP"
@@ -31824,7 +31824,7 @@
               "id": "b",
               "kind": "physical-electrical",
               "label": "Base",
-              "offset": 41,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -31832,7 +31832,7 @@
               "id": "c",
               "kind": "physical-electrical",
               "label": "Collector",
-              "offset": 46,
+              "offset": 30,
               "side": "top"
             },
             {
@@ -31840,7 +31840,7 @@
               "id": "e",
               "kind": "physical-electrical",
               "label": "Emitter",
-              "offset": 46,
+              "offset": 30,
               "side": "bottom"
             }
           ],
@@ -31881,7 +31881,7 @@
               "domain": "physical-electrical"
             },
             "label": "Base",
-            "offset": 41,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -31892,7 +31892,7 @@
               "domain": "physical-electrical"
             },
             "label": "Collector",
-            "offset": 46,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -31901,15 +31901,15 @@
               "domain": "physical-electrical"
             },
             "label": "Emitter",
-            "offset": 46,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          80
+          60,
+          60
         ],
         "shape": "rect",
         "text": "PNP"
@@ -32423,7 +32423,7 @@
               "id": "g",
               "kind": "physical-electrical",
               "label": "Gate",
-              "offset": 42,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -32431,7 +32431,7 @@
               "id": "d",
               "kind": "physical-electrical",
               "label": "Drain",
-              "offset": 43,
+              "offset": 30,
               "side": "top"
             },
             {
@@ -32439,7 +32439,7 @@
               "id": "s",
               "kind": "physical-electrical",
               "label": "Source",
-              "offset": 43,
+              "offset": 30,
               "side": "bottom"
             }
           ],
@@ -32473,7 +32473,7 @@
               "domain": "physical-electrical"
             },
             "label": "Gate",
-            "offset": 42,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -32484,7 +32484,7 @@
               "domain": "physical-electrical"
             },
             "label": "Drain",
-            "offset": 43,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -32493,15 +32493,15 @@
               "domain": "physical-electrical"
             },
             "label": "Source",
-            "offset": 43,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          80
+          60,
+          60
         ],
         "shape": "rect",
         "text": "JFET-N"
@@ -32557,7 +32557,7 @@
               "id": "g",
               "kind": "physical-electrical",
               "label": "Gate",
-              "offset": 42,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -32565,7 +32565,7 @@
               "id": "d",
               "kind": "physical-electrical",
               "label": "Drain",
-              "offset": 43,
+              "offset": 30,
               "side": "top"
             },
             {
@@ -32573,7 +32573,7 @@
               "id": "s",
               "kind": "physical-electrical",
               "label": "Source",
-              "offset": 43,
+              "offset": 30,
               "side": "bottom"
             }
           ],
@@ -32607,7 +32607,7 @@
               "domain": "physical-electrical"
             },
             "label": "Gate",
-            "offset": 42,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -32618,7 +32618,7 @@
               "domain": "physical-electrical"
             },
             "label": "Drain",
-            "offset": 43,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -32627,15 +32627,15 @@
               "domain": "physical-electrical"
             },
             "label": "Source",
-            "offset": 43,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          80
+          60,
+          60
         ],
         "shape": "rect",
         "text": "JFET-N"
@@ -32691,7 +32691,7 @@
               "id": "g",
               "kind": "physical-electrical",
               "label": "Gate",
-              "offset": 42,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -32699,7 +32699,7 @@
               "id": "d",
               "kind": "physical-electrical",
               "label": "Drain",
-              "offset": 43,
+              "offset": 30,
               "side": "top"
             },
             {
@@ -32707,7 +32707,7 @@
               "id": "s",
               "kind": "physical-electrical",
               "label": "Source",
-              "offset": 43,
+              "offset": 30,
               "side": "bottom"
             }
           ],
@@ -32741,7 +32741,7 @@
               "domain": "physical-electrical"
             },
             "label": "Gate",
-            "offset": 42,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -32752,7 +32752,7 @@
               "domain": "physical-electrical"
             },
             "label": "Drain",
-            "offset": 43,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -32761,15 +32761,15 @@
               "domain": "physical-electrical"
             },
             "label": "Source",
-            "offset": 43,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          80
+          60,
+          60
         ],
         "shape": "rect",
         "text": "JFET-P"
@@ -32825,7 +32825,7 @@
               "id": "g",
               "kind": "physical-electrical",
               "label": "Gate",
-              "offset": 42,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -32833,7 +32833,7 @@
               "id": "d",
               "kind": "physical-electrical",
               "label": "Drain",
-              "offset": 43,
+              "offset": 30,
               "side": "top"
             },
             {
@@ -32841,7 +32841,7 @@
               "id": "s",
               "kind": "physical-electrical",
               "label": "Source",
-              "offset": 43,
+              "offset": 30,
               "side": "bottom"
             }
           ],
@@ -32875,7 +32875,7 @@
               "domain": "physical-electrical"
             },
             "label": "Gate",
-            "offset": 42,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -32886,7 +32886,7 @@
               "domain": "physical-electrical"
             },
             "label": "Drain",
-            "offset": 43,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -32895,15 +32895,15 @@
               "domain": "physical-electrical"
             },
             "label": "Source",
-            "offset": 43,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          80
+          60,
+          60
         ],
         "shape": "rect",
         "text": "JFET-P"
@@ -33263,7 +33263,7 @@
               "id": "g",
               "kind": "physical-electrical",
               "label": "Gate",
-              "offset": 81,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -33271,7 +33271,7 @@
               "id": "d",
               "kind": "physical-electrical",
               "label": "Drain",
-              "offset": 51,
+              "offset": 30,
               "side": "top"
             },
             {
@@ -33279,7 +33279,7 @@
               "id": "s",
               "kind": "physical-electrical",
               "label": "Source",
-              "offset": 51,
+              "offset": 30,
               "side": "bottom"
             }
           ],
@@ -33355,7 +33355,7 @@
               "domain": "physical-electrical"
             },
             "label": "Gate",
-            "offset": 81,
+            "offset": 30,
             "side": "left"
           },
           {
@@ -33364,7 +33364,7 @@
               "domain": "physical-electrical"
             },
             "label": "Drain",
-            "offset": 51,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -33373,7 +33373,7 @@
               "domain": "physical-electrical"
             },
             "label": "Source",
-            "offset": 51,
+            "offset": 30,
             "side": "bottom"
           }
         ],
@@ -33381,8 +33381,8 @@
       },
       "symbol": {
         "bbox": [
-          80,
-          110
+          60,
+          60
         ],
         "shape": "rect",
         "text": "NMOS"
@@ -33474,7 +33474,7 @@
               "id": "g",
               "kind": "physical-electrical",
               "label": "Gate",
-              "offset": 81,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -33482,7 +33482,7 @@
               "id": "d",
               "kind": "physical-electrical",
               "label": "Drain",
-              "offset": 51,
+              "offset": 30,
               "side": "top"
             },
             {
@@ -33490,7 +33490,7 @@
               "id": "s",
               "kind": "physical-electrical",
               "label": "Source",
-              "offset": 51,
+              "offset": 30,
               "side": "bottom"
             }
           ],
@@ -33566,7 +33566,7 @@
               "domain": "physical-electrical"
             },
             "label": "Gate",
-            "offset": 81,
+            "offset": 30,
             "side": "left"
           },
           {
@@ -33575,7 +33575,7 @@
               "domain": "physical-electrical"
             },
             "label": "Drain",
-            "offset": 51,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -33584,7 +33584,7 @@
               "domain": "physical-electrical"
             },
             "label": "Source",
-            "offset": 51,
+            "offset": 30,
             "side": "bottom"
           }
         ],
@@ -33592,8 +33592,8 @@
       },
       "symbol": {
         "bbox": [
-          80,
-          110
+          60,
+          60
         ],
         "shape": "rect",
         "text": "NMOS"
@@ -33685,7 +33685,7 @@
               "id": "g",
               "kind": "physical-electrical",
               "label": "Gate",
-              "offset": 59,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -33693,7 +33693,7 @@
               "id": "d",
               "kind": "physical-electrical",
               "label": "Drain",
-              "offset": 38,
+              "offset": 30,
               "side": "top"
             },
             {
@@ -33701,7 +33701,7 @@
               "id": "s",
               "kind": "physical-electrical",
               "label": "Source",
-              "offset": 38,
+              "offset": 30,
               "side": "bottom"
             }
           ],
@@ -33777,7 +33777,7 @@
               "domain": "physical-electrical"
             },
             "label": "Gate",
-            "offset": 59,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -33788,7 +33788,7 @@
               "domain": "physical-electrical"
             },
             "label": "Drain",
-            "offset": 38,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -33797,15 +33797,15 @@
               "domain": "physical-electrical"
             },
             "label": "Source",
-            "offset": 38,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          59,
-          80
+          60,
+          60
         ],
         "shape": "rect",
         "text": "PMOS"
@@ -33897,7 +33897,7 @@
               "id": "g",
               "kind": "physical-electrical",
               "label": "Gate",
-              "offset": 59,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -33905,7 +33905,7 @@
               "id": "d",
               "kind": "physical-electrical",
               "label": "Drain",
-              "offset": 38,
+              "offset": 30,
               "side": "top"
             },
             {
@@ -33913,7 +33913,7 @@
               "id": "s",
               "kind": "physical-electrical",
               "label": "Source",
-              "offset": 38,
+              "offset": 30,
               "side": "bottom"
             }
           ],
@@ -33989,7 +33989,7 @@
               "domain": "physical-electrical"
             },
             "label": "Gate",
-            "offset": 59,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -34000,7 +34000,7 @@
               "domain": "physical-electrical"
             },
             "label": "Drain",
-            "offset": 38,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -34009,15 +34009,15 @@
               "domain": "physical-electrical"
             },
             "label": "Source",
-            "offset": 38,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          59,
-          80
+          60,
+          60
         ],
         "shape": "rect",
         "text": "PMOS"
@@ -34079,7 +34079,7 @@
               "id": "g",
               "kind": "physical-electrical",
               "label": "Gate",
-              "offset": 81,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -34087,7 +34087,7 @@
               "id": "d",
               "kind": "physical-electrical",
               "label": "Drain",
-              "offset": 51,
+              "offset": 30,
               "side": "top"
             },
             {
@@ -34095,7 +34095,7 @@
               "id": "s",
               "kind": "physical-electrical",
               "label": "Source",
-              "offset": 51,
+              "offset": 30,
               "side": "bottom"
             }
           ],
@@ -34136,7 +34136,7 @@
               "domain": "physical-electrical"
             },
             "label": "Gate",
-            "offset": 81,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -34147,7 +34147,7 @@
               "domain": "physical-electrical"
             },
             "label": "Drain",
-            "offset": 51,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -34156,15 +34156,15 @@
               "domain": "physical-electrical"
             },
             "label": "Source",
-            "offset": 51,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          110
+          60,
+          60
         ],
         "shape": "rect",
         "text": "VDMOS"
@@ -34227,7 +34227,7 @@
               "id": "g",
               "kind": "physical-electrical",
               "label": "Gate",
-              "offset": 81,
+              "offset": 30,
               "side": "left"
             },
             {
@@ -34235,7 +34235,7 @@
               "id": "d",
               "kind": "physical-electrical",
               "label": "Drain",
-              "offset": 51,
+              "offset": 30,
               "side": "top"
             },
             {
@@ -34243,7 +34243,7 @@
               "id": "s",
               "kind": "physical-electrical",
               "label": "Source",
-              "offset": 51,
+              "offset": 30,
               "side": "bottom"
             }
           ],
@@ -34284,7 +34284,7 @@
               "domain": "physical-electrical"
             },
             "label": "Gate",
-            "offset": 81,
+            "offset": 30,
             "side": "left"
           }
         ],
@@ -34295,7 +34295,7 @@
               "domain": "physical-electrical"
             },
             "label": "Drain",
-            "offset": 51,
+            "offset": 30,
             "side": "top"
           },
           {
@@ -34304,15 +34304,15 @@
               "domain": "physical-electrical"
             },
             "label": "Source",
-            "offset": 51,
+            "offset": 30,
             "side": "bottom"
           }
         ]
       },
       "symbol": {
         "bbox": [
-          80,
-          110
+          60,
+          60
         ],
         "shape": "rect",
         "text": "VDMOS"

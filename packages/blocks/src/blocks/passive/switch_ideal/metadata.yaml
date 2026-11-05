@@ -13,18 +13,18 @@ ports:
       label: "D"
       kind: { domain: physical-electrical }
       side: top
-      offset: 51
+      offset: 30
     - id: g
       label: "gate"
       kind: { domain: signal, dims: scalar }
       side: left
-      offset: 81
+      offset: 30
   outputs:
     - id: s
       label: "S"
       kind: { domain: physical-electrical }
       side: bottom
-      offset: 51
+      offset: 30
 
 params:
   - name: r_on
@@ -63,7 +63,7 @@ params:
     description: "Conductance past reverse breakdown, in siemens."
 
 symbol:
-  bbox: [80, 110]
+  bbox: [60, 60]
   shape: rect
   text: "SW"
 

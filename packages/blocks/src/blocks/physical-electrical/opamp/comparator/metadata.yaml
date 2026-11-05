@@ -8,7 +8,7 @@ paradigm: physical-network
 domain: physical-electrical
 aliases: [comparator]
 tags: [physical, electrical, opamp]
-ports: {inputs: [{id: vp, label: V+, kind: {domain: physical-electrical}, side: left, offset: 10}, {id: vn, label: V-, kind: {domain: physical-electrical}, side: left, offset: 30}], outputs: [{id: out, label: out, kind: {domain: physical-electrical}, side: right, offset: 20}]}
+ports: {inputs: [{id: vp, label: V+, kind: {domain: physical-electrical}, side: left, offset: 20}, {id: vn, label: V-, kind: {domain: physical-electrical}, side: left, offset: 40}], outputs: [{id: out, label: out, kind: {domain: physical-electrical}, side: right, offset: 30}]}
 params: [{name: v_hys, label: Hysteresis voltage, type: number, default: 0.0}, {name: v_oh, label: Output high, type: number, default: 5.0}, {name: v_ol, label: Output low, type: number, default: 0.0}]
 fidelities: [{tier: ideal, doc: Ideal comparator.}, {tier: behavioral, doc: Behavioral comparator with hysteresis.}]
 symbol: {bbox: [80, 60], shape: rect, text: CMP}
