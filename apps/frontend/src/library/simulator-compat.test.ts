@@ -56,9 +56,16 @@ describe("FE-45: loadSimulatorCompat", () => {
     expect(simulators[0]?.label).toBe("General Simulator");
   });
 
-  it("supports exactly the 55 compilable registry types", () => {
+  it("supports exactly the 59 compilable registry types", () => {
+    // Was 55. Four types the engine compiles — control.integrator,
+    // control.derivative, control.delay and source.voltage.sin — were missing
+    // from the list, so the library hid working parts from the user. This
+    // assertion was supposed to catch that and instead recorded it: a count
+    // copied from the list it is checking only ever confirms the list has not
+    // changed, not that it is right. `scripts/check-simulator-compat.mjs`
+    // compares against the engine's real registry, which is the authority.
     const { simulators } = loadSimulatorCompat();
-    expect(simulators[0]?.supported).toHaveLength(55);
+    expect(simulators[0]?.supported).toHaveLength(59);
   });
 
   it("covers one representative of every registry family", () => {

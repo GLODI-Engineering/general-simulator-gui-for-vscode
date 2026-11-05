@@ -21,6 +21,7 @@ simulators:
       - passive.inductor
       # -- Independent sources -----------------------------------------
       - source.voltage.dc
+      - source.voltage.sin
       - source.current.dc
       # -- Dependent sources -------------------------------------------
       - source.dependent.vcvs
@@ -47,6 +48,9 @@ simulators:
       - control.gain
       - control.saturation
       - control.vco
+      - control.integrator
+      - control.derivative
+      - control.delay
       - control.sum
       - control.product
       - control.pid

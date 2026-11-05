@@ -8,23 +8,24 @@ aliases: [product, multiply, mul]
 tags: [control, signal, arithmetic, general-simulator]
 
 ports:
-  inputs:
-    - id: in0
-      label: ""
-      kind: { domain: signal, dims: scalar }
-      side: left
-      offset: 10
-    - id: in1
-      label: ""
-      kind: { domain: signal, dims: scalar }
-      side: left
-      offset: 30
+  # Variadic, from `n_inputs` — the engine's own arity for this block is
+  # `Arity::ParamCount("n_inputs")`. Declaring two fixed ports meant a product
+  # configured with five inputs compiled with five and drew with two.
+  inputs: []
   outputs:
     - id: out
       label: ""
       kind: { domain: signal, dims: scalar }
       side: right
       offset: 20
+  variadic_inputs:
+    count_from: n_inputs
+    template:
+      id: in
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 0
 
 params:
   - name: n_inputs
