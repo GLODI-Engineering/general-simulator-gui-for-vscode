@@ -7,7 +7,7 @@ import type { PortKind } from "../../model/types";
  *
  * On a **signal-flow** block the port name is the whole interface: `d_A`,
  * `iq`, `theta_e`, `en` tell you what that input means, and a block diagram
- * with unnamed ports is unreadable. Simulink draws them, and so do we.
+ * with unnamed ports is unreadable. Conventional block-diagram editors draw them, and so do we.
  *
  * On a **physical-electrical** part the port name is noise. No schematic in
  * any CAD tool prints `p`/`n` beside a resistor, `A`/`K` beside a diode, or

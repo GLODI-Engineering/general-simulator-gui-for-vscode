@@ -1305,7 +1305,7 @@ A roundtrip CI gate (FE-RT-01 / BE-RT-01) reads a file, writes it back, and asse
 | No iterator or function-call subsystems | `hierarchy.subsystem.iterator` and the function-call subsystem family are out of v2 scope; the loader rejects them. |
 | No `NOISE` / `TF` analyses | The analysis enum includes them but the v2 compiler rejects them with a clear "not implemented" error. |
 | No matrix operations beyond what's in §15.1 Math | `matrix_multiply`, `transpose`, `identity`, `submatrix`, and similar linear-algebra blocks are out of v2. The dim-propagation pass supports matrix-shaped wires; the operations themselves ship in v3. |
-| No user-defined function blocks | Inline-MATLAB-style `fcn` / `matlab_function` / `c_caller` / `s_function` blocks are out of v2. |
+| No user-defined function blocks | inline-script-style `fcn` / `script_function` / `c_caller` / `s_function` blocks are out of v2. |
 | No FMU import/export | Planned for v3. |
 
 ---

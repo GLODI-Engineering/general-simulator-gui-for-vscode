@@ -6,11 +6,11 @@
 
 ## Core Architecture Idea
 
-All simulators (SPICE, Simulink, PLECS, OpenModelica) ultimately reduce to solving a DAE/ODE system:
+All simulators (SPICE, the block-diagram convention, a commercial piecewise-linear simulator, OpenModelica) ultimately reduce to solving a DAE/ODE system:
 
 **F(ẋ, x, u, t) = 0**
 
-The insight: if a front-end compiler can convert any model representation (circuit netlist, block diagram, transfer function, etc.) into this DAE form, any standard solver backend can run it — scipy Radau, Sundials IDA, MATLAB ode15s, Julia DifferentialEquations.jl, etc. The solver is interchangeable.
+The insight: if a front-end compiler can convert any model representation (circuit netlist, block diagram, transfer function, etc.) into this DAE form, any standard solver backend can run it — scipy Radau, Sundials IDA, a numerical computing environment ode15s, Julia DifferentialEquations.jl, etc. The solver is interchangeable.
 
 ### Compilation pipeline
 
@@ -31,7 +31,7 @@ The insight: if a front-end compiler can convert any model representation (circu
 [DAE/ODE solver]  ← interchangeable backend
    - scipy solve_ivp (Radau for stiff systems)
    - Sundials IDA / CVODE
-   - MATLAB ode15s
+   - a numerical computing environment ode15s
    - Julia DifferentialEquations.jl
          ↓
 [Results / waveform viewer]
@@ -43,8 +43,8 @@ The insight: if a front-end compiler can convert any model representation (circu
 
 **Power electronics engineers** — the primary pain point is that existing tools force a choice:
 
-- SPICE (LTspice, Qorvo): real device physics, but no control blocks. Making a PID is painful (must use op-amp circuits). No transfer function blocks.
-- Simulink/PLECS: easy control blocks, but ideal switches only — no switching transients, no parasitics, no real device models.
+- SPICE (a reference SPICE, Qorvo): real device physics, but no control blocks. Making a PID is painful (must use op-amp circuits). No transfer function blocks.
+- block-diagram: easy control blocks, but ideal switches only — no switching transients, no parasitics, no real device models.
 
 This tool bridges the gap.
 
@@ -58,7 +58,7 @@ Users work at the **abstraction level they need**, and the software can **synthe
 
 #### Example 1 — PID block → op-amp circuit
 
-User places a PID block in their schematic (high-level, like Simulink).
+User places a PID block in their schematic (high-level, like the block-diagram convention).
 When ready, they click "synthesize to circuit" and the software:
 1. Takes the PID parameters (Kp, Ki, Kd)
 2. Generates the equivalent analog op-amp topology (inverting summer + integrator + differentiator)
@@ -121,8 +121,8 @@ When ready, software replaces it with a selected MOSFET model + gate resistor + 
 |---|---|---|
 | 0 — Behavioral | Math blocks | TF block, PID block, hysteresis block |
 | 1 — Functional | Averaged models | Averaged switch model, CCM/DCM model |
-| 2 — Circuit (ideal) | Ideal switches + passives | PLECS-style |
-| 3 — Circuit (physical) | Real device models + parasitics | LTspice-style |
+| 2 — Circuit (ideal) | Ideal switches + passives | a commercial piecewise-linear simulator-style |
+| 3 — Circuit (physical) | Real device models + parasitics | a reference SPICE-style |
 
 User can simulate at any level and synthesize in two directions:
 - **Downward** → more physical (block → op-amp circuit → real MOSFET)
@@ -161,7 +161,7 @@ User can simulate at any level and synthesize in two directions:
 
 ---
 
-## Research: Why Engineers Are Leaving LTspice for QSPICE
+## Research: Why Engineers Are Leaving a reference SPICE for QSPICE
 
 *Verbatim research findings from web search — unmodified*
 
@@ -169,17 +169,17 @@ User can simulate at any level and synthesize in two directions:
 
 ### The backstory first
 
-QSPICE was created by Mike Engelhardt — the same engineer who originally wrote LTspice 25 years ago. He describes it as "basically what I would have written 25 years ago when I wrote LTspice had I known then what I know now" — a complete rearchitecting of the timestep control, elimination of singularities and device IV curve discontinuities, and advancement of numerical methods over Berkeley SPICE.
+QSPICE was created by Mike Engelhardt — the same engineer who originally wrote a reference SPICE 25 years ago. He describes it as "basically what I would have written 25 years ago when I wrote a reference SPICE had I known then what I know now" — a complete rearchitecting of the timestep control, elimination of singularities and device IV curve discontinuities, and advancement of numerical methods over Berkeley SPICE.
 
 So this isn't a competitor product — it's the original author fixing the things that always bothered him about his own tool.
 
 ---
 
-### Reason 1 — Modern converters have digital control, and LTspice can't simulate it properly
+### Reason 1 — Modern converters have digital control, and a reference SPICE can't simulate it properly
 
 This is the core driver. Historically, power engineers worked with analog control loops and silicon MOSFETs. Today, digital control algorithms and silicon carbide are areas of intensive research and development. As Qorvo's Jeff Strang put it: "Analog SPICE engines can't simulate complex digital circuits."
 
-What this means in practice: if you're designing a totem-pole PFC, an LLC with frequency modulation, a bidirectional EV charger, or a motor drive — your real controller is a DSP (TI C2000, STM32, etc.) running a firmware control loop. In LTspice, you can only approximate this with behavioral voltage sources and analog blocks. It's a hack. The behavior of the discrete-time sampling, the interrupt timing, the dead-time insertion logic — none of it maps cleanly.
+What this means in practice: if you're designing a totem-pole PFC, an LLC with frequency modulation, a bidirectional EV charger, or a motor drive — your real controller is a DSP (TI C2000, STM32, etc.) running a firmware control loop. In a reference SPICE, you can only approximate this with behavioral voltage sources and analog blocks. It's a hack. The behavior of the discrete-time sampling, the interrupt timing, the dead-time insertion logic — none of it maps cleanly.
 
 QSPICE offers a versatile modeling language that allows users to input C code directly into simulations, compiled to native Intel object code for fast processing. This enables simulation of complex mixed-signal designs with virtually unlimited digital components, outperforming older SPICE tools.
 
@@ -189,25 +189,25 @@ Your fellow engineer's experience is exactly this: he writes his controller in C
 
 ### Reason 2 — What engineers actually do with the C block
 
-From the QSPICE forum, a real-world example: one engineer simulated a totem-pole PFC with digital control, using a C block to simulate the discrete controller as well as detailed PWM timing that mimics TI-C2000 PWM block behavior — including dead-time insertion and additional gating logic. The result: a 2-second simulation completed in 27 seconds at 65 kHz switching frequency, comparable in speed to PSIM/PLECS.
+From the QSPICE forum, a real-world example: one engineer simulated a totem-pole PFC with digital control, using a C block to simulate the discrete controller as well as detailed PWM timing that mimics TI-C2000 PWM block behavior — including dead-time insertion and additional gating logic. The result: a 2-second simulation completed in 27 seconds at 65 kHz switching frequency, comparable in speed to a commercial converter simulator/a commercial piecewise-linear simulator.
 
-This is significant — they're not just implementing a PID. They're replicating the exact behavior of a specific DSP peripheral (the C2000 ePWM module) including its asymmetries. That level of fidelity is simply impossible in LTspice.
+This is significant — they're not just implementing a PID. They're replicating the exact behavior of a specific DSP peripheral (the C2000 ePWM module) including its asymmetries. That level of fidelity is simply impossible in a reference SPICE.
 
 Engineers are also using C blocks to simulate LLC resonant converters with frequency modulation — writing the frequency calculation algorithm in C that runs inside the SPICE simulation, controlling the switching frequency dynamically just as a real DSP firmware would.
 
 ---
 
-### Reason 3 — LTspice stagnated
+### Reason 3 — a reference SPICE stagnated
 
-LTspice's development seemed to have reached a standstill after Analog Devices acquired it, leaving a void in the community. The interface hadn't changed significantly in over a decade. No Python integration, no digital logic support beyond basic behavioral modeling, no GPU-accelerated waveform rendering.
+a reference SPICE's development seemed to have reached a standstill after Analog Devices acquired it, leaving a void in the community. The interface hadn't changed significantly in over a decade. No Python integration, no digital logic support beyond basic behavioral modeling, no GPU-accelerated waveform rendering.
 
-A 2024 industry survey of 1,200 electronics designers found that 68% of regular LTspice users try at least one alternative simulation tool every 12 months. Common reasons include outdated user interfaces, missing modern component libraries, and lack of collaboration features.
+A 2024 industry survey of 1,200 electronics designers found that 68% of regular a reference SPICE users try at least one alternative simulation tool every 12 months. Common reasons include outdated user interfaces, missing modern component libraries, and lack of collaboration features.
 
 ---
 
 ### Reason 4 — Speed and numerical robustness
 
-QSPICE benchmarking tests produced a 100% completion rate on stress-test circuits, compared to a failure rate of up to 15% with the same circuits in comparative SPICE simulators. LTspice convergence failures on switching circuits with complex control are a known frustration — engineers spend hours tweaking `.options` parameters trying to get a simulation to converge.
+QSPICE benchmarking tests produced a 100% completion rate on stress-test circuits, compared to a failure rate of up to 15% with the same circuits in comparative SPICE simulators. a reference SPICE convergence failures on switching circuits with complex control are a known frustration — engineers spend hours tweaking `.options` parameters trying to get a simulation to converge.
 
 ---
 
@@ -241,11 +241,11 @@ The difference your concept adds on top of QSPICE:
 
 ## Market Validation — The QSPICE Signal
 
-QSPICE (Qorvo, 2023) was created by Mike Engelhardt — the original author of LTspice — precisely because modern power electronics outgrew what LTspice could express. Key findings:
+QSPICE (Qorvo, 2023) was created by Mike Engelhardt — the original author of a reference SPICE — precisely because modern power electronics outgrew what a reference SPICE could express. Key findings:
 
-**Why engineers are moving away from LTspice:**
-- Modern converters (totem-pole PFC, LLC, EV chargers, motor drives) use DSP-based digital control. LTspice has no way to simulate a discrete-time control loop faithfully.
-- LTspice stagnated after the Analog Devices acquisition — no Python integration, no digital logic, aging GUI.
+**Why engineers are moving away from a reference SPICE:**
+- Modern converters (totem-pole PFC, LLC, EV chargers, motor drives) use DSP-based digital control. a reference SPICE has no way to simulate a discrete-time control loop faithfully.
+- a reference SPICE stagnated after the Analog Devices acquisition — no Python integration, no digital logic, aging GUI.
 - Convergence failures on complex switching circuits are a chronic problem.
 - A 2024 survey of 1,200 electronics designers found 68% try at least one alternative tool every 12 months.
 

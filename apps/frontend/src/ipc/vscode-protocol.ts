@@ -25,6 +25,8 @@ export interface WebviewInit {
   documentText?: string;
   /** Absent until the kernel sidecar signals ready. */
   kernel?: KernelConfig;
+  /** User-authored components read from the workspace before React mounts. */
+  userSymbols?: unknown[];
   /**
    * Set only by the @vscode/test-electron integration harness. Installs the
    * `gsim/test/exec` handler so the extension host can drive this webview's
@@ -64,6 +66,12 @@ export type HostBoundMessage =
   | { type: "gsim/insertBlock"; blockName: string }
   /** A simulation finished; carries the sim id the waveform panel should attach to. */
   | { type: "gsim/simulationFinished"; simId: string }
+  /**
+   * Persist an authored component to `.gsim/symbols/<name>.gsim_sym` in the
+   * workspace. Without this the symbol editor's output lived only in the
+   * running catalog and was lost on reload.
+   */
+  | { type: "gsim/saveSymbol"; name: string; metadata: unknown }
   /** Open the waveform panel. */
   | { type: "gsim/showWaveforms" }
   | { type: "gsim/log"; level: "info" | "warn" | "error"; message: string }
@@ -93,6 +101,11 @@ export type WebviewBoundMessage =
   | { type: "gsim/insertBlock"; blockName: string }
   /** Waveform panel should show the results of this sim id. */
   | { type: "gsim/showSimulation"; simId: string }
+  /** The workspace's user components changed — merge them into the catalog. */
+  | { type: "gsim/userSymbols"; metadata: unknown[] }
+  /** A component was written to disk; carries the file it landed in. */
+  | { type: "gsim/symbolSaved"; name: string; path: string }
+  | { type: "gsim/symbolSaveFailed"; name: string; reason: string }
   /** Integration-harness only: run a probe inside this webview. */
   | { type: "gsim/test/exec"; requestId: string; op: string; args?: Record<string, unknown> };
 

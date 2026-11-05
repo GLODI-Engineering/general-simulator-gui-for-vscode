@@ -6,14 +6,14 @@ Scope: `apps/frontend/src/canvas`, `apps/frontend/src/shell`, `apps/frontend/src
 
 ## Context
 
-We reviewed the clean-room OSS analysis material under `Misc/oss-analysis/` for Qucs, KiCad, Xcos, Simulink, and Simscape, focusing on how each tool manages ports, lines/wires, wire drawing, toolbar affordances, and connection validation.
+We reviewed the clean-room OSS analysis material under `Misc/oss-analysis/` for Qucs, KiCad, Xcos, and physical-network editors, focusing on how each tool manages ports, lines/wires, wire drawing, toolbar affordances, and connection validation.
 
 The key product tension is that `general-simulator` must support two user mental models:
 
-1. **Simulink-like block diagrams** — users expect direct port-to-port drag and Quick Insert.
+1. **block-diagram-style block diagrams** — users expect direct port-to-port drag and Quick Insert.
 2. **Qucs/KiCad-like electrical schematics** — users expect an explicit Wire/Draw Wires toolbar tool.
 
-The frontend spec remains Simulink-aligned, but schematic/electronics users need a discoverable wire tool.
+The frontend spec remains convention-aligned, but schematic/electronics users need a discoverable wire tool.
 
 ## Findings from OSS tools
 
@@ -46,7 +46,7 @@ The frontend spec remains Simulink-aligned, but schematic/electronics users need
 - Strength: typed port/link families and compatibility checks.
 - Weakness: tree-first insertion and known route persistence/readability issues.
 
-### Simulink
+### Block-diagram editors
 
 - No primary line-button workflow.
 - Primary gesture is direct drag from output/input port to compatible target port.
@@ -55,9 +55,9 @@ The frontend spec remains Simulink-aligned, but schematic/electronics users need
 - Strength: direct port-drag is fast, discoverable once learned, and strongly tied to typed ports.
 - Weakness: some checks happen at update/simulation time; silent reset of user-fixed routes is an anti-pattern.
 
-### Simscape
+### a physical-network modelling layer
 
-- Reuses Simulink canvas conventions but adds strongly distinct physical port kinds.
+- Reuses those canvas conventions but adds strongly distinct physical port kinds.
 - Physical conserving ports are visually distinct from signal ports.
 - Cross-domain connections require converter blocks.
 - Strength: port kind is visible before connection; domain mismatch is rejected early.
@@ -68,14 +68,14 @@ The frontend spec remains Simulink-aligned, but schematic/electronics users need
 
 1. **Primary workflow: direct port-to-port drag.**
    - Always available in Select mode.
-   - Matches Simulink and the current frontend spec.
+   - Matches the block-diagram convention and the current frontend spec.
 
 2. **Secondary/discoverability workflow: explicit Wire tool/button.**
    - Visible in the canvas toolbar.
    - Important for electrical schematic users coming from Qucs/KiCad.
    - Does not replace port drag.
 
-We should **not** bind `W` by default because `docs/specs/keyboard-map.md` intentionally leaves single-letter wire mode unbound under the Simulink-aligned policy. A toolbar button and command-palette action are acceptable.
+We should **not** bind `W` by default because `docs/specs/keyboard-map.md` intentionally leaves single-letter wire mode unbound under the convention-aligned policy. A toolbar button and command-palette action are acceptable.
 
 ## Required behavior
 

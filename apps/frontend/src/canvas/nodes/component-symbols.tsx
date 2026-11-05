@@ -40,6 +40,22 @@ export interface SymbolContext {
  * R(-theta) — and an SVG transform list applies right to left, which is why
  * they are written in that order.
  */
+/**
+ * Transform that undoes the symbol group's rotation and mirror about
+ * `(x, y)`, so whatever it wraps reads the right way up at any orientation.
+ */
+export function uprightAbout(x: number, y: number, ctx: SymbolContext): string | undefined {
+  const rotation = ctx.rotation ?? 0;
+  const mirror = ctx.mirror ?? "none";
+  if (rotation === 0 && mirror === "none") {
+    return undefined;
+  }
+  const flip = mirror === "x" ? "scale(1 -1)" : mirror === "y" ? "scale(-1 1)" : "";
+  return `translate(${x} ${y}) ${flip} rotate(${-rotation}) translate(${-x} ${-y})`
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function UprightText({
   ctx,
   x,
@@ -61,9 +77,7 @@ export function UprightText({
       </text>
     );
   }
-  const flip = mirror === "x" ? "scale(1 -1)" : mirror === "y" ? "scale(-1 1)" : "";
-  const counter =
-    `translate(${x} ${y}) ${flip} rotate(${-rotation}) translate(${-x} ${-y})`.replace(/\s+/g, " ");
+  const counter = uprightAbout(x, y, ctx);
   return (
     <g transform={counter}>
       <text x={x} y={y} {...rest}>
@@ -202,7 +216,12 @@ function sourceCircle(ctx: SymbolContext, glyph: ReactNode): ReactNode {
       <line x1={0} y1={y} x2={20} y2={y} stroke={STROKE} strokeWidth={SW} />
       <line x1={40} y1={y} x2={60} y2={y} stroke={STROKE} strokeWidth={SW} />
       <circle cx={30} cy={y} r={10} fill={FILL} stroke={STROKE} strokeWidth={SW} />
-      {glyph}
+      {/* The glyph is a pictogram — a pulse train, a sine, a current arrow —
+          and like lettering it does not turn with the part. A source drawn
+          vertically, which is the common case, otherwise showed its waveform
+          lying on its side. The leads and circle above are rotationally
+          symmetric, so only this needs undoing. */}
+      <g transform={uprightAbout(30, y, ctx)}>{glyph}</g>
     </g>
   );
 }
@@ -379,9 +398,11 @@ function voltageSwitchRender(): ReactNode {
         strokeWidth={SW * 0.8}
         strokeDasharray="3 2"
       />
-      <text x={30} y={48} fontSize={8} textAnchor="middle" fill={STROKE}>
-        ctrl
-      </text>
+      {/* No "ctrl" caption. The dashed coupling line already says this pair
+          is the control, every schematic reader knows that convention, and
+          the block's own designator is printed above the symbol. Spelled out,
+          it read as a separate unwired part sitting under the switch — and it
+          rotated with the symbol, landing on its side on a vertical switch. */}
     </g>
   );
 }
@@ -1340,6 +1361,114 @@ export const SCHEMATIC_SYMBOLS: Record<string, SchematicSymbol> = {
   // Flip-flops / latches / hysteresis
   "logic.flip_flop": { staticLabel: "", render: (ctx) => flipFlopRender(ctx) },
   "logic.hysteresis": { staticLabel: "", render: (ctx) => hysteresisRender(ctx) },
+
+  // ── Catalogue aliases ──────────────────────────────────────────────────────
+  //
+  // The catalogue carries two spellings of most electrical parts: the short
+  // `passive.resistor` and the namespaced `physical_electrical.passive.resistor`.
+  // Only the short ones were registered here, so 38 real electrical types —
+  // among them the namespaced resistor, capacitor and inductor, the pulse and
+  // PWL sources, the transformer and the generic switch — fell through to the
+  // generic renderer and drew as a white box with their type name across it,
+  // overflowing the box and running over the wires on a rotated part.
+  //
+  // These are the same symbol under its other name, not new artwork.
+  "physical_electrical.passive.resistor": {
+    valueParam: "R",
+    unit: "Ω",
+    render: (ctx) => (
+      <path
+        d={resistorPath(ctx.height / 2)}
+        fill="none"
+        stroke={STROKE}
+        strokeWidth={SW}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+  },
+  "passive.resistor.behavioral": {
+    valueParam: "R",
+    unit: "Ω",
+    render: (ctx) => (
+      <path
+        d={resistorPath(ctx.height / 2)}
+        fill="none"
+        stroke={STROKE}
+        strokeWidth={SW}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+  },
+  "passive.resistor.semiconductor": {
+    valueParam: "R",
+    unit: "Ω",
+    render: (ctx) => (
+      <path
+        d={resistorPath(ctx.height / 2)}
+        fill="none"
+        stroke={STROKE}
+        strokeWidth={SW}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+  },
+  "physical_electrical.passive.capacitor": {
+    valueParam: "C",
+    unit: "F",
+    render: (ctx) => (
+      <g fill="none" stroke={STROKE} strokeWidth={SW} strokeLinecap="round" strokeLinejoin="round">
+        {capacitorPaths(ctx.height / 2, 9).map((d) => (
+          <path key={d} d={d} />
+        ))}
+      </g>
+    ),
+  },
+  "physical_electrical.passive.inductor": {
+    valueParam: "L",
+    unit: "H",
+    render: (ctx) => (
+      <path
+        d={inductorPath(ctx.height / 2)}
+        fill="none"
+        stroke={STROKE}
+        strokeWidth={SW}
+        strokeLinecap="round"
+      />
+    ),
+  },
+  "passive.inductor.behavioral": {
+    valueParam: "L",
+    unit: "H",
+    render: (ctx) => (
+      <path
+        d={inductorPath(ctx.height / 2)}
+        fill="none"
+        stroke={STROKE}
+        strokeWidth={SW}
+        strokeLinecap="round"
+      />
+    ),
+  },
+  "passive.diode.ideal": { staticLabel: "D", render: (ctx) => diodeRender(ctx, "standard") },
+  "physical_electrical.semiconductor.zener": {
+    staticLabel: "Z",
+    render: (ctx) => diodeRender(ctx, "zener"),
+  },
+  "physical_electrical.semiconductor.led": {
+    staticLabel: "LED",
+    render: (ctx) => diodeRender(ctx, "standard"),
+  },
+  "passive.switch.generic": { render: () => voltageSwitchRender() },
+  "physical_electrical.source.voltage_pulse": voltageSource(pulseGlyph),
+  "physical_electrical.source.voltage_pwl": voltageSource(pwlGlyph),
+  // A transformer is a pair of coupled windings; `passive.inductor.coupled`
+  // already draws exactly that, and its ports (p1/n1/p2/n2) match.
+  "physical_electrical.passive.transformer": { render: (ctx) => coupledInductorRender(ctx) },
+  "physical_electrical.passive.mutual_inductor": { render: (ctx) => coupledInductorRender(ctx) },
+  "routing.ground": { staticLabel: "GND", render: (ctx) => peGroundRender(ctx) },
 };
 
 export const ELECTRICAL_SYMBOL_COVERAGE: Record<string, "implemented" | "fallback-tracked"> = {

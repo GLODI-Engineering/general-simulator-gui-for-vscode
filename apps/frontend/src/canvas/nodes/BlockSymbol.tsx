@@ -17,7 +17,27 @@ import { resolveBlockBbox, resolveBlockPorts } from "./resolve-ports";
 // primitive-drawn shape's line weight exactly matches the wires connecting it.
 const PRIM_SW = WIRE_STROKE / SYMBOL_SCALE;
 
-function PrimitiveShape({ p }: { p: Primitive }) {
+/**
+ * Transform that undoes the enclosing symbol group's rotation and mirror
+ * about `(x, y)`, so text drawn inside it reads horizontally at any
+ * orientation. Mirrors `UprightText` in component-symbols.tsx, which does the
+ * same job for the hand-drawn symbols.
+ */
+function uprightTransform(x: number, y: number, rotation: Rotation, mirror: Mirror): string {
+  if (rotation === 0 && mirror === "none") {
+    return "";
+  }
+  const flip = mirror === "x" ? "scale(1 -1)" : mirror === "y" ? "scale(-1 1)" : "";
+  return `translate(${x} ${y}) ${flip} rotate(${-rotation}) translate(${-x} ${-y})`
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function PrimitiveShape({
+  p,
+  rotation = 0,
+  mirror = "none",
+}: { p: Primitive; rotation?: Rotation; mirror?: Mirror }) {
   const stroke = p.color ?? "#111827";
   switch (p.type) {
     case "rect":
@@ -91,7 +111,15 @@ function PrimitiveShape({ p }: { p: Primitive }) {
           strokeWidth={p.lw ?? PRIM_SW}
         />
       );
-    case "text":
+    case "text": {
+      // Keep the caption upright. A generic catalog block draws its own name
+      // inside its box; rotating the part rotated the name with it, so a
+      // vertical switch or gate ended up captioned on its side. The symbol's
+      // own `p.rotation` is deliberate artwork and is applied on top of the
+      // counter-rotation, not instead of it.
+      const upright = uprightTransform(p.x, p.y, rotation, mirror);
+      const own = p.rotation ? `rotate(${p.rotation} ${p.x} ${p.y})` : "";
+      const transform = [upright, own].filter(Boolean).join(" ") || undefined;
       return (
         <text
           x={p.x}
@@ -99,11 +127,12 @@ function PrimitiveShape({ p }: { p: Primitive }) {
           textAnchor="middle"
           fontSize={p.size ?? 12}
           fill={stroke}
-          transform={p.rotation ? `rotate(${p.rotation} ${p.x} ${p.y})` : undefined}
+          transform={transform}
         >
           {p.text}
         </text>
       );
+    }
     default:
       return null;
   }
@@ -233,9 +262,70 @@ interface LabelAnchor {
 }
 
 /**
+ * How far a two-terminal symbol's artwork reaches either side of its port
+ * row, in bbox units. A resistor's zigzag, a capacitor's plates, an
+ * inductor's humps and a source's circle all stay within about this much.
+ */
+const TWO_TERMINAL_INK_REACH = 12;
+
+/**
+ * Height of the artwork a symbol actually draws, in scaled units — or the
+ * full box height when that cannot be established.
+ *
+ * Anchoring labels to the bbox edge pushed them a long way from the thing
+ * they label: an inductor's "100 µH" sat nearly half a part-height below a
+ * coil only a few units tall, reading as detached rather than as that part's
+ * value.
+ *
+ * The band is *derived*, not declared per symbol and not assumed globally.
+ * A first attempt assumed every hand-drawn symbol fills a fixed centred
+ * fraction of its box; that is true of the two-terminal family and false of
+ * the switch, whose blade sits at offset 10 and whose control pair sits at
+ * 30 — so its name landed on top of its own blade.
+ *
+ * The reliable signal is the ports. When every port is on the left or right
+ * face at one shared offset, the artwork is a horizontal band centred on
+ * that row, because that is the row the terminals have to meet. Anything
+ * else — a switch's two rows, a transistor's three faces, a generic box —
+ * keeps the bbox and the behaviour it had before.
+ */
+function symbolInkHeight(
+  ports: ReadonlyArray<{ rotatedSide: string; offset?: number }>,
+  bbox: [number, number],
+  scaledHeight: number,
+  rotated: boolean,
+  handDrawn: boolean,
+): number {
+  // A generic catalog block draws a rectangle that really does fill its bbox,
+  // so its label must clear the outline. Only the hand-drawn primitives leave
+  // the box mostly empty.
+  if (!handDrawn || ports.length === 0) {
+    return scaledHeight;
+  }
+  const offsets = new Set<number>();
+  for (const port of ports) {
+    if (port.rotatedSide !== "left" && port.rotatedSide !== "right") {
+      return scaledHeight;
+    }
+    if (port.offset === undefined) {
+      return scaledHeight;
+    }
+    offsets.add(port.offset);
+  }
+  if (offsets.size !== 1) {
+    return scaledHeight;
+  }
+  const span = Math.min(TWO_TERMINAL_INK_REACH * 2, rotated ? bbox[0] : bbox[1]);
+  return span * SYMBOL_SCALE;
+}
+
+/**
  * Where to put the `row`-th label (0 = name, 1 = value) on `side` of a
  * `width`×`height` box. `crowded` means every face has ports, so the label has
  * to clear the stubs rather than merely the outline.
+ *
+ * `inkHeight`, when given, is the height of the artwork rather than of the
+ * box, and top/bottom labels hug that instead of the outline.
  */
 export function labelAnchorFor(
   side: PortSide,
@@ -243,13 +333,20 @@ export function labelAnchorFor(
   width: number,
   height: number,
   crowded: boolean,
+  inkHeight: number = height,
 ): LabelAnchor {
   const gap = LABEL_GAP + (crowded ? PORT_CLEARANCE : 0);
+  // Ink is centred on the box, so the slack is split evenly top and bottom.
+  const inset = Math.max(0, (height - inkHeight) / 2);
   switch (side) {
     case "top":
-      return { x: width / 2, y: -gap - row * LABEL_ROW, textAnchor: "middle" };
+      return { x: width / 2, y: inset - gap - row * LABEL_ROW, textAnchor: "middle" };
     case "bottom":
-      return { x: width / 2, y: height + gap + 8 + row * LABEL_ROW, textAnchor: "middle" };
+      return {
+        x: width / 2,
+        y: height - inset + gap + 8 + row * LABEL_ROW,
+        textAnchor: "middle",
+      };
     case "left":
       return { x: -gap, y: height / 2 - 1 + row * LABEL_ROW, textAnchor: "end" };
     default:
@@ -442,6 +539,19 @@ export function BlockSymbol({
     : (labelForTop ?? schematic?.staticLabel ?? (schematic ? undefined : metadata.label));
   const inlineFallbackLabel = schematic === undefined ? (typeText ?? metadata.label) : undefined;
 
+  const inkHeight = symbolInkHeight(
+    ports.map((port) => ({
+      rotatedSide: port.rotatedSide as string,
+      offset: resolvedPorts.inputs
+        .concat(resolvedPorts.outputs)
+        .find((candidate) => candidate.id === port.id)?.offset,
+    })),
+    resolvedBbox,
+    scaledHeight,
+    rotated,
+    schematic !== undefined,
+  );
+
   const occupiedSides = new Set<PortSide>(ports.map((port) => port.rotatedSide as PortSide));
   const labelSide = pickLabelSide(occupiedSides);
   const crowded = occupiedSides.has(labelSide);
@@ -471,7 +581,12 @@ export function BlockSymbol({
               <path d={metadata.symbol.path} fill="#ffffff" stroke="#111827" strokeWidth={1.5} />
             ) : (
               metadataToPrimitives(metadata, params, { text: bodyLabel }).map((p) => (
-                <PrimitiveShape key={primitiveKey(p)} p={p} />
+                <PrimitiveShape
+                  key={primitiveKey(p)}
+                  p={p}
+                  rotation={rotation}
+                  mirror={mirror}
+                />
               ))
             )}
             {showLabels && inlineFallbackLabel && metadata.symbol.shape === "custom" ? (
@@ -490,7 +605,7 @@ export function BlockSymbol({
       </g>
       {showLabels && topLabel ? (
         <text
-          {...labelAnchorFor(labelSide, 0, scaledWidth, scaledHeight, crowded)}
+          {...labelAnchorFor(labelSide, 0, scaledWidth, scaledHeight, crowded, inkHeight)}
           fontSize={14}
           fontWeight={700}
           fill="#0f172a"
@@ -500,7 +615,7 @@ export function BlockSymbol({
       ) : null}
       {showLabels && valueLabel ? (
         <text
-          {...labelAnchorFor(valueSide, valueRow, scaledWidth, scaledHeight, crowded)}
+          {...labelAnchorFor(valueSide, valueRow, scaledWidth, scaledHeight, crowded, inkHeight)}
           fontSize={13}
           fontWeight={500}
           fill="#1f2937"

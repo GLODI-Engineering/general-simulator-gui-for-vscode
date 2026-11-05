@@ -1,3 +1,4 @@
+import { isVsCodeHost, postToHost } from "../ipc/vscode-host";
 import { loadCatalog } from "../library/catalog-core";
 import { useLibraryStore } from "../store/library";
 import { useSymbolEditorStore } from "./store";
@@ -8,7 +9,9 @@ import { useSymbolEditorStore } from "./store";
 // NewSymbolDialog used before it was replaced by this editor, reused
 // rather than reimplemented.
 
-export type SaveResult = { ok: true; name: string } | { ok: false; error: string };
+export type SaveResult =
+  | { ok: true; name: string; persisted: boolean }
+  | { ok: false; error: string };
 
 export function saveSymbolToLibrary(): SaveResult {
   const state = useSymbolEditorStore.getState();
@@ -78,8 +81,49 @@ export function saveSymbolToLibrary(): SaveResult {
     const uniqueMetadatas = [...new Set(Object.values(current))];
     const updated = loadCatalog([...uniqueMetadatas, metadata]);
     useLibraryStore.getState().setCatalog(updated);
-    return { ok: true, name: state.name };
+
+    // Merging into the running catalog is not saving. Until this existed, an
+    // authored component lived only in this webview's memory: reload the
+    // window and it was gone, with no file to recover it from and nothing to
+    // share or commit. The host writes it to `.gsim/symbols/<name>.gsim_sym`
+    // and reports back through `gsim/symbolSaved` / `gsim/symbolSaveFailed`.
+    const persisted = isVsCodeHost();
+    if (persisted) {
+      postToHost({ type: "gsim/saveSymbol", name: state.name, metadata });
+    }
+    return { ok: true, name: state.name, persisted };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Failed to save symbol." };
   }
+}
+
+/**
+ * Merge the workspace's components into the running catalog.
+ *
+ * Called with whatever the host read from disk, at boot and whenever the
+ * symbols folder changes. Built-in types win on a name collision: a user
+ * file must not be able to redefine `passive.resistor` out from under every
+ * document that uses it.
+ */
+export function mergeUserSymbols(symbols: unknown[]): number {
+  if (symbols.length === 0) {
+    return 0;
+  }
+  const current = useLibraryStore.getState().catalog;
+  const builtInNames = new Set(Object.values(current).map((entry) => entry.name));
+  const incoming = symbols.filter(
+    (entry): entry is { name: string } =>
+      typeof entry === "object" &&
+      entry !== null &&
+      typeof (entry as { name?: unknown }).name === "string" &&
+      !builtInNames.has((entry as { name: string }).name),
+  );
+  if (incoming.length === 0) {
+    return 0;
+  }
+  const uniqueMetadatas = [...new Set(Object.values(current))];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updated = loadCatalog([...uniqueMetadatas, ...(incoming as any[])]);
+  useLibraryStore.getState().setCatalog(updated);
+  return incoming.length;
 }

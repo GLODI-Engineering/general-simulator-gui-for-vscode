@@ -187,7 +187,16 @@ function handleAction(actionId: string, event?: KeyboardEvent): void {
     case "symbol.save": {
       const result = saveSymbolToLibrary();
       if (result.ok) {
-        useToastStore.getState().pushToast(`Symbol "${result.name}" saved to the library.`);
+        // Say which of the two actually happened. "Saved to the library" was
+        // true of a component that existed only in memory and would be gone
+        // on the next reload, which is exactly the impression not to give.
+        useToastStore
+          .getState()
+          .pushToast(
+            result.persisted
+              ? `Component "${result.name}" saved to .gsim/symbols.`
+              : `Component "${result.name}" added to this session's library only — open a workspace folder to save it to a file.`,
+          );
         useSymbolEditorStore.getState().reset();
         useIpcStore.getState().setActiveEditorTab("core.schematic");
       } else {

@@ -31,6 +31,7 @@ export class LibraryViewProvider implements vscode.WebviewViewProvider {
       view.webview,
       {
         role: "library",
+        userSymbols: await this.host.readSymbols(),
         kernel: this.host.kernel.current ?? undefined,
       },
       this.host.log,

@@ -1,8 +1,8 @@
-# Why Engineers Don't Switch: GUI & UX Failures of Open-Source Simulink Alternatives
+# Why Engineers Don't Switch: GUI & UX Failures of Open-Source the block-diagram convention Alternatives
 
 > **Purpose:** Research document for simulator frontend design brainstorming.  
 > **Date:** May 2026  
-> **Scope:** OpenModelica (OMEdit), Scilab/Xcos, and the broader open-source simulation ecosystem vs. MATLAB/Simulink.
+> **Scope:** OpenModelica (OMEdit), Scilab/Xcos, and the broader open-source simulation ecosystem vs. block-diagram environments.
 
 ---
 
@@ -20,14 +20,14 @@
 10. [Problem Category 8 — File Persistence & Save/Load Corruption](#10-problem-category-8--file-persistence--saveload-corruption)
 11. [Problem Category 9 — Ecosystem & Toolchain Lock-In](#11-problem-category-9--ecosystem--toolchain-lock-in)
 12. [Problem Category 10 — Documentation & Learning Curve](#12-problem-category-10--documentation--learning-curve)
-13. [What Simulink Gets Right (And OSS Misses)](#13-what-simulink-gets-right-and-oss-misses)
+13. [What the block-diagram convention Gets Right (And OSS Misses)](#13-what-the-convention-gets-right-and-oss-misses)
 14. [Summary: Design Lessons for a New Simulator Frontend](#14-summary-design-lessons-for-a-new-simulator-frontend)
 
 ---
 
 ## 1. Overview & Context
 
-MATLAB/Simulink has been the dominant block-diagram simulation environment in engineering for over 30 years. Despite significant licensing costs (often $5,000–$15,000+ per seat for full toolboxes), engineers in automotive, aerospace, energy, and robotics overwhelmingly stay on it. Several mature, free, open-source alternatives exist — OpenModelica, Scilab/Xcos, Modelon Impact, and others — yet adoption remains limited outside academia.
+block-diagram environments has been the dominant block-diagram simulation environment in engineering for over 30 years. Despite significant licensing costs (often $5,000–$15,000+ per seat for full toolboxes), engineers in automotive, aerospace, energy, and robotics overwhelmingly stay on it. Several mature, free, open-source alternatives exist — OpenModelica, Scilab/Xcos, Modelon Impact, and others — yet adoption remains limited outside academia.
 
 The reasons are **not primarily technical** (the solvers are often comparable). The friction is almost entirely in the **GUI, UX, and surrounding ecosystem**. This document catalogs those failures systematically to inform the design of a new simulator frontend.
 
@@ -38,13 +38,13 @@ The reasons are **not primarily technical** (the solvers are often comparable). 
 | Tool | GUI Editor | Modeling Paradigm | Status |
 |---|---|---|---|
 | **OpenModelica (OMEdit)** | Qt-based diagram editor | Acausal, equation-based (Modelica language) | Active, academic-driven |
-| **Scilab / Xcos** | Java-based block editor | Causal, signal-flow (like Simulink) | Active, maintained by ESI Group |
+| **Scilab / Xcos** | Java-based block editor | Causal, signal-flow (like the block-diagram convention) | Active, maintained by ESI Group |
 | **JModelica** | Python API + optional GUI | Acausal, Modelica | Discontinued (~2019) |
 | **Hopsan** | Custom Qt GUI | Bond-graph / signal-flow | Active, niche (hydraulics) |
 | **Kepler** | Java-based canvas | Actor-oriented dataflow | Mostly academic |
 | **SimulIDE** | Custom GUI | Electronic circuit focus | Active, limited scope |
 
-The two most direct Simulink alternatives are **OMEdit** and **Xcos**, and both share a pattern of GUI problems that have been extensively documented in their issue trackers, mailing lists, and community forums.
+The two most direct the block-diagram convention alternatives are **OMEdit** and **Xcos**, and both share a pattern of GUI problems that have been extensively documented in their issue trackers, mailing lists, and community forums.
 
 ---
 
@@ -128,9 +128,9 @@ From **Xcos user mailing lists:**
 
 This means Xcos's wire routing is not stable across save/load cycles — a fundamental reliability failure.
 
-### What Simulink does right
+### What the block-diagram convention does right
 
-Simulink uses an **orthogonal wire router** that:
+the block-diagram convention uses an **orthogonal wire router** that:
 - Always produces horizontal/vertical segments (no diagonals)
 - Re-routes wires automatically when blocks are moved
 - Avoids crossing other wires where possible
@@ -162,7 +162,7 @@ From OMEdit issue `#2894` (usability summary, tracked over 3+ years):
 
 > *"Replaceable classes and replaceable objects should show up in the parameter window, with a drop-down menu filled based on `choices` or `choicesAllMatching` annotations. Once a specific choice is made, it should be possible to change the parameters of the redeclared model."*
 
-This describes a missing feature that Simulink has had for 20 years: contextually filtered block selection based on compatibility with the current port.
+This describes a missing feature that the block-diagram convention has had for 20 years: contextually filtered block selection based on compatibility with the current port.
 
 The **Xcos palette browser** requires:
 1. Clicking a palette category in the left pane
@@ -172,7 +172,7 @@ The **Xcos palette browser** requires:
 
 There is no search. There is no "recently used" list. There is no preview of what the block does on hover.
 
-### What Simulink does right
+### What the block-diagram convention does right
 
 - **Quick Insert** (Ctrl+Shift+L): type any part of a block name, get a fuzzy-matched, ranked list instantly
 - **Recently used blocks** are surfaced in the insert panel
@@ -209,7 +209,7 @@ From OpenModelica planned features for 1.25.0 (as of late 2024):
 
 These are still listed as **future features**, not existing capabilities — yet they are baseline requirements for serious engineering work.
 
-### What Simulink does right
+### What the block-diagram convention does right
 
 - Double-clicking any Subsystem block opens its internal diagram in a new tab
 - A breadcrumb bar at the top always shows the current path in the hierarchy (`Model > SubsystemA > Controller`)
@@ -239,9 +239,9 @@ From the Xcos bug tracker (2026 changelog):
 
 From the OpenModelica forum, a recurring pattern: users build multi-block models, hit Run, and receive cryptic compiler errors pointing to connection type mismatches — with no visual indication of *which* connection is the problem.
 
-### What Simulink does right
+### What the block-diagram convention does right
 
-Simulink performs **incremental diagram update** (triggered by Ctrl+D, "Update Diagram") separately from simulation. This:
+the block-diagram convention performs **incremental diagram update** (triggered by Ctrl+D, "Update Diagram") separately from simulation. This:
 - Checks all block-to-block signal compatibility
 - Colors incompatible connections red
 - Shows port dimension annotations on wires
@@ -328,15 +328,15 @@ Xcos stores its model in an XML-based format. The wire routing coordinates are s
 
 ### What happens
 
-Engineers don't just use a simulator in isolation — they use it as part of a workflow: hardware-in-the-loop testing, automatic code generation for embedded systems, integration with version control, CI pipelines, and industry-standard certification processes. Simulink's deepest moat is its ecosystem, not its GUI.
+Engineers don't just use a simulator in isolation — they use it as part of a workflow: hardware-in-the-loop testing, automatic code generation for embedded systems, integration with version control, CI pipelines, and industry-standard certification processes. the conventional editor's deepest moat is its ecosystem, not its GUI.
 
-### The Simulink ecosystem advantages
+### The the block-diagram convention ecosystem advantages
 
-- **Automatic C/C++ code generation** (Simulink Coder, Embedded Coder) — produces production-quality, certifiable code (DO-178C, IEC 61508, ISO 26262)
+- **Automatic C/C++ code generation** (the block-diagram convention Coder, Embedded Coder) — produces production-quality, certifiable code (DO-178C, IEC 61508, ISO 26262)
 - **Hardware-in-the-loop (HIL) support** — direct integration with Speedgoat, dSPACE, National Instruments real-time targets
 - **AUTOSAR toolchain** — direct model-to-AUTOSAR-component workflows for automotive
-- **FMI/FMU** — Simulink can export Functional Mock-up Units for co-simulation (though OSS tools are catching up here)
-- **Industry certifications** — many safety-critical projects *require* Simulink because it is the only DO-330-qualified code generator
+- **FMI/FMU** — the block-diagram convention can export Functional Mock-up Units for co-simulation (though OSS tools are catching up here)
+- **Industry certifications** — many safety-critical projects *require* the block-diagram convention because it is the only DO-330-qualified code generator
 
 ### What open-source tools offer
 
@@ -350,7 +350,7 @@ Even when the GUI issues are tolerable, the lack of ecosystem means companies ca
 
 ### Design lesson
 
-**FMI/FMU support is the interoperability key.** A new tool that can import and export FMUs can plug into existing Simulink-centric workflows as a component, rather than requiring a full replacement. Target FMI 3.0 compliance from day one. Additionally, design the model file format to be **git-friendly** (text-based, line-oriented diffs) — this alone is a significant advantage over Simulink's opaque `.slx` format.
+**FMI/FMU support is the interoperability key.** A new tool that can import and export FMUs can plug into existing the block-diagram convention-centric workflows as a component, rather than requiring a full replacement. Target FMI 3.0 compliance from day one. Additionally, design the model file format to be **git-friendly** (text-based, line-oriented diffs) — this alone is a significant advantage over the conventional editor's opaque `.slx` format.
 
 ---
 
@@ -360,7 +360,7 @@ Even when the GUI issues are tolerable, the lack of ecosystem means companies ca
 
 ### What happens
 
-Simulink has decades of polished documentation, video tutorials, interactive examples, and a massive community of practitioners. Open-source tools have documentation that is incomplete, outdated, or assumes deep prior knowledge of the modeling language.
+the block-diagram convention has decades of polished documentation, video tutorials, interactive examples, and a massive community of practitioners. Open-source tools have documentation that is incomplete, outdated, or assumes deep prior knowledge of the modeling language.
 
 ### Evidence from the field
 
@@ -374,7 +374,7 @@ Xcos documentation has not kept pace with the tool's evolution. Many advanced bl
 
 ### The onboarding cliff
 
-New users of Simulink can typically build a working PID controller simulation within 30 minutes of first launch, guided by MathWorks' interactive tutorials. The equivalent journey in OMEdit or Xcos typically involves:
+New users of the block-diagram convention can typically build a working PID controller simulation within 30 minutes of first launch, guided by the vendor' interactive tutorials. The equivalent journey in OMEdit or Xcos typically involves:
 1. Navigating an unintuitive library browser
 2. Encountering a silent parameter-storage bug
 3. Hitting a compilation error with no actionable message
@@ -386,11 +386,11 @@ New users of Simulink can typically build a working PID controller simulation wi
 
 ---
 
-## 13. What Simulink Gets Right (And OSS Misses)
+## 13. What the block-diagram convention Gets Right (And OSS Misses)
 
-A consolidated view of Simulink's GUI/UX strengths that open-source tools have failed to replicate:
+A consolidated view of the conventional editor's GUI/UX strengths that open-source tools have failed to replicate:
 
-| Feature | Simulink | OpenModelica | Xcos |
+| Feature | convention | OpenModelica | Xcos |
 |---|---|---|---|
 | Canvas interaction latency | Instant | 5–6 sec on medium models | Moderate |
 | GUI ↔ model sync | Reliable | Broken (data loss bugs) | Mostly OK |
@@ -400,7 +400,7 @@ A consolidated view of Simulink's GUI/UX strengths that open-source tools have f
 | Inline signal validation | Yes (pre-run check) | No (run-time only) | No |
 | Parameter editing in nested models | Yes | Partially broken | Limited |
 | Save/load fidelity | Reliable | Generally OK | Fragile on Windows |
-| Cross-platform install | Reliable (with MATLAB) | Fragile | Crashes on W11/2024+ |
+| Cross-platform install | Reliable (with a numerical computing environment) | Fragile | Crashes on W11/2024+ |
 | Code generation | Certified (C/C++) | FMU only | Minimal |
 | Documentation | Comprehensive | Incomplete | Minimal |
 | Community & examples | Massive | Small academic | Small |

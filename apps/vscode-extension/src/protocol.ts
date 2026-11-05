@@ -21,6 +21,11 @@ export interface WebviewInit {
   documentText?: string;
   kernel?: KernelConfig;
   /**
+   * User-authored components read from `.gsim/symbols/*.gsim_sym`, so the
+   * library has them before React mounts rather than popping in afterwards.
+   */
+  userSymbols?: unknown[];
+  /**
    * Set only by the @vscode/test-electron integration harness (gated on the
    * GSIM_INTEGRATION_TEST env var). Installs `gsim/test/exec` probes in the
    * webview so an integration test can assert on its real DOM and stores.
@@ -45,6 +50,8 @@ export type HostBoundMessage =
   | { type: "gsim/dragEnd" }
   | { type: "gsim/insertBlock"; blockName: string }
   | { type: "gsim/simulationFinished"; simId: string }
+  /** Persist an authored component to the workspace. */
+  | { type: "gsim/saveSymbol"; name: string; metadata: unknown }
   | { type: "gsim/showWaveforms" }
   | { type: "gsim/log"; level: "info" | "warn" | "error"; message: string }
   | { type: "gsim/test/report"; requestId: string; ok: boolean; result: unknown };
@@ -57,6 +64,10 @@ export type WebviewBoundMessage =
   | { type: "gsim/dragState"; blockName: string | null; label?: string }
   | { type: "gsim/insertBlock"; blockName: string }
   | { type: "gsim/showSimulation"; simId: string }
+  /** The workspace's user components changed — on save, or on an edit on disk. */
+  | { type: "gsim/userSymbols"; metadata: unknown[] }
+  | { type: "gsim/symbolSaved"; name: string; path: string }
+  | { type: "gsim/symbolSaveFailed"; name: string; reason: string }
   | { type: "gsim/test/exec"; requestId: string; op: string; args?: Record<string, unknown> };
 
 export const GSIM_INIT_GLOBAL = "__GSIM_INIT__";

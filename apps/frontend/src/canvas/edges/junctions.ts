@@ -21,8 +21,13 @@
  *    onto it. Neither wire has three vertices anywhere, so no amount of
  *    vertex counting finds it.
  *
- * A point where exactly two wire *ends* meet is left undotted: that is a port,
- * and `Port.tsx` already draws the terminal there.
+ * A port where *two or more wires* terminate also gets a dot. The component's
+ * own lead is a conductor too, so two wires ending on one pin is a three-way
+ * node — the capacitor tapping a rail that carries on to the load is the
+ * everyday case, and it was coming out undotted while the identical node one
+ * component along, formed by a bend instead, was dotted. One wire ending on a
+ * pin is an ordinary two-conductor termination and stays undotted; `Port.tsx`
+ * already draws the terminal there.
  */
 
 import type { Wire } from "../../model/types";
@@ -70,25 +75,28 @@ function liesInsideSegment(p: Point, a: Point, b: Point): boolean {
 export function computeJunctions(wires: Wire[], endpointsFor?: EndpointResolver): Junction[] {
   const lines = wires.map((wire) => polyline(wire, endpointsFor));
 
-  const counts = new Map<string, { x: number; y: number; n: number }>();
-  const bump = (x: number, y: number) => {
+  const counts = new Map<string, { x: number; y: number; n: number; ends: number }>();
+  const bump = (x: number, y: number, isEnd: boolean) => {
     const key = `${x},${y}`;
     const entry = counts.get(key);
     if (entry) {
       entry.n += 1;
+      if (isEnd) entry.ends += 1;
     } else {
-      counts.set(key, { x, y, n: 1 });
+      counts.set(key, { x, y, n: 1, ends: isEnd ? 1 : 0 });
     }
   };
   for (const line of lines) {
-    for (const [x, y] of line) {
-      bump(x, y);
+    for (let index = 0; index < line.length; index += 1) {
+      const point = line[index];
+      if (!point) continue;
+      bump(point[0], point[1], index === 0 || index === line.length - 1);
     }
   }
 
   const found = new Map<string, Junction>();
-  for (const { x, y, n } of counts.values()) {
-    if (n >= 3) {
+  for (const { x, y, n, ends } of counts.values()) {
+    if (n >= 3 || ends >= 2) {
       found.set(`${x},${y}`, { x, y });
     }
   }

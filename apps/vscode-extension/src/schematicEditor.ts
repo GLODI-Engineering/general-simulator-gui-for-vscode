@@ -108,6 +108,7 @@ export class SchematicEditorProvider implements vscode.CustomEditorProvider<Sche
       panel.webview,
       {
         role: "schematic",
+        userSymbols: await this.host.readSymbols(),
         documentUri: document.uri.toString(),
         documentText: document.text,
         kernel: this.host.kernel.current ?? undefined,

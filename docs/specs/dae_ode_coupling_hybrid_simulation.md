@@ -2,11 +2,11 @@
 
 ## 1. Two Paradigms, One Solver
 
-Modern simulation environments like MATLAB/Simulink+Simscape combine two mathematically distinct modeling paradigms under a single solver. Understanding why they differ, and how they are reconciled, is essential for building reliable hybrid simulators.
+Modern simulation environments like block-diagram and physical-modelling environments combine two mathematically distinct modeling paradigms under a single solver. Understanding why they differ, and how they are reconciled, is essential for building reliable hybrid simulators.
 
-**The physical layer** (Simscape, SPICE-like solvers) models networks of real components — inductors, capacitors, switches, mechanical elements. It is *acausal*: connections carry both a "through" variable (current, force, flow) and an "across" variable (voltage, displacement, pressure) simultaneously, and the solver decides which quantities are inputs and which are outputs based on global network topology. The governing equations are assembled automatically from the graph of connections and take the form of **Differential-Algebraic Equations (DAEs)**.
+**The physical layer** (a physical-network modelling layer, SPICE-like solvers) models networks of real components — inductors, capacitors, switches, mechanical elements. It is *acausal*: connections carry both a "through" variable (current, force, flow) and an "across" variable (voltage, displacement, pressure) simultaneously, and the solver decides which quantities are inputs and which are outputs based on global network topology. The governing equations are assembled automatically from the graph of connections and take the form of **Differential-Algebraic Equations (DAEs)**.
 
-**The control layer** (Simulink block diagrams, transfer functions, state-space blocks) models signal processing and feedback logic. It is *causal*: every block has explicit inputs and outputs, and signal flow direction is fixed by the engineer at design time. The governing equations are **Ordinary Differential Equations (ODEs)**, typically in explicit state-space form.
+**The control layer** (block diagrams, transfer functions, state-space blocks) models signal processing and feedback logic. It is *causal*: every block has explicit inputs and outputs, and signal flow direction is fixed by the engineer at design time. The governing equations are **Ordinary Differential Equations (ODEs)**, typically in explicit state-space form.
 
 Combining both produces a **coupled DAE+ODE system**, where the two layers exchange information through well-defined coupling constraints at their interface.
 
@@ -51,7 +51,7 @@ where `x_c` is the controller state vector, `u_c` the control input (e.g., the s
 
 The two layers are connected at two interface points, each implemented by a domain-conversion block:
 
-**Sensing (PS → Simulink):** A physical quantity (e.g., the output voltage `V_out`) is read from the physical network and converted into a dimensionless signal for the control layer. This imposes:
+**Sensing (physical → signal):** A physical quantity (e.g., the output voltage `V_out`) is read from the physical network and converted into a dimensionless signal for the control layer. This imposes:
 
 ```
 u_c = g(x_p)
@@ -59,7 +59,7 @@ u_c = g(x_p)
 
 The sensed quantity is an algebraic function of the physical states. No dynamics are introduced at this interface, but a unit scaling is applied.
 
-**Actuation (Simulink → PS):** The control output (e.g., a PWM duty cycle `d`) is converted into a physical excitation (e.g., a gate drive signal). This imposes:
+**Actuation (signal → physical):** The control output (e.g., a PWM duty cycle `d`) is converted into a physical excitation (e.g., a gate drive signal). This imposes:
 
 ```
 u_p = h(y_c) = h(C · x_c + D · u_c)
@@ -122,7 +122,7 @@ Extracting a linear model for loop gain or frequency response analysis requires 
 - The switching element is discontinuous and must be replaced by its averaged or fixed-operating-point equivalent before the Jacobian can be computed.
 - The implicit DAE must be internally converted to an explicit ODE representation before standard linearization algorithms apply.
 
-Tools such as MATLAB's `linearize` function handle this automatically, but the result is only valid in a neighborhood of the chosen operating point.
+Tools such as a numerical environment's `linearize` function handle this automatically, but the result is only valid in a neighborhood of the chosen operating point.
 
 ### 5.5 Index Management
 

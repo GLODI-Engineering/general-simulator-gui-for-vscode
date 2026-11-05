@@ -76,7 +76,7 @@ describe("FE-175: saveSymbolToLibrary", () => {
 
     const result = saveSymbolToLibrary();
 
-    expect(result).toEqual({ ok: true, name: "user.my_widget" });
+    expect(result).toEqual({ ok: true, name: "user.my_widget", persisted: false });
     const entry = useLibraryStore.getState().catalog["user.my_widget"];
     expect(entry).toBeDefined();
     expect(entry.symbol.shape).toBe("primitives");

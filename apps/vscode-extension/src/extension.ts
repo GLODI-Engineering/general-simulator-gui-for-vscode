@@ -16,6 +16,7 @@ import { GsimHost } from "./host";
 import { LIBRARY_VIEW_ID, LibraryViewProvider } from "./libraryView";
 import { mirrorToConsole } from "./log";
 import { SCHEMATIC_VIEW_TYPE, SchematicEditorProvider } from "./schematicEditor";
+import { symbolWatchPattern } from "./symbolLibrary";
 import { type GsimTestApi, createTestApi } from "./test-api";
 import { isIntegrationTest } from "./test-mode";
 import { WaveformPanel } from "./waveformPanel";
@@ -31,6 +32,21 @@ export async function activate(context: vscode.ExtensionContext): Promise<GsimTe
   const waveforms = new WaveformPanel(context.extensionUri, host);
   context.subscriptions.push(waveforms);
   context.subscriptions.push(host.onShowWaveforms(() => void waveforms.show()));
+
+  // User components are files, so they can change without going through the
+  // editor: a script writes one, a colleague's branch adds one, the user
+  // edits the JSON by hand. Watch the folder and re-publish, rather than
+  // treating the running catalog as the source of truth.
+  for (const folder of vscode.workspace.workspaceFolders ?? []) {
+    const watcher = vscode.workspace.createFileSystemWatcher(symbolWatchPattern(folder));
+    const republish = () => void host.publishSymbols();
+    context.subscriptions.push(
+      watcher,
+      watcher.onDidCreate(republish),
+      watcher.onDidChange(republish),
+      watcher.onDidDelete(republish),
+    );
+  }
 
   const schematicProvider = new SchematicEditorProvider(context.extensionUri, host);
   context.subscriptions.push(schematicProvider);

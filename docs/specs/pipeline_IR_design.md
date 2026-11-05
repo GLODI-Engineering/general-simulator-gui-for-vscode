@@ -299,7 +299,7 @@ Auto-conversion is user-friendly but risky — a bad smoothing approximation sil
 
 ## 8. Legacy Code Integration
 
-Users may supply component models or subsystems implemented in **C, C++, MATLAB/Octave, or Python** rather than as symbolic equations. This is a first-class requirement, not an edge case — real engineering workflows are full of validated legacy code that must not be rewritten.
+Users may supply component models or subsystems implemented in **C, C++, a numerical computing environment/Octave, or Python** rather than as symbolic equations. This is a first-class requirement, not an edge case — real engineering workflows are full of validated legacy code that must not be rewritten.
 
 Plugging opaque code into a symbolic pipeline creates fundamental tensions that cannot be wished away. This section defines the **minimum contract** an external function must satisfy to be admitted into the pipeline, and documents the consequences for IR-2, symbolic processing, and the solver.
 
@@ -327,7 +327,7 @@ IR-2 must support a second equation kind alongside symbolic expressions: the **E
 ```
 ExternalFunctionBlock:
   id              : unique instance name (e.g. ext__MyMotor)
-  language        : c | cpp | python | matlab | octave
+  language        : c | cpp | python | octave
   entry_point     : function name or file path + function name
   inputs          : ordered list of (variable_name, unit)
   outputs         : ordered list of (variable_name, unit)
@@ -372,7 +372,7 @@ derivatives:
 
 **Not viable for compiled C/C++** without source-level AD tools (Tapenade, ADOL-C), which require the pipeline to recompile the user's code — a significant integration burden. Do not promise this for C/C++ in the first version.
 
-**Not viable for MATLAB/Octave** in general. Symbolic toolboxes exist but are not reliable for arbitrary functions.
+**Not viable for a numerical computing environment/Octave** in general. Symbolic toolboxes exist but are not reliable for arbitrary functions.
 
 #### Mode C — Finite difference approximation (fallback)
 
@@ -416,7 +416,7 @@ state_interface:
   state_size       : 4               # pipeline allocates state vector
 ```
 
-The pipeline allocates a state buffer and passes it by pointer (C/C++) or by reference (Python/MATLAB) at every call. The solver treats the state as additional differential variables, **but cannot reason about them symbolically** — they are invisible to the incidence matrix.
+The pipeline allocates a state buffer and passes it by pointer (C/C++) or by reference (Python/a numerical computing environment) at every call. The solver treats the state as additional differential variables, **but cannot reason about them symbolically** — they are invisible to the incidence matrix.
 
 **Critical consequence:** a stateful external block that introduces differential equations of index > 1 will cause the solver to fail with no way for the pipeline to detect or fix it ahead of time. The pipeline must document this clearly and emit a warning whenever a stateful block is present.
 
@@ -431,9 +431,9 @@ The solver back-end runs in a specific execution environment. Calling across lan
 | C | Direct FFI — compile to shared library, call via `ctypes` or native linker | Analytical only (v1) | Excellent |
 | C++ | Same as C via `extern "C"` wrapper | Analytical only (v1) | Excellent |
 | Python | Direct call if solver is Python-based; subprocess or embedded interpreter otherwise | Analytical or JAX auto-diff | Good (Python solver) / Poor (C solver) |
-| MATLAB/Octave | Engine API or subprocess call | Analytical only | Poor — avoid for inner loops |
+| a numerical computing environment/Octave | Engine API or subprocess call | Analytical only | Poor — avoid for inner loops |
 
-**Recommendation for v1:** support C and Python natively. Treat MATLAB/Octave as a pre-compilation target — the user is encouraged to export their MATLAB function to a C MEX file or Python equivalent before registering it. Do not attempt a live MATLAB engine binding in v1.
+**Recommendation for v1:** support C and Python natively. Treat a numerical computing environment/Octave as a pre-compilation target — the user is encouraged to export their a numerical computing environment function to a C MEX file or Python equivalent before registering it. Do not attempt a live a numerical computing environment engine binding in v1.
 
 ---
 
@@ -460,9 +460,9 @@ The `has_opaque_blocks` flag is a coarse but critical signal. When true, the sym
 
 #### Q7 — Minimum viable language support for v1
 
-> Support C + Python only in v1, with MATLAB/Octave deferred?
+> Support C + Python only in v1, with a numerical computing environment/Octave deferred?
 
-This is strongly recommended. The binding complexity and derivative story for MATLAB is disproportionate to the effort. Users with MATLAB models should be directed to export to Python (via `matlab.engine` or code generation) or to C MEX.
+This is strongly recommended. The binding complexity and derivative story for a numerical computing environment is disproportionate to the effort. Users with models in such an environment should be directed to export to Python (via a bridge or code generation) or to C MEX.
 
 ---
 
