@@ -1,6 +1,6 @@
 /**
  * The object `activate()` returns, reachable from an integration test as
- * `vscode.extensions.getExtension("gensim.general-simulator").exports`.
+ * `vscode.extensions.getExtension(EXTENSION_ID).exports`.
  *
  * It is a thin, read-mostly façade over the *live* `GsimHost` — it does not
  * fake or shortcut anything. `probe()` in particular routes through the real
@@ -12,6 +12,13 @@ import * as vscode from "vscode";
 
 import type { GsimHost } from "./host";
 import type { KernelConfig, WebviewRole } from "./protocol";
+
+/**
+ * `publisher.name` from package.json. Kept in one place: when the manifest
+ * was renamed, three separate copies of this literal silently stopped
+ * matching and the whole integration suite failed in its `before all` hook.
+ */
+export const EXTENSION_ID = "gensim.general-simulator-gui";
 
 export interface GsimTestApi {
   /** Roles whose React app has reported `gsim/ready`. */
@@ -125,13 +132,19 @@ export function createTestApi(host: GsimHost): GsimTestApi {
 
 /** Convenience for tests: fetch the API the extension exported. */
 export async function getTestApi(): Promise<GsimTestApi> {
-  const extension = vscode.extensions.getExtension("gensim.general-simulator");
+  const extension = vscode.extensions.getExtension(EXTENSION_ID);
   if (!extension) {
-    throw new Error("gensim.general-simulator is not installed in this VS Code instance");
+    throw new Error(`${EXTENSION_ID} is not installed in this VS Code instance`);
   }
-  const exports = (await extension.activate()) as GsimTestApi | undefined;
-  if (!exports?.waitForWebview) {
+  // Not named `exports`: this file compiles to CommonJS, where a module-level
+  // `export const` is emitted as `exports.NAME`. A local binding called
+  // `exports` shadows that, and every reference to EXTENSION_ID above then
+  // hits the temporal dead zone of this very declaration —
+  // "Cannot access 'exports' before initialization", thrown from a line that
+  // mentions neither.
+  const api = (await extension.activate()) as GsimTestApi | undefined;
+  if (!api?.waitForWebview) {
     throw new Error("extension did not export its test API (is GSIM_INTEGRATION_TEST set?)");
   }
-  return exports;
+  return api;
 }

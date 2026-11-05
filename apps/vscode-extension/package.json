@@ -129,7 +129,7 @@
     "test": "vitest run",
     "test:unit": "vitest run",
     "test:integration": "tsc -p ./ && node ./out/integration/runTests.js",
-    "package": "vsce package --no-dependencies"
+    "package": "vsce package --no-dependencies --out ../../general-simulator-gui.vsix"
   },
   "devDependencies": {
     "@types/glob": "^9.0.0",

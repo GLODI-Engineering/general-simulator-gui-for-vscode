@@ -70,32 +70,58 @@ extension from one codebase. It is now only an extension — see
 (`apps/frontend/index.html`) is a development and Playwright harness, not a
 shipped surface, and is excluded from the `.vsix`.
 
-## Getting started (from source)
+## Install and try it
 
 ```sh
 pnpm install
-pnpm build                 # webviews + extension
+pnpm package               # builds the webviews + extension, writes general-simulator-gui.vsix
+code --install-extension general-simulator-gui.vsix
 ```
 
-Then press <kbd>F5</kbd> in VS Code to launch an Extension Development Host,
-or package it:
+Then **open this repository as your VS Code workspace folder** and open
+`examples/buck_converter.gsim_sch`. It opens in the schematic editor, with
+the block library in the Activity Bar.
 
-```sh
-pnpm package               # produces a .vsix
+Opening the repo folder matters: the extension spawns a Python kernel as a
+child process and finds it by looking for `pyproject.toml` in your open
+workspace folders. Working in a different folder, set the path explicitly:
+
+```jsonc
+// settings.json
+"generalSimulator.workspaceRoot": "/path/to/general-simulator-gui-for-vscode"
 ```
 
-The Python side runs under [uv](https://docs.astral.sh/uv/):
+**Warm the Python environment before the first run**, or the first launch
+sits for several minutes while uv downloads an interpreter and the
+dependency set:
 
 ```sh
 uv sync
-uv run pytest packages/ tests/
+uv run --project . --package kernel-sidecar python -m kernel_sidecar --port 0 --token dev --connect-timeout 0
 ```
 
-Solver binaries are not bundled. Point the resolution chain at your own:
+That prints `KERNEL_READY port=… token=…` once it is up; Ctrl-C it, and the
+extension will start its own instantly thereafter. `General Simulator: Show
+Kernel Log` in the command palette shows exactly what was spawned when
+something goes wrong.
+
+Solver binaries are not bundled. ngspice and Xyce are optional — the
+general-simulator engine needs neither — but to use them, point the
+resolution chain at your own build:
 
 ```sh
 export GENSIM_NGSPICE_PATH=/path/to/ngspice
 export GENSIM_XYCE_PATH=/path/to/Xyce
+```
+
+### Developing on it
+
+<kbd>F5</kbd> launches an Extension Development Host against the checkout.
+For canvas work the browser harness is far faster, since it has HMR and can
+be driven by Playwright:
+
+```sh
+pnpm dev:webviews          # http://localhost:5173
 ```
 
 ## Testing
@@ -113,20 +139,26 @@ editor resolving a `.gsim_sch`, the bundle loading under the webview CSP,
 React mounting, dirty-state and save writing bytes, the cross-webview drag
 fan-out, and the kernel handshake.
 
-Rendering quality is checked by rendering, not by assertion:
+Rendering quality is checked by rendering and looking, not by assertion — no
+test notices that two labels overlap. See
+[`docs/specs/schematic-rendering-spec.md`](docs/specs/schematic-rendering-spec.md):
 
 ```sh
-node scripts/render-schematic.mjs --doc docs/circuit_test/buck_converter/buck_converter.gsim_sch
+node scripts/render-schematic.mjs --doc examples/buck_converter.gsim_sch
 ```
 
 ## Roadmap
 
 Honest about what is not done:
 
-- **Rendering quality.** Schematics are readable but not yet handsome.
-  Pin-lead length, label placement, refdes and value typography and
-  symbol-to-grid proportion are the open work. This is tracked as a
-  correctness property, not a nicety — `docs/specs/schematic-rendering-spec.md`.
+- **Rendering quality.** Much improved — the geometry is now grid-exact,
+  terminals carry reference designators and values, pin-name clutter is gone
+  and junction dots are correct. Still open: labels anchor to the symbol's
+  bounding box rather than to its ink, so a value can sit further from a thin
+  glyph than it should; and the dot grid competes with the drawing. Tracked
+  as a correctness property, not a nicety —
+  [`docs/specs/schematic-rendering-spec.md`](docs/specs/schematic-rendering-spec.md)
+  and issue #1.
 - **Custom components do not persist.** The symbol editor writes into the
   in-memory catalog only; a saved symbol is lost on reload, and it carries a
   symbol but no simulation behaviour. `.gsim_sym` file I/O exists on the

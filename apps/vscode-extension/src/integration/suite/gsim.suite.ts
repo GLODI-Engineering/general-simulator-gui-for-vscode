@@ -26,9 +26,10 @@ import * as path from "node:path";
 import * as vscode from "vscode";
 
 import type { GsimTestApi } from "../../test-api";
-import { getTestApi } from "../../test-api";
+import { EXTENSION_ID as TEST_API_EXTENSION_ID, getTestApi } from "../../test-api";
 
-const EXTENSION_ID = "gensim.general-simulator";
+// Imported, not re-declared: see test-api.ts.
+const EXTENSION_ID = TEST_API_EXTENSION_ID;
 const SCHEMATIC_VIEW_TYPE = "generalSimulator.schematic";
 
 interface MountReport {
