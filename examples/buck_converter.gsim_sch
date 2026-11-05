@@ -1,0 +1,343 @@
+{
+ "schema_version": 2,
+ "model": {
+  "id": "buck_converter",
+  "name": "Buck converter",
+  "grid": 20,
+  "params": {},
+  "blocks": [
+   {
+    "id": "v1",
+    "type": "physical-electrical.source.voltage_dc",
+    "paradigm": "physical-network",
+    "domain": "physical-electrical",
+    "fidelity": "ideal",
+    "position": [
+     80,
+     240
+    ],
+    "rotation": 90,
+    "mirror": "none",
+    "params": {
+     "V": 12
+    },
+    "ic": {}
+   },
+   {
+    "id": "s1",
+    "type": "passive.switch.voltage",
+    "paradigm": "physical-network",
+    "domain": "physical-electrical",
+    "fidelity": "ideal",
+    "position": [
+     260,
+     120
+    ],
+    "rotation": 0,
+    "mirror": "none",
+    "params": {
+     "Ron": 0.001,
+     "Roff": 1000000.0
+    },
+    "ic": {}
+   },
+   {
+    "id": "v2",
+    "type": "source.voltage.pulse",
+    "paradigm": "physical-network",
+    "domain": "physical-electrical",
+    "fidelity": "ideal",
+    "position": [
+     260,
+     320
+    ],
+    "rotation": 0,
+    "mirror": "none",
+    "params": {
+     "V1": 0,
+     "V2": 5,
+     "TD": 0,
+     "TR": 1e-08,
+     "TF": 1e-08,
+     "PW": 6e-06,
+     "PER": 1e-05
+    },
+    "ic": {}
+   },
+   {
+    "id": "d1",
+    "type": "physical-electrical.semiconductor.diode",
+    "paradigm": "physical-network",
+    "domain": "physical-electrical",
+    "fidelity": "ideal",
+    "position": [
+     460,
+     260
+    ],
+    "rotation": 270,
+    "mirror": "none",
+    "params": {},
+    "ic": {}
+   },
+   {
+    "id": "l1",
+    "type": "passive.inductor",
+    "paradigm": "physical-network",
+    "domain": "physical-electrical",
+    "fidelity": "ideal",
+    "position": [
+     600,
+     100
+    ],
+    "rotation": 0,
+    "mirror": "none",
+    "params": {
+     "L": 0.0001
+    },
+    "ic": {}
+   },
+   {
+    "id": "c1",
+    "type": "passive.capacitor",
+    "paradigm": "physical-network",
+    "domain": "physical-electrical",
+    "fidelity": "ideal",
+    "position": [
+     800,
+     260
+    ],
+    "rotation": 90,
+    "mirror": "none",
+    "params": {
+     "C": 0.0001
+    },
+    "ic": {}
+   },
+   {
+    "id": "r1",
+    "type": "passive.resistor",
+    "paradigm": "physical-network",
+    "domain": "physical-electrical",
+    "fidelity": "ideal",
+    "position": [
+     980,
+     260
+    ],
+    "rotation": 90,
+    "mirror": "none",
+    "params": {
+     "R": 10
+    },
+    "ic": {}
+   }
+  ],
+  "wires": [
+   {
+    "id": "w-vin-sw",
+    "from": {
+     "block": "v1",
+     "port": "p"
+    },
+    "to": {
+     "block": "s1",
+     "port": "p"
+    },
+    "waypoints": [
+     [
+      120,
+      140
+     ]
+    ],
+    "pinned": false,
+    "net": null,
+    "kind": "physical-electrical"
+   },
+   {
+    "id": "w-sw-l",
+    "from": {
+     "block": "s1",
+     "port": "n"
+    },
+    "to": {
+     "block": "l1",
+     "port": "p"
+    },
+    "waypoints": [],
+    "pinned": false,
+    "net": null,
+    "kind": "physical-electrical"
+   },
+   {
+    "id": "w-sw-d",
+    "from": {
+     "block": "s1",
+     "port": "n"
+    },
+    "to": {
+     "block": "d1",
+     "port": "k"
+    },
+    "waypoints": [
+     [
+      500,
+      140
+     ]
+    ],
+    "pinned": false,
+    "net": null,
+    "kind": "physical-electrical"
+   },
+   {
+    "id": "w-l-c",
+    "from": {
+     "block": "l1",
+     "port": "n"
+    },
+    "to": {
+     "block": "c1",
+     "port": "p"
+    },
+    "waypoints": [
+     [
+      840,
+      140
+     ]
+    ],
+    "pinned": false,
+    "net": null,
+    "kind": "physical-electrical"
+   },
+   {
+    "id": "w-c-r",
+    "from": {
+     "block": "c1",
+     "port": "p"
+    },
+    "to": {
+     "block": "r1",
+     "port": "p"
+    },
+    "waypoints": [],
+    "pinned": false,
+    "net": null,
+    "kind": "physical-electrical"
+   },
+   {
+    "id": "w-v-d",
+    "from": {
+     "block": "v1",
+     "port": "n"
+    },
+    "to": {
+     "block": "d1",
+     "port": "a"
+    },
+    "waypoints": [
+     [
+      120,
+      540
+     ],
+     [
+      500,
+      540
+     ]
+    ],
+    "pinned": false,
+    "net": null,
+    "kind": "physical-electrical"
+   },
+   {
+    "id": "w-d-c",
+    "from": {
+     "block": "d1",
+     "port": "a"
+    },
+    "to": {
+     "block": "c1",
+     "port": "n"
+    },
+    "waypoints": [
+     [
+      500,
+      540
+     ],
+     [
+      840,
+      540
+     ]
+    ],
+    "pinned": false,
+    "net": null,
+    "kind": "physical-electrical"
+   },
+   {
+    "id": "w-c-rb",
+    "from": {
+     "block": "c1",
+     "port": "n"
+    },
+    "to": {
+     "block": "r1",
+     "port": "n"
+    },
+    "waypoints": [
+     [
+      840,
+      540
+     ],
+     [
+      1020,
+      540
+     ]
+    ],
+    "pinned": false,
+    "net": null,
+    "kind": "physical-electrical"
+   },
+   {
+    "id": "w-g-p",
+    "from": {
+     "block": "v2",
+     "port": "p"
+    },
+    "to": {
+     "block": "s1",
+     "port": "cp"
+    },
+    "waypoints": [],
+    "pinned": false,
+    "net": null,
+    "kind": "physical-electrical"
+   },
+   {
+    "id": "w-g-n",
+    "from": {
+     "block": "v2",
+     "port": "n"
+    },
+    "to": {
+     "block": "s1",
+     "port": "cn"
+    },
+    "waypoints": [],
+    "pinned": false,
+    "net": null,
+    "kind": "physical-electrical"
+   }
+  ],
+  "lines": [],
+  "nets": [],
+  "simulation": {
+   "analyses": [
+    {
+     "id": "tran",
+     "type": "TRAN",
+     "tstep": 1e-07,
+     "tstop": 0.002
+    }
+   ],
+   "default_analysis": "tran"
+  },
+  "metadata": {}
+ }
+}

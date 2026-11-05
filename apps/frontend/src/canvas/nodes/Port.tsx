@@ -1,9 +1,10 @@
 import { WIRE_STROKE } from "../edges/WireEdge";
+import { STUB_LEN } from "./port-hit-test";
 import type { PortKind } from "../../model/types";
 
-// Stub length in SVG units (ports are rendered outside the scale(SYMBOL_SCALE)
-// transform, so these are effectively screen px at zoom 1).
-const STUB_LEN = 16;
+// Lead length comes from port-hit-test.ts, which also decides where the wire
+// attaches to the lead. Two constants would silently drift apart and leave
+// every wire short of (or past) the lead it is drawn to touch.
 // Match WIRE_STROKE exactly, not just approximately — the stub is the visual
 // continuation of the wire right up to the component boundary, and a thinner
 // stub (this used to hardcode 2 against an actual WIRE_STROKE of ~3.84) reads

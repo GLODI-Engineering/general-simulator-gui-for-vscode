@@ -6,10 +6,26 @@ import { resolveBlockBbox, resolveBlockPorts } from "./resolve-ports";
  * geometry. Applied consistently to the rendered symbol (BlockSymbol), the
  * ReactFlow handles (BlockNode) and every wire endpoint (all consumers read
  * port centres through getPortCenter), so the body, ports and attached wires
- * stay aligned. Bumped above 1.0 because the authored bboxes (60×40 …) render
- * too small to read the ports clearly.
+ * stay aligned. Above 1.0 because the authored bboxes (60×40 …) render too
+ * small to read the ports clearly.
+ *
+ * **Why exactly 2, and not 1.6.** Catalog bboxes and port offsets are
+ * multiples of 10 (every two-terminal part is 60×40 with its ports at
+ * offset 20), and the canvas grid — `router/ortho-route.ts`'s `GRID` — is 20.
+ * At 1.6 a port centre landed at 20 × 1.6 = 32 and a part spanned
+ * 60 × 1.6 + 2 × STUB_LEN = 128: neither is a multiple of 20, so no port,
+ * stub tip or component edge ever coincided with a grid line. Every wire
+ * then met its port at an off-grid point, which is what `wire-path.ts`'s
+ * six-pixel `ORTHOGONAL_TOLERANCE_PX` and `snapNearOrthogonal` were built to
+ * paper over.
+ *
+ * At 2, with `STUB_LEN` one whole grid unit, the arithmetic closes: an
+ * offset of 10/20/30 maps to 20/40/60, a two-terminal part spans
+ * 120 + 2 × 20 = 160 = 8 grid units, and every terminal sits on a grid
+ * intersection. Keep this an integer multiple that preserves that property
+ * if it is ever changed again.
  */
-export const SYMBOL_SCALE = 1.6;
+export const SYMBOL_SCALE = 2;
 
 export interface PortDescriptor {
   id: string;
@@ -82,7 +98,18 @@ function applyRotation(
   }
 }
 
-const STUB_LEN = 16;
+/**
+ * Terminal lead length, in canvas units — exactly one grid unit
+ * (`router/ortho-route.ts`'s GRID), so a lead tip always lands on a grid
+ * intersection. See SYMBOL_SCALE above for why that matters.
+ *
+ * This is the one definition. `Port.tsx` draws the lead and this module
+ * decides where the wire attaches to it, and when the two were separate
+ * constants they could drift apart silently: the wire then stopped short of
+ * the drawn lead (or ran past it) by the difference, at every terminal on
+ * the sheet, with nothing failing.
+ */
+export const STUB_LEN = 20;
 
 function stubDirection(
   side: PortDescriptor["side"],
