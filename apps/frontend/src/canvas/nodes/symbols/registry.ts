@@ -1,13 +1,13 @@
 import type { SymbolDrawing } from "../symbol-drawing";
 
 import absDrawing from "./abs";
+import ammeterDrawing from "./ammeter";
 import bjtNpnDrawing from "./bjtNpn";
 import bjtPnpDrawing from "./bjtPnp";
 import comparatorDrawing from "./comparator";
 import controlledCurrentSourceDrawing from "./controlledCurrentSource";
 import controlledVoltageSourceDrawing from "./controlledVoltageSource";
 import coupledInductorDrawing from "./coupledInductor";
-import currentSensorDrawing from "./currentSensor";
 import deadbandDrawing from "./deadband";
 import dependentCccsDrawing from "./dependentCccs";
 import dependentCcvsDrawing from "./dependentCcvs";
@@ -31,6 +31,7 @@ import opampDrawing from "./opamp";
 import productDrawing from "./product";
 import quantizerDrawing from "./quantizer";
 import rateLimiterDrawing from "./rateLimiter";
+import resistorDrawing from "./resistor";
 import { fromDrawing, gotoDrawing } from "./routingTag";
 import saturationDrawing from "./saturation";
 import signDrawing from "./sign";
@@ -86,10 +87,18 @@ export const SYMBOL_DRAWINGS: Record<string, SymbolDrawing> = {
   "physical_electrical.semiconductor.thyristor": thyristorDrawing,
   "passive.memristor": memristorDrawing,
   "physical_electrical.passive.memristor": memristorDrawing,
-  "physical_electrical.sensor.current": currentSensorDrawing,
   "physical_electrical.sensor.voltage": voltageSensorDrawing,
   "physical_electrical.tline.lossless": tlineLosslessDrawing,
   "physical_electrical.tline.lossy": tlineLosslessDrawing,
+  // IEC 60617 corrections. The resistor was an ANSI/IEEE zigzag — the US
+  // convention, as the file it came from said in its own comment — and the
+  // current sensor was a circle containing an arrow, which is the symbol
+  // for a current *source*: the instrument and the thing it measures drew
+  // identically.
+  "passive.resistor": resistorDrawing,
+  "physical_electrical.passive.resistor": resistorDrawing,
+  "physical_electrical.sensor.current": ammeterDrawing,
+
   // The Goto/From pair, which lets a sheet carry a signal without drawing a
   // wire across it. Both were blank rectangles, which defeats the point:
   // the value of a tag is reading where the signal goes without following
