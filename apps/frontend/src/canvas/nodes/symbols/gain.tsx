@@ -13,8 +13,8 @@ import {
   FILL,
   STROKE,
   SW,
-  SymbolLabel,
   type SymbolDrawing,
+  SymbolLabel,
 } from "../symbol-drawing";
 
 /** An instance parameter as display text, for a drawing that shows a value. */
@@ -36,7 +36,14 @@ const LEADS_1 = (
   </>
 );
 const curve = (pts: string) => (
-  <polyline points={pts} fill="none" stroke={STROKE} strokeWidth={SW} strokeLinejoin="round" strokeLinecap="round" />
+  <polyline
+    points={pts}
+    fill="none"
+    stroke={STROKE}
+    strokeWidth={SW}
+    strokeLinejoin="round"
+    strokeLinecap="round"
+  />
 );
 
 const SI: ReadonlyArray<[number, string]> = [
@@ -83,7 +90,13 @@ function draw(ctx: DrawContext): ReactNode {
     <g>
       {L(0, 20, 12, 20)}
       {L(50, 20, 60, 20)}
-      <polygon points="12,6 12,34 50,20" fill={FILL} stroke={STROKE} strokeWidth={SW} strokeLinejoin="round" />
+      <polygon
+        points="12,6 12,34 50,20"
+        fill={FILL}
+        stroke={STROKE}
+        strokeWidth={SW}
+        strokeLinejoin="round"
+      />
       <SymbolLabel ctx={ctx} x={24} y={20} size="md" maxWidth={24}>
         {compact(param(ctx, "k", "k"))}
       </SymbolLabel>
