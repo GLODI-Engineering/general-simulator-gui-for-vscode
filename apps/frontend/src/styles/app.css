@@ -1,0 +1,2381 @@
+:root {
+  color: #111827;
+  background: #f8fafc;
+  font-family: Inter, system-ui, sans-serif;
+  --surface-bg: #f8fafc;
+  --surface-fg: #111827;
+}
+
+:root[data-theme="dark"] {
+  --surface-bg: #0b1220;
+  --surface-fg: #e2e8f0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  height: 100%;
+}
+
+body {
+  background: var(--surface-bg);
+  color: var(--surface-fg);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 1px;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+.app-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+/* Inspector rail inside the schematic editor surface. */
+.inspector-slot {
+  width: 320px;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  background: #ffffff;
+  border-left: 1px solid #dbe4ee;
+}
+
+@media (max-width: 960px) {
+  .app-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .inspector-slot {
+    display: none;
+  }
+}
+
+.bottom-panel__resize {
+  width: 100%;
+}
+
+.canvas-slot {
+  min-width: 0;
+  min-height: 0;
+  background-image: radial-gradient(circle at 1px 1px, #d1d5db 1px, transparent 0);
+  background-size: 20px 20px;
+  padding: 16px;
+}
+
+.canvas-surface {
+  display: grid;
+  grid-template-rows: 1fr;
+  height: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(8px);
+}
+
+.canvas-surface__body {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  padding: 0;
+}
+
+.canvas-flow {
+  border: 1px solid #334155;
+  border-radius: 10px;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: #f1f5f9;
+}
+
+.canvas-flow[data-canvas-bg="white"] {
+  background: #ffffff;
+}
+.canvas-flow[data-canvas-bg="light"] {
+  background: #f1f5f9;
+}
+.canvas-flow[data-canvas-bg="cream"] {
+  background: #fdf6e3;
+}
+.canvas-flow[data-canvas-bg="dark"] {
+  background: #0f172a;
+}
+
+/* CanvasSurface's own root div reuses the `.canvas-flow` class (for the
+ * data-canvas-tool cursor-styling rules below) but is nested INSIDE the
+ * outer .canvas-flow wrapper that carries data-canvas-bg — without this,
+ * its own opaque `background` above paints over the outer wrapper's
+ * background-color entirely, so only "light" (the same #f1f5f9 default)
+ * ever appeared to work. */
+.canvas-flow[data-testid="canvas-surface"] {
+  background: transparent;
+}
+
+.grid-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.react-flow {
+  z-index: 1;
+}
+
+.canvas-node {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.canvas-node.is-selected {
+  filter: drop-shadow(0 0 3px rgba(37, 99, 235, 0.55));
+}
+
+.canvas-node.is-selected .block-symbol {
+  outline: 2px solid rgba(37, 99, 235, 0.9);
+  outline-offset: 2px;
+  border-radius: 4px;
+  background: rgba(59, 131, 246, 0.027);
+}
+
+/* Tool cursors — override React Flow's default grab cursor on the pane/nodes. */
+.canvas-flow[data-canvas-tool="wire"],
+.canvas-flow[data-canvas-tool="wire"] .react-flow__pane,
+.canvas-flow[data-canvas-tool="wire"] .react-flow__node {
+  cursor: crosshair !important;
+}
+
+.canvas-flow[data-canvas-tool="pan"],
+.canvas-flow[data-canvas-tool="pan"] .react-flow__pane {
+  cursor: grab !important;
+}
+
+.canvas-flow[data-canvas-tool="label"],
+.canvas-flow[data-canvas-tool="label"] .react-flow__pane {
+  cursor: text !important;
+}
+
+.canvas-node--broken {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 4px 6px;
+  border: 1.5px dashed #b91c1c;
+  border-radius: 4px;
+  background: rgba(254, 226, 226, 0.6);
+  color: #7f1d1d;
+  font-size: 11px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.canvas-node--junction {
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.canvas-node__title {
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.canvas-node__body {
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.canvas-node__params {
+  display: grid;
+  gap: 3px;
+  margin-top: 8px;
+}
+
+.canvas-node__param {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.bottom-panel {
+  display: grid;
+  grid-template-rows: 40px minmax(0, 1fr) 24px;
+  min-height: 0;
+  background: #ffffff;
+  border-top: 1px solid #dbe4ee;
+}
+
+.bottom-panel__tabs {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 0 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.bottom-panel__tab {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  border: 0;
+  padding: 8px 10px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.bottom-panel__tab.is-active {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 6px;
+}
+
+.bottom-panel__badge {
+  min-width: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #dbeafe;
+  text-align: center;
+}
+
+.bottom-panel__body {
+  overflow: auto;
+  padding: 12px;
+}
+
+.panel-placeholder {
+  display: grid;
+  gap: 8px;
+}
+
+.panel-placeholder > header {
+  font-weight: 600;
+}
+
+.library-activity {
+  display: grid;
+  gap: 12px;
+}
+
+.library-tree__toggle,
+.library-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.library-activity__header {
+  position: sticky;
+  top: -12px;
+  z-index: 3;
+  margin: -12px -12px 0;
+  padding: 12px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.library-activity__header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.library-activity__header-row strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.library-activity__recent h3 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.library-activity__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.library-chip {
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.library-tree {
+  display: grid;
+  gap: 8px;
+}
+
+.library-tree__section {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.library-tree__toggle {
+  width: 100%;
+  border: 0;
+  background: #f8fafc;
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.library-tree__count {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.library-tree__items {
+  display: grid;
+  gap: 1px;
+  background: #e2e8f0;
+}
+
+.library-item {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: #ffffff;
+  padding: 8px 10px;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  justify-content: start;
+}
+
+.library-item:hover {
+  background: #f8fafc;
+}
+
+.library-item__preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 40px;
+  overflow: hidden;
+}
+
+.library-item__preview .block-symbol {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.library-item__label {
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.quick-insert__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.08);
+}
+
+.quick-insert {
+  position: absolute;
+  width: min(360px, calc(100vw - 48px));
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+}
+
+.quick-insert__input {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 12px 14px;
+}
+
+.quick-insert__results {
+  display: grid;
+  max-height: 320px;
+  overflow: auto;
+}
+
+.quick-insert__item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  background: #ffffff;
+  padding: 10px 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.quick-insert__item.is-selected {
+  background: #eff6ff;
+}
+
+.quick-insert__item-meta,
+.quick-insert__empty {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.quick-insert__empty {
+  padding: 14px;
+}
+
+.inspector-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.inspector-panel__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.inspector-panel__body {
+  display: grid;
+  gap: 10px;
+}
+
+.inspector-panel__empty {
+  color: #475569;
+  font-size: 13px;
+}
+
+.inspector-field {
+  display: grid;
+  gap: 6px;
+}
+
+.inspector-field__input {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #ffffff;
+}
+
+.inspector-field__input.is-invalid {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 1px rgba(220, 38, 38, 0.15);
+}
+
+.block-symbol {
+  overflow: visible;
+}
+
+.wire-edge__path {
+  pointer-events: none;
+}
+
+.wire-edge__hit {
+  cursor: pointer;
+}
+
+.wire-edge.is-selected .wire-edge__path {
+  filter: drop-shadow(0 0 4px rgba(37, 99, 235, 0.35));
+}
+
+.wire-edge__pin {
+  pointer-events: none;
+}
+
+/* FE-157: wire name label — set via the Label tool. */
+.wire-edge__label {
+  font-size: 11px;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  fill: #1d4ed8;
+  paint-order: stroke;
+  stroke: #ffffff;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  pointer-events: none;
+  user-select: none;
+}
+
+.wire-edge__label-editor {
+  overflow: visible;
+}
+
+.wire-edge__label-input {
+  width: 100%;
+  height: 22px;
+  padding: 0 6px;
+  border: 1px solid #2563eb;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #111827;
+  font-size: 11px;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  outline: none;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+}
+
+/* ── ComponentParamsPanel (double-click parameter modal) ─────────────────── */
+
+.params-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1500;
+}
+
+.error-boundary {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4000;
+  padding: 24px;
+}
+
+.error-boundary__panel {
+  width: min(760px, calc(100vw - 48px));
+  max-height: calc(100vh - 64px);
+  overflow: auto;
+  background: #fff;
+  border: 1px solid #fca5a5;
+  border-radius: 12px;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.4);
+  padding: 20px 24px;
+}
+
+.error-boundary__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #b91c1c;
+  font-size: 15px;
+}
+
+.error-boundary__dismiss,
+.error-boundary__retry {
+  cursor: pointer;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+.error-boundary__message {
+  margin: 12px 0;
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+  color: #7f1d1d;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.error-boundary__details {
+  margin: 8px 0;
+}
+
+.error-boundary__details summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: #374151;
+}
+
+.error-boundary__stack {
+  margin: 8px 0 0;
+  padding: 10px;
+  background: #1f2937;
+  color: #e5e7eb;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.45;
+  overflow: auto;
+  max-height: 280px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.error-boundary__footer {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.params-modal {
+  width: min(820px, calc(100vw - 48px));
+  max-height: min(720px, calc(100vh - 64px));
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.32);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+}
+
+.params-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.params-modal__header strong {
+  font-size: 16px;
+}
+
+.params-modal__id {
+  margin-left: 8px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.params-modal__close {
+  border: 0;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.params-modal__close:hover {
+  color: #0f172a;
+}
+
+.params-modal__body {
+  padding: 16px 18px;
+  overflow-y: auto;
+  display: grid;
+  gap: 14px;
+}
+
+.params-modal__filter {
+  padding: 6px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.params-modal__section {
+  display: grid;
+  gap: 6px;
+}
+
+.params-modal__group-label {
+  margin: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.params-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px;
+}
+
+.params-modal__row {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.params-modal__row:hover {
+  background: #f8fafc;
+}
+
+.params-modal__row--level {
+  grid-template-columns: 110px minmax(0, 1fr);
+}
+
+.params-modal__row-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f172a;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.params-modal__row-label em {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.params-modal__row-desc {
+  grid-column: 2;
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: -2px;
+}
+
+.params-modal__input {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 13px;
+  background: #ffffff;
+}
+
+.params-modal__input:focus {
+  outline: 2px solid #93c5fd;
+  outline-offset: -1px;
+}
+
+.params-modal__textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 12px;
+  resize: vertical;
+}
+
+.params-modal__hint {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.params-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 18px;
+  border-top: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.params-modal__done {
+  border: 0;
+  background: #2563eb;
+  color: #ffffff;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.params-modal__done:hover {
+  background: #1d4ed8;
+}
+
+.marquee-layer {
+  position: absolute;
+  border: 1px dashed #2563eb;
+  background: rgba(37, 99, 235, 0.08);
+  pointer-events: none;
+}
+
+.recent-models-list {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.recent-models-list li {
+  display: grid;
+  gap: 2px;
+}
+
+.workspace-tab,
+.waveform-tab {
+  display: grid;
+  gap: 12px;
+  min-height: 100%;
+}
+
+.workspace-tab {
+  grid-template-columns: minmax(200px, var(--workspace-split, 32%)) 18px minmax(0, 1fr);
+}
+
+.workspace-tab__split {
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  accent-color: #3b82f6;
+}
+
+.workspace-tab__value {
+  display: grid;
+  grid-template-rows: auto minmax(180px, 1fr);
+  gap: 12px;
+}
+
+.workspace-list,
+.workspace-value,
+.waveform-canvas,
+.waveform-legend {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.workspace-list {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+}
+
+.workspace-list__item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border: 0;
+  background: #ffffff;
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.workspace-list__item:hover,
+.waveform-legend__item.is-active {
+  background: #eff6ff;
+}
+
+.workspace-list__shape,
+.workspace-value--empty,
+.waveform-empty {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.workspace-value,
+.waveform-canvas {
+  padding: 12px;
+}
+
+/* The REPL output pane WorkspaceTab still renders; the Monaco input that
+   shared this rule (.code-editor__fallback) went with workspace/CodeEditor. */
+.workspace-console {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 12px;
+  overflow: auto;
+}
+
+.workspace-console__empty {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.workspace-console__line {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.workspace-value__preview,
+.waveform-canvas__preview {
+  overflow: auto;
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+}
+
+.waveform-legend {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+}
+
+.waveform-legend__text {
+  display: inline-block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.waveform-legend__item {
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #f8fafc;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.waveform-measure {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 6px;
+}
+
+/* ── Signal Browser ─────────────────────────────────────────────────────── */
+
+.signal-browser {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  font-size: 13px;
+}
+
+.signal-browser__empty {
+  color: #64748b;
+  font-size: 12px;
+  padding: 8px 12px;
+  margin: 0;
+}
+
+.signal-browser__section {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure waveform plotting surface is always white (uPlot root + canvas host). */
+.axes-container .uplot,
+.axes-container .uplot-over,
+.axes-container .uplot-under {
+  background: #ffffff;
+}
+
+.signal-browser__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  color: inherit;
+  width: 100%;
+}
+
+.signal-browser__header:hover {
+  background: #f1f5f9;
+}
+
+.signal-browser__chevron {
+  font-size: 9px;
+  flex-shrink: 0;
+}
+
+.signal-browser__sim-id {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.signal-browser__count {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.signal-browser__signals {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.signal-browser__signal-item {
+  display: contents;
+}
+
+/* ── Signal Row ──────────────────────────────────────────────────────────── */
+
+.signal-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px 3px 20px;
+  cursor: grab;
+  user-select: none;
+}
+
+.signal-row:hover {
+  background: #eff6ff;
+}
+
+.signal-row__icon {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+  width: 14px;
+  text-align: center;
+}
+
+.signal-row__name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.signal-row__unit {
+  font-size: 11px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.signal-row__streaming {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: signal-pulse 1s ease-in-out infinite;
+}
+
+@keyframes signal-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* ── Signal Browser context menu ─────────────────────────────────────────── */
+
+.signal-browser__context-menu {
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  padding: 4px 0;
+  z-index: 9999;
+  min-width: 180px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.signal-browser__context-menu-empty {
+  display: block;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.signal-browser__context-menu-item {
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  border: 0;
+  background: transparent;
+  color: #e2e8f0;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.signal-browser__context-menu-item:hover {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+/* File actions live in .main-toolbar now (shell/MainToolbar.tsx), styled via
+ * the shared .gs-toolbar* rules below (SPICE Toolbar section). */
+
+.run-button {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.shell-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-button {
+  border: 1px solid #374151;
+  border-radius: 8px;
+  background: #1f2937;
+  color: #f9fafb;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.sim-settings-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 23, 42, 0.32);
+}
+
+.sim-settings-dialog,
+.sim-settings-panel {
+  width: min(520px, calc(100vw - 32px));
+}
+
+.sim-settings-panel {
+  display: grid;
+  gap: 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #111827;
+  padding: 16px;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.28);
+}
+
+.sim-settings-panel__header,
+.sim-settings-panel__actions,
+.sim-settings-panel__analysis {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sim-settings-panel__header {
+  justify-content: space-between;
+}
+
+.sim-settings-panel__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.sim-settings-panel__fields label {
+  display: grid;
+  gap: 6px;
+}
+
+.sim-settings-panel input {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.sim-settings-panel__hint {
+  margin: 0;
+  color: #475569;
+}
+
+/* FE-173/174/175: Symbol Editor tab — replaces the FE-172 NewSymbolDialog
+   modal with a real drawing canvas + inline metadata/ports panel, per
+   docs/specs/symbol-editor-spec.md's Form+Draw workflow (both steps
+   side-by-side in one tab rather than sequential screens). */
+.symbol-editor {
+  display: grid;
+  grid-template-columns: 1fr minmax(280px, 360px);
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+  padding: 12px;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+.symbol-editor__canvas-wrap {
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  background: #eef2f7;
+  border-radius: 10px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.symbol-editor__canvas {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  background: #ffffff;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2);
+  touch-action: none;
+}
+
+.symbol-editor__panel {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.symbol-editor__panel-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  min-width: 0;
+}
+
+.symbol-editor__panel-fields label,
+.symbol-editor__panel-description {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: #334155;
+  min-width: 0;
+}
+
+.symbol-editor input,
+.symbol-editor select,
+.symbol-editor textarea {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font: inherit;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.symbol-editor__ports {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.symbol-editor__port-row {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr) minmax(0, 1fr) minmax(60px, 80px) minmax(50px, 60px)
+    minmax(0, 1.2fr) minmax(50px, 70px) 24px;
+  gap: 4px;
+  align-items: center;
+}
+
+.symbol-editor__hint {
+  margin: 0;
+  color: #475569;
+  font-size: 12px;
+}
+
+.symbol-editor-toolbar__tools button.is-active {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+/* FE-176: port-placement confirmation form (Port tool click -> OK/Cancel,
+   not a silent addPort()) — shares .sim-settings-backdrop, own compact
+   panel since it's much smaller than the metadata dialog it replaced. */
+.port-create-form {
+  width: min(360px, calc(100vw - 32px));
+  display: grid;
+  gap: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #111827;
+  padding: 16px;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.28);
+}
+
+.port-create-form__fields {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.port-create-form__fields label {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: #334155;
+}
+
+.port-create-form input,
+.port-create-form select {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.port-create-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* FE-147: SimulationEditor (Settings dialog content) and its sub-editors —
+   previously had no CSS at all, so tabs/rows/fields rendered as bare
+   unstyled form controls stacked with no layout. */
+.simulation-editor {
+  display: grid;
+  gap: 14px;
+  max-height: calc(100vh - 160px);
+}
+
+.simulation-editor__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.simulation-editor__header h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.simulation-editor__header button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  color: #64748b;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.simulation-editor__header button:hover {
+  background: #f1f5f9;
+  color: #111827;
+}
+
+.simulation-editor__tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.simulation-editor__tabs button {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #64748b;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.simulation-editor__tabs button:hover {
+  color: #111827;
+}
+
+.simulation-editor__tabs button.active {
+  color: #1d4ed8;
+  border-bottom-color: #3b82f6;
+  font-weight: 600;
+}
+
+.simulation-editor__content {
+  overflow-y: auto;
+  min-height: 120px;
+}
+
+.simulation-editor__analyses {
+  display: grid;
+  gap: 12px;
+}
+
+.simulation-editor__analyses ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.simulation-editor__analyses > button {
+  justify-self: start;
+  border: 1px dashed #94a3b8;
+  border-radius: 8px;
+  background: transparent;
+  color: #475569;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.simulation-editor__analyses > button:hover {
+  background: #f1f5f9;
+}
+
+.simulation-editor__analyses label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.simulation-editor__analyses select {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 5px 8px;
+}
+
+.simulation-editor__footer {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 12px;
+}
+
+.simulation-editor__footer button {
+  border: 1px solid #1d4ed8;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.simulation-editor__footer button:hover {
+  background: #1d4ed8;
+}
+
+.analysis-row {
+  display: grid;
+  gap: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px;
+  background: #f8fafc;
+}
+
+.analysis-row__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.analysis-row__type {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.analysis-row__type legend {
+  color: #64748b;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0;
+}
+
+.analysis-row__type label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #111827;
+}
+
+.analysis-row__header > button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #94a3b8;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.analysis-row__header > button:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.analysis-row__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.analysis-row__field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.analysis-row__field label {
+  color: #64748b;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.analysis-row__field input,
+.analysis-row__field select {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.analysis-row__error {
+  color: #b91c1c;
+  font-size: 11px;
+}
+
+.solver-options-editor {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.solver-options-editor__field {
+  display: grid;
+  gap: 4px;
+}
+
+.solver-options-editor__field label {
+  color: #64748b;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.solver-options-editor__field input,
+.solver-options-editor__field select {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.ic-editor {
+  display: grid;
+  gap: 14px;
+}
+
+.ic-editor__list {
+  display: grid;
+  gap: 6px;
+}
+
+.ic-editor__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  background: #f8fafc;
+}
+
+.ic-editor__kind {
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+.ic-editor__row button {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #94a3b8;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.ic-editor__row button:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.ic-editor__add {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 12px;
+}
+
+.ic-editor__add label {
+  display: grid;
+  gap: 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.ic-editor__add input,
+.ic-editor__add select {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 13px;
+  text-transform: none;
+  letter-spacing: normal;
+  color: #111827;
+}
+
+.ic-editor__add button {
+  border: 1px solid #1d4ed8;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  padding: 7px 14px;
+  cursor: pointer;
+  height: fit-content;
+}
+
+.ic-editor__add button:hover {
+  background: #1d4ed8;
+}
+
+.run-button.is-busy {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.log-view {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  height: 100%;
+}
+
+.log-view__body {
+  overflow: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 12px;
+}
+
+.log-view__line--stderr {
+  color: #b91c1c;
+}
+
+.log-view__footer {
+  color: #64748b;
+  font-size: 12px;
+  padding-top: 8px;
+}
+
+.problems-view {
+  display: grid;
+  gap: 8px;
+}
+
+.problems-view__item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 10px 12px;
+}
+
+.severity-error {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.severity-warning {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.problems-view__empty {
+  color: #64748b;
+}
+
+.command-palette__backdrop {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: start center;
+  padding-top: 72px;
+  background: rgba(15, 23, 42, 0.18);
+}
+
+.command-palette,
+.startup-modal {
+  width: min(560px, calc(100vw - 32px));
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+}
+
+/* About / Keyboard Shortcuts dialogs (FE-132, FE-141) */
+.about-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 23, 42, 0.32);
+}
+
+.about-dialog {
+  width: min(420px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #111827;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.28);
+  overflow: hidden;
+}
+
+.about-dialog--shortcuts {
+  width: min(720px, calc(100vw - 32px));
+}
+
+.about-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.about-dialog__header button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  color: #64748b;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.about-dialog__header button:hover {
+  background: #f1f5f9;
+  color: #111827;
+}
+
+.about-dialog__body {
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.about-dialog__body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.about-dialog__body th,
+.about-dialog__body td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.about-dialog__body th {
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.about-dialog__body kbd {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.about-dialog__no-chord {
+  color: #94a3b8;
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* Wire Colors dialog — reuses .about-dialog's own header/backdrop, only the body differs. */
+.wire-colors-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 320px;
+}
+
+.wire-colors-dialog__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wire-colors-dialog__row-label {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.wire-colors-dialog__row-label label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.wire-colors-dialog__hint {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.wire-colors-dialog__row input[type="color"] {
+  width: 36px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.wire-colors-dialog__footer {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* FE-147: Params drawer (.PARAM editor) — same overlay pattern as
+   .about-dialog-backdrop/.sim-settings-backdrop. Previously had no CSS at
+   all, so it rendered as unpositioned inline content instead of a dialog. */
+.params-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 23, 42, 0.32);
+}
+
+.params-drawer {
+  width: min(640px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #111827;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.28);
+  overflow: hidden;
+}
+
+.params-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.params-drawer__header button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  color: #64748b;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.params-drawer__header button:hover {
+  background: #f1f5f9;
+  color: #111827;
+}
+
+.params-drawer__body {
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.param-table {
+  display: grid;
+  gap: 12px;
+}
+
+.param-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.param-table th,
+.param-table td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.param-table th {
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.param-table input,
+.param-row__pending-name {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 13px;
+  width: 100%;
+}
+
+.param-row__error {
+  display: block;
+  color: #b91c1c;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.param-table__add-btn {
+  justify-self: start;
+  border: 1px dashed #94a3b8;
+  border-radius: 8px;
+  background: transparent;
+  color: #475569;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.param-table__add-btn:hover {
+  background: #f1f5f9;
+}
+
+.param-expression-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  min-width: 0;
+}
+
+.param-expression-input input {
+  min-width: 0;
+  flex: 1;
+}
+
+.param-expression-input__resolved {
+  color: #64748b;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.command-palette__input {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 14px 16px;
+}
+
+.command-palette__results {
+  display: grid;
+  max-height: 360px;
+  overflow: auto;
+}
+
+.command-palette__item,
+.startup-modal__recent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  background: #ffffff;
+  padding: 12px 16px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.command-palette__item.is-selected {
+  background: #eff6ff;
+}
+
+.command-palette__label {
+  display: block;
+  font-weight: 600;
+}
+
+.command-palette__meta,
+.command-palette__chord,
+.command-palette__empty {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.command-palette__meta {
+  display: block;
+  margin-top: 2px;
+}
+
+.command-palette__empty {
+  padding: 16px;
+}
+
+.startup-modal__header,
+.startup-modal__actions {
+  padding: 14px 16px;
+}
+
+.startup-modal__header {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.startup-modal__actions {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.startup-modal__actions button {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+/* ── Shared toolbar row (SPICE component toolbar, and file/run toolbar) ──── */
+
+.gs-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 12px;
+  background: #0f172a;
+  border-bottom: 1px solid #1e293b;
+  height: 54px;
+  flex-shrink: 0;
+  overflow-x: auto;
+  /* FE-144: a completely hidden scrollbar gave no visual hint that the
+   * toolbar overflows at typical window widths — items past the fold
+   * just silently clipped with no affordance to reach them. A thin,
+   * always-reachable scrollbar plus wheel-to-horizontal-scroll (see
+   * ToolbarControls.tsx) fixes both discoverability and reachability. */
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+
+.gs-toolbar::-webkit-scrollbar {
+  height: 6px;
+}
+
+.gs-toolbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.gs-toolbar::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
+
+.gs-toolbar::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+.schematic-toolbar__workbench {
+  padding: 0;
+  border-bottom: 0;
+  background: transparent;
+  gap: 4px;
+  margin-right: 4px;
+}
+
+.schematic-toolbar__workbench button {
+  height: 30px;
+  padding: 3px 8px;
+}
+
+.gs-toolbar__sep {
+  width: 1px;
+  height: 32px;
+  background: #1e293b;
+  margin: 0 6px;
+  flex-shrink: 0;
+}
+
+/* ── Generic button ── */
+
+.gs-toolbar__btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: #94a3b8;
+  padding: 4px 9px;
+  min-width: 40px;
+  height: 44px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 80ms, color 80ms, border-color 80ms;
+}
+
+.gs-toolbar__btn:hover {
+  background: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+.gs-toolbar__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.gs-toolbar__btn.is-active {
+  background: #1d4ed8;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+.gs-toolbar__btn.is-active.is-danger {
+  background: #7f1d1d;
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+
+.gs-toolbar__btn-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+/* ── Simulation time display (shell/MainToolbar.tsx) ── */
+
+.main-toolbar__sim-time {
+  min-width: 68px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid #1e293b;
+  border-radius: 5px;
+  background: #020617;
+  color: #475569;
+  font-size: 12px;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.main-toolbar__sim-time:not(:disabled) {
+  cursor: pointer;
+}
+
+.main-toolbar__sim-time:not(:disabled):hover {
+  border-color: #3b82f6;
+}
+
+.main-toolbar__sim-time.is-running {
+  color: #34d399;
+  border-color: #064e3b;
+  background: #022c22;
+}
+
+/* ── Simulation status (spinner + progress) ── */
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.main-toolbar__sim-status {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 3px;
+  height: 40px;
+  padding: 4px 10px;
+  border: 1px solid #064e3b;
+  border-radius: 5px;
+  background: #022c22;
+  flex-shrink: 0;
+}
+
+.main-toolbar__sim-status-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.main-toolbar__spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #064e3b;
+  border-top-color: #34d399;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+/* FE-155: current / final simulated time, shown below the progress bar
+   instead of the old static "Starting simulation…" label. */
+.main-toolbar__sim-times {
+  color: #34d399;
+  font-size: 10px;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.main-toolbar__progress {
+  width: 60px;
+  height: 6px;
+  background: #064e3b;
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.main-toolbar__progress-fill {
+  height: 100%;
+  background: #34d399;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* ── Component preview buttons ── */
+
+.schematic-toolbar__component {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 44px;
+  border: 1px solid #1e293b;
+  border-radius: 5px;
+  background: #0b1222;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 3px;
+  transition: border-color 80ms, background 80ms;
+  overflow: hidden;
+}
+
+.schematic-toolbar__component:hover {
+  border-color: #3b82f6;
+  background: #0f2044;
+}
+
+/* White inset card that shows the schematic symbol */
+.schematic-toolbar__component-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 3px;
+}
+
+/* Scale the SVG symbol to fit the small preview card */
+.schematic-toolbar__component-preview .block-symbol {
+  transform: scale(0.47);
+  transform-origin: center;
+  flex-shrink: 0;
+}
+
+/* Fallback letter when catalog not loaded */
+.schematic-toolbar__component-fallback {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  color: #64748b;
+}

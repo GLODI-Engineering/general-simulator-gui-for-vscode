@@ -1,0 +1,15 @@
+name: physical_electrical.semiconductor.zener
+type: physical-electrical.semiconductor.zener
+label: Zener Diode
+version: 1
+category: semiconductor
+description: Zener diode with reverse-breakdown regulation.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [zener, zener_diode]
+tags: [physical, electrical, semiconductor]
+ports: {inputs: [{id: a, label: A, kind: {domain: physical-electrical}, side: left, offset: 20}], outputs: [{id: k, label: K, kind: {domain: physical-electrical}, side: right, offset: 20}]}
+params: [{name: model, label: Model, type: string, default: ZENER}, {name: V_z, label: Zener voltage, type: number, default: 5.1}, {name: I_z, label: Zener test current, type: number, default: 0.005}]
+fidelities: [{tier: ideal, doc: Ideal zener.}, {tier: behavioral, doc: Behavioral zener with smooth breakdown.}, {tier: spice, doc: SPICE zener model.}]
+symbol: {bbox: [60, 40], shape: rect, text: ZD}
+behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.semiconductor.zener}

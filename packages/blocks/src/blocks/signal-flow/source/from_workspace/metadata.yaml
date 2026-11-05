@@ -1,0 +1,17 @@
+name: signal_flow.source.from_workspace
+type: signal-flow.source.from_workspace
+label: From Workspace
+version: 1
+category: signal
+description: Reads a signal from the workspace.
+paradigm: signal-flow
+domain: signal
+aliases: [from workspace]
+tags: [signal-flow, source]
+ports: {inputs: [], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: [{name: variable_name, label: Variable, type: string, default: u}, {name: sample_time, label: Sample time, type: number, default: 0.0}, {name: interpolate, label: Interpolate, type: bool, default: true}]
+fidelities: [{tier: n_a, ports: [{id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: variable_name, type: string, default: u}, {id: sample_time, type: number, default: 0.0}, {id: interpolate, type: bool, default: true}], doc: Reads a signal from the workspace.}]
+symbol: {bbox: [80, 40], shape: rect, text: from}
+behavior: {causality: source, domain: signal, state_count: 0, equation_template: signal_flow.source.from_workspace}
+port_sigs:
+  out: "[1]"

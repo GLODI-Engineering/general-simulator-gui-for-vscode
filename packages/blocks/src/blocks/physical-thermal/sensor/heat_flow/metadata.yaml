@@ -1,0 +1,15 @@
+name: physical_thermal.sensor.heat_flow
+type: physical-thermal.sensor.heat_flow
+label: Heat Flow Sensor
+version: 1
+category: sensor
+description: Heat Flow Sensor.
+paradigm: physical-network
+domain: physical-thermal
+aliases: [heat_flow]
+tags: [physical, thermal]
+ports: {inputs: [{id: a, label: a, kind: {domain: physical-thermal}, side: left, offset: 20}], outputs: [{id: b, label: b, kind: {domain: physical-thermal}, side: right, offset: 20}]}
+params: []
+fidelities: [{tier: ideal, doc: Ideal Heat Flow Sensor.}]
+symbol: {bbox: [70, 40], shape: rect, text: HEAT_FLOW}
+behavior: {causality: acausal, domain: thermal, state_count: 0, equation_template: physical_thermal.sensor.heat_flow}

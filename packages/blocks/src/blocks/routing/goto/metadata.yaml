@@ -1,0 +1,38 @@
+name: routing.goto
+label: Goto
+version: 1
+description: Routes a signal by tag within local/scoped/global visibility.
+paradigm: routing
+domain: signal
+aliases: [goto, tag-route]
+tags: [routing, signal-flow, tag]
+params:
+  - name: tag
+    label: Tag
+    type: string
+    default: sig
+    description: Signal tag name for matching From blocks.
+  - name: visibility
+    label: Visibility
+    type: enum
+    default: local
+    choices: [local, scoped, global]
+    description: Tag visibility scope.
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 20
+  outputs: []
+fidelities:
+  - tier: n_a
+    ports:
+      - {id: in, kind: signal, direction: in, side: left, offset: 20}
+    params:
+      - {id: tag, type: string, default: sig, doc: Tag name}
+      - {id: visibility, type: enum, default: local, choices: [local, scoped, global], doc: Visibility scope}
+    doc: Goto endpoint for tag-routed signal.
+symbol: {bbox: [70, 40], shape: rect, text: Goto}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: routing.goto}

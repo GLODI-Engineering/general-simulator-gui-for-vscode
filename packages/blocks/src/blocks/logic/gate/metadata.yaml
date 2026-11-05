@@ -1,0 +1,54 @@
+name: logic.gate
+label: "Logic Gate"
+version: 1
+category: signal
+description: "Boolean gate (and/or/xor/nand/nor/xnor/not) over its input signals."
+
+aliases: [gate, and, or, xor, nand, nor, xnor, not, boolean]
+tags: [logic, signal, boolean, general-simulator]
+
+ports:
+  inputs:
+    - id: in0
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 15
+    - id: in1
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 29
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 22
+
+params:
+  - name: op
+    label: "Operation"
+    type: enum
+    choices: [and, or, xor, nand, nor, xnor, not]
+    default: and
+    description: "Boolean operation. `not` uses a single input."
+  - name: n_operands
+    label: "Operand count"
+    type: integer
+    default: 2
+    min: 2
+    description: "Number of inputs. Ignored when op is `not`."
+
+symbol:
+  bbox: [50, 44]
+  shape: rect
+  text: "{op}"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 0
+  equation_template: logic.gate
+
+main_param: op

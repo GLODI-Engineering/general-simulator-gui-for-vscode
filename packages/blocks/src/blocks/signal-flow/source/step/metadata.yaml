@@ -1,0 +1,17 @@
+name: signal_flow.source.step
+type: signal-flow.source.step
+label: Step
+version: 1
+category: signal
+description: Step signal source.
+paradigm: signal-flow
+domain: signal
+aliases: [step]
+tags: [signal-flow, source]
+ports: {inputs: [], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: [{name: before, label: Before, type: number, default: 0.0}, {name: after, label: After, type: number, default: 1.0}, {name: t_step, label: Step time, type: number, default: 1.0}]
+fidelities: [{tier: n_a, ports: [{id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: before, type: number, default: 0.0}, {id: after, type: number, default: 1.0}, {id: t_step, type: number, default: 1.0}], doc: Step signal source.}]
+symbol: {bbox: [60, 40], shape: rect, text: step}
+behavior: {causality: source, domain: signal, state_count: 0, equation_template: signal_flow.source.step}
+port_sigs:
+  out: "[1]"

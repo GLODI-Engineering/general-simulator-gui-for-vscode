@@ -1,0 +1,47 @@
+name: control.saturation
+label: Saturation
+version: 1
+category: control
+description: Clamp output to the interval `[lo, hi]`.
+
+aliases: [clamp, sat, limit, limiter]
+tags: [saturation, clamp, nonlinear, control]
+
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 20
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params:
+  - name: lo
+    label: Lower limit
+    type: number
+    default: -1.0
+    description: Inclusive lower bound on the output.
+  - name: hi
+    label: Upper limit
+    type: number
+    default: 1.0
+    description: Inclusive upper bound on the output.
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "sat"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 0
+  equation_template: control.saturation
+
+main_param: hi

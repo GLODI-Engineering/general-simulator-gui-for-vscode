@@ -1,0 +1,68 @@
+name: logic.flip_flop
+label: "Flip-Flop"
+version: 1
+category: signal
+description: "Edge-triggered flip-flop: D, T or JK, with an optional asynchronous reset."
+
+aliases: [flip flop, dff, jkff, tff, register]
+tags: [logic, signal, flip-flop, discrete, general-simulator]
+
+ports:
+  inputs:
+    - id: clk
+      label: "clk"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 19
+    - id: d
+      label: "d"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 38
+    - id: t
+      label: "t"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 57
+    - id: j
+      label: "j"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 75
+    - id: k
+      label: "k"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 94
+    - id: reset
+      label: "rst"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 113
+  outputs:
+    - id: q
+      label: "Q"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 66
+
+params:
+  - name: kind
+    label: "Kind"
+    type: enum
+    choices: [dff, jkff, tff]
+    default: dff
+    description: "Flip-flop variant; selects which data inputs are used."
+
+symbol:
+  bbox: [60, 132]
+  shape: rect
+  text: "{kind}"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 1
+  equation_template: logic.flip_flop
+
+main_param: kind

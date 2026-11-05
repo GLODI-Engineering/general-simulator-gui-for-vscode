@@ -1,0 +1,19 @@
+name: signal_flow.continuous.integrator
+type: signal-flow.continuous.integrator
+label: Integrator
+version: 1
+category: control
+description: Continuous-time integrator.
+paradigm: signal-flow
+domain: signal
+aliases: [integrator]
+tags: [signal-flow, continuous]
+ports: {inputs: [{id: in, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: [{name: ic, label: Initial condition, type: number, default: 0.0}, {name: lo, label: Lower limit, type: number, default: -1000000000.0}, {name: hi, label: Upper limit, type: number, default: 1000000000.0}]
+fidelities: [{tier: n_a, ports: [{id: in, kind: signal, direction: in, side: left, offset: 20}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: ic, type: number, default: 0.0}, {id: lo, type: number, default: -1000000000.0}, {id: hi, type: number, default: 1000000000.0}], doc: Continuous-time integrator.}]
+symbol: {bbox: [60, 40], shape: rect, text: 1/s}
+behavior: {causality: causal, domain: signal, state_count: 1, equation_template: signal_flow.continuous.integrator}
+main_param: ic
+port_sigs:
+  in: "inherit"
+  out: "from(in)"

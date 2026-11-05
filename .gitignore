@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+uv.lock
+
+# Node / pnpm
+node_modules/
+.pnpm-store/
+.vite/
+*.tsbuildinfo
+*.log
+
+# Rust / Tauri
+target/
+**/*.rs.bk
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Simulation output
+*.h5
+results/
+
+# Test artifacts
+playwright-report/
+test-results/
+
+# Misc
+working-tools/
+Misc/
+
+# Archon master-loop ephemeral render cache + per-epic state
+.archon/workflows/.runs/
+.archon/state/
+
+# Claude Code per-agent worktrees
+.claude/worktrees/
+
+# Private research notes — kept local only, not for the public repo.
+docs/audits/misc/
+
+# VS Code extension build output
+apps/vscode-extension/out/
+apps/vscode-extension/.vscode-test/
+apps/vscode-extension/media/frontend/
+*.vsix
+render-out/

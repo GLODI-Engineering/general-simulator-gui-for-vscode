@@ -1,0 +1,48 @@
+name: control.product
+label: "Product"
+version: 1
+category: control
+description: "Multiplies all of its input signals together."
+
+aliases: [product, multiply, mul]
+tags: [control, signal, arithmetic, general-simulator]
+
+ports:
+  inputs:
+    - id: in0
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 15
+    - id: in1
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 29
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 22
+
+params:
+  - name: n_inputs
+    label: "Input count"
+    type: integer
+    default: 2
+    min: 2
+    description: "Number of input signals (2-8)."
+
+symbol:
+  bbox: [50, 44]
+  shape: rect
+  text: "x"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 0
+  equation_template: control.product
+
+main_param: n_inputs

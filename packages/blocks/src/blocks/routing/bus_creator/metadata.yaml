@@ -1,0 +1,46 @@
+name: routing.bus_creator
+label: Bus Creator
+version: 1
+description: Combines named signal inputs into a signal-bus output.
+paradigm: routing
+domain: signal
+aliases: [bus creator, create bus, mux bus]
+tags: [routing, bus, signal-flow]
+params:
+  - name: elements
+    label: Elements
+    type: string
+    default: "a,b"
+    description: Comma-separated list of element names for the output bus.
+ports:
+  inputs:
+    - id: in0
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 10
+    - id: in1
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 30
+  outputs:
+    - id: bus
+      label: ""
+      kind: {domain: signal-bus, dims: scalar}
+      side: right
+      offset: 20
+fidelities:
+  - tier: n_a
+    ports:
+      - {id: in0, kind: signal, direction: in, side: left, offset: 10}
+      - {id: in1, kind: signal, direction: in, side: left, offset: 30}
+      - {id: bus, kind: signal-bus, direction: out, side: right, offset: 20}
+    params:
+      - {id: elements, type: string, default: "a,b", doc: Comma-separated element names.}
+    doc: Combines named signal inputs into a signal-bus.
+symbol: {bbox: [70, 60], shape: rect, text: Bus\nCreator}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: routing.bus_creator}
+port_sigs:
+  "in*": "inherit"
+  bus: "bus(elements)"

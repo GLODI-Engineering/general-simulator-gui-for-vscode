@@ -1,0 +1,60 @@
+name: power.pwm1
+label: "PWM Modulator"
+version: 1
+category: power
+description: "Fixed-carrier PWM modulator with complementary output and dead time."
+
+aliases: [pwm, pwm1, modulator]
+tags: [power, pwm, modulator, general-simulator]
+
+ports:
+  inputs:
+    - id: in
+      label: "duty"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 22
+  outputs:
+    - id: main
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 15
+    - id: comp
+      label: "comp"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 29
+
+params:
+  - name: freq
+    label: "Carrier frequency"
+    type: number
+    default: 10000.0
+    min: 0
+    description: "Carrier frequency in Hz."
+  - name: red
+    label: "Rising dead time"
+    type: number
+    default: 0.0
+    min: 0
+    description: "Rising-edge dead time in seconds."
+  - name: fed
+    label: "Falling dead time"
+    type: number
+    default: 0.0
+    min: 0
+    description: "Falling-edge dead time in seconds."
+
+symbol:
+  bbox: [60, 44]
+  shape: rect
+  text: "PWM"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 0
+  equation_template: power.pwm1
+
+main_param: freq

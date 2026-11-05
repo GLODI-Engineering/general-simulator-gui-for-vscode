@@ -1,0 +1,35 @@
+name: control.delay
+label: Delay
+version: 1
+category: control
+description: "One-simulation-step delay: reads its input's value from the previous step (general-simulator's own `prev:` reference)."
+
+aliases: [delay, unit delay, one-step delay, "z^-1", prev]
+tags: [delay, control, general-simulator]
+
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 20
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params: []
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "z⁻¹"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 1
+  equation_template: control.delay

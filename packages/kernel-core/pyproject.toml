@@ -1,0 +1,16 @@
+[project]
+name = "kernel-core"
+version = "0.1.0"
+description = "Shared IPC server, executor, namespace, and stream interception for sidecar and cloud kernels."
+requires-python = ">=3.11"
+dependencies = [
+    "websockets>=13.1",
+    "numpy>=1.26",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/kernel_core"]

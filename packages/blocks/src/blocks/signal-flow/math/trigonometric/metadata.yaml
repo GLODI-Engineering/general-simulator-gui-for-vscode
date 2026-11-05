@@ -1,0 +1,19 @@
+name: signal_flow.math.trigonometric
+type: signal-flow.math.trigonometric
+label: Trigonometric
+version: 1
+category: control
+description: Configurable trigonometric function block.
+paradigm: signal-flow
+domain: signal
+aliases: [trig, trigonometric]
+tags: [signal-flow, math]
+ports: {inputs: [{id: in, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: [{name: operator, label: Operator, type: enum, default: sin, choices: [sin, cos, tan, atan2]}]
+fidelities: [{tier: n_a, ports: [{id: in, kind: signal, direction: in, side: left, offset: 20}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: operator, type: enum, default: sin, choices: [sin, cos, tan, atan2]}], doc: Configurable trigonometric function block.}]
+symbol: {bbox: [80, 40], shape: rect, text: trig}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.math.trigonometric}
+main_param: operator
+port_sigs:
+  in: "inherit"
+  out: "from(in)"

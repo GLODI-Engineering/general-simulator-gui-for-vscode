@@ -1,0 +1,40 @@
+name: source.current.pwl
+label: "I (PWL)"
+version: 1
+category: sources
+description: Piecewise-linear current source. SPICE element I with PWL waveform.
+
+aliases: [IPWL, piecewise linear current source]
+tags: [source, electrical, current, pwl, transient]
+
+ports:
+  inputs:
+    - id: p
+      label: "+"
+      kind: { domain: electrical }
+      side: left
+      offset: 20
+  outputs:
+    - id: n
+      label: "-"
+      kind: { domain: electrical }
+      side: right
+      offset: 20
+
+params:
+  - name: points
+    label: PWL Points
+    type: string
+    default: "0 0 1u 1 2u 0"
+    description: Space-separated time-current pairs.
+
+symbol:
+  bbox: [60, 40]
+  shape: circle
+  text: "I (PWL)"
+
+behavior:
+  causality: source
+  domain: electrical
+  state_count: 0
+  equation_template: source.current.pwl

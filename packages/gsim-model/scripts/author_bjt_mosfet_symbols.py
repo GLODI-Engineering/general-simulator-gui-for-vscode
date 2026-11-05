@@ -1,0 +1,181 @@
+"""BE-74: author the real bjt_npn / mosfet_n catalog symbols with the GSF
+component-creator API (gsim_model.symbol + gsim_model.gsim_sym), replacing
+their current `shape: rect` placeholders with faithful multi-primitive
+drawings.
+
+Geometry is re-derived from the existing hand-coded JSX in
+apps/frontend/src/canvas/nodes/component-symbols.tsx (`bjtSymbol()` for
+"npn", `mosfetSymbol("n", withBulk=False, withBodyDiode=False)`) — the same
+draw.io-sourced coordinates cited in that file's own comments — so the
+metadata-driven render (once FE-170 lands) is a faithful reproduction of
+what SCHEMATIC_SYMBOLS already draws, not a fresh (and possibly divergent)
+redesign. FE-171 verifies structural parity against that source.
+
+The two "exit stub" lines on each part (C/E pins on the BJT, D/S pins on
+the MOSFET — the leads connecting the drawn body to the symbol's bounding
+box edge) are genuinely built via SymbolBuilder + Line.translate() from a
+single canonical vertical-stub primitive, rather than typed twice — the
+rest of each body is a direct primitive-for-primitive port of the existing
+JSX (hand-tuned draw.io art has no exact bilateral symmetry to exploit
+further: e.g. the BJT's collector/emitter legs are *visually* mirrored but
+off by a pixel, an artifact of the original hand-drawing, not something a
+transform should paper over).
+
+Re-running this script reproduces byte-identical metadata.yaml output
+(SymbolBuilder/ComponentDefinition construction is pure and
+deterministic; merge_into_catalog() writes via yaml.safe_dump with a
+fixed key order).
+"""
+
+from __future__ import annotations
+
+import pathlib
+
+from gsim_model.gsim_sym import merge_into_catalog
+from gsim_model.symbol import Circle, ComponentDefinition, Line, Polygon, SymbolBuilder
+
+BLOCKS_ROOT = (
+    pathlib.Path(__file__).resolve().parents[3]
+    / "packages"
+    / "blocks"
+    / "src"
+    / "blocks"
+)
+
+
+def _vertical_stub(x: float, y_from: float, y_to: float) -> Line:
+    """A vertical lead segment, built via translate() from a canonical unit
+    stub rather than typed with absolute coordinates twice."""
+    unit = Line(x1=0, y1=0, x2=0, y2=y_to - y_from)
+    return unit.translate(x, y_from)
+
+
+def build_bjt_npn() -> ComponentDefinition:
+    b = SymbolBuilder(bbox=(80, 80))
+    b.add(Line(x1=0, y1=41, x2=29, y2=41))  # base lead
+    b.add(Line(x1=29, y1=24, x2=29, y2=58, lw=2.1 * 1.2))  # base bar
+    b.add(Line(x1=29, y1=31, x2=46, y2=14))  # collector leg
+    b.add(_vertical_stub(46, 14, 0))  # C exit
+    b.add(Line(x1=29, y1=50, x2=46, y2=67))  # emitter leg
+    b.add(_vertical_stub(46, 67, 80))  # E exit
+    b.add(Polygon(pts=((44, 62), (37, 58), (37, 65)), filled=True))  # NPN arrow, outward
+    b.add(Circle(cx=40, cy=40, r=40, lw=2.1 * 0.8))
+    b.port("b", side="left", offset=41, kind="physical-electrical", direction="input", label="B")
+    b.port("c", side="top", offset=46, kind="physical-electrical", direction="output", label="C")
+    b.port("e", side="bottom", offset=46, kind="physical-electrical", direction="output", label="E")
+
+    return ComponentDefinition(
+        name="physical_electrical.semiconductor.bjt_npn",
+        type="physical-electrical.semiconductor.bjt_npn",
+        label="NPN BJT",
+        version=1,
+        category="semiconductor",
+        description="Physical electrical NPN BJT.",
+        paradigm="physical-network",
+        domain="physical-electrical",
+        symbol_builder=b,
+        aliases=["npn", "bjt"],
+        tags=["physical", "electrical", "semiconductor"],
+        params=[{"name": "model", "label": "Model", "type": "string", "default": "QNPN"}],
+        fidelities=[
+            {
+                "tier": "ideal",
+                "ports": [
+                    {"id": "b", "kind": "physical-electrical", "direction": "inout"},
+                    {"id": "c", "kind": "physical-electrical", "direction": "inout"},
+                    {"id": "e", "kind": "physical-electrical", "direction": "inout"},
+                ],
+                "params": [{"id": "model", "type": "string", "default": "QNPN"}],
+                "doc": "Ideal NPN BJT.",
+            },
+            {"tier": "behavioral", "doc": "Ebers-Moll NPN BJT."},
+            {"tier": "spice", "doc": "SPICE NPN BJT."},
+        ],
+        behavior={
+            "causality": "acausal",
+            "domain": "electrical",
+            "state_count": 0,
+            "equation_template": "physical_electrical.semiconductor.bjt_npn",
+        },
+    )
+
+
+def build_mosfet_n() -> ComponentDefinition:
+    b = SymbolBuilder(bbox=(80, 110))
+    b.add(Line(x1=0, y1=81, x2=17, y2=81))  # gate lead
+    b.add(Line(x1=17, y1=35, x2=17, y2=81, lw=2.1 * 1.2))  # gate insulator bar
+    b.add(Line(x1=26, y1=29, x2=26, y2=41))  # channel segment 1
+    b.add(Line(x1=26, y1=52, x2=26, y2=64))  # channel segment 2
+    b.add(Line(x1=26, y1=75, x2=26, y2=87))  # channel segment 3
+    b.add(Line(x1=26, y1=29, x2=69, y2=29))  # top bar
+    b.add(Line(x1=26, y1=87, x2=69, y2=87))  # bottom bar
+    b.add(_vertical_stub(51, 0, 29))  # D exit
+    b.add(_vertical_stub(51, 87, 110))  # S exit
+    b.add(Line(x1=26, y1=58, x2=51, y2=58))  # body connect
+    b.add(Line(x1=51, y1=58, x2=51, y2=87))  # S-body vertical
+    b.add(Line(x1=69, y1=29, x2=69, y2=41))  # right D stub (triApexY=41 for N)
+    b.add(Line(x1=69, y1=61, x2=69, y2=87))  # right S stub (triBaseY=61 for N)
+    b.add(Line(x1=69, y1=41, x2=57, y2=61))  # triangle left edge
+    b.add(Line(x1=69, y1=41, x2=80, y2=61))  # triangle right edge
+    b.add(Line(x1=57, y1=61, x2=80, y2=61))  # triangle base
+    b.add(Line(x1=60, y1=41, x2=77, y2=41))  # apex-level bar
+    b.add(Line(x1=26, y1=58, x2=37, y2=52))  # bulk arrow, upper wing (N: vertex x=26, wing x=37)
+    b.add(Line(x1=26, y1=58, x2=37, y2=64))  # bulk arrow, lower wing
+    b.add(Circle(cx=47, cy=55, r=51, lw=2.1 * 0.8))
+    b.port("g", side="left", offset=81, kind="physical-electrical", direction="input", label="G")
+    b.port("d", side="top", offset=51, kind="physical-electrical", direction="output", label="D")
+    b.port("s", side="bottom", offset=51, kind="physical-electrical", direction="output", label="S")
+
+    return ComponentDefinition(
+        name="physical_electrical.semiconductor.mosfet_n",
+        type="physical-electrical.semiconductor.mosfet_n",
+        label="NMOS",
+        version=1,
+        category="semiconductor",
+        description="Physical electrical N-channel MOSFET.",
+        paradigm="physical-network",
+        domain="physical-electrical",
+        symbol_builder=b,
+        aliases=["mosfet", "nmos", "mosfet_n"],
+        tags=["physical", "electrical", "semiconductor"],
+        params=[
+            {"name": "model", "label": "Model", "type": "string", "default": "NMOS"},
+            {"name": "W", "label": "Width", "type": "number", "default": 0.000001},
+            {"name": "L", "label": "Length", "type": "number", "default": 0.00000018},
+        ],
+        fidelities=[
+            {
+                "tier": "ideal",
+                "ports": [
+                    {"id": "g", "kind": "physical-electrical", "direction": "inout"},
+                    {"id": "d", "kind": "physical-electrical", "direction": "inout"},
+                    {"id": "s", "kind": "physical-electrical", "direction": "inout"},
+                ],
+                "params": [
+                    {"id": "model", "type": "string", "default": "NMOS"},
+                    {"id": "W", "type": "number", "default": 0.000001},
+                    {"id": "L", "type": "number", "default": 0.00000018},
+                ],
+                "doc": "Ideal N-channel MOSFET.",
+            },
+            {"tier": "behavioral", "doc": "Behavioral N-channel MOSFET."},
+            {"tier": "spice", "doc": "SPICE N-channel MOSFET."},
+        ],
+        behavior={
+            "causality": "acausal",
+            "domain": "electrical",
+            "state_count": 0,
+            "equation_template": "physical_electrical.semiconductor.mosfet_n",
+        },
+    )
+
+
+def main() -> None:
+    for build in (build_bjt_npn, build_mosfet_n):
+        component = build()
+        path = merge_into_catalog(component, BLOCKS_ROOT)
+        print(f"wrote {path.relative_to(BLOCKS_ROOT.parents[3])}")
+
+
+if __name__ == "__main__":
+    main()

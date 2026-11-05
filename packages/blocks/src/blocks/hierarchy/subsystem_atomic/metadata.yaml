@@ -1,0 +1,25 @@
+name: hierarchy.subsystem.atomic
+label: Subsystem
+version: 1
+category: subsystems
+description: "Atomic subsystem — a block whose body holds a nested Model (spec §11). Double-click to open; boundary ports are defined by hierarchy.inport / hierarchy.outport blocks inside the body."
+
+aliases: [subsystem, atomic subsystem]
+tags: [hierarchy, subsystem, atomic]
+
+ports:
+  inputs: []
+  outputs: []
+
+params: []
+
+symbol:
+  bbox: [80, 60]
+  shape: rect
+  text: "Sub"
+
+behavior:
+  causality: causal
+  domain: mixed
+  state_count: 0
+  equation_template: hierarchy.subsystem.atomic

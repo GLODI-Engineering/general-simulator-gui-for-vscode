@@ -1,0 +1,59 @@
+name: control.pid
+label: PID Controller
+version: 1
+category: control
+description: PID controller `u = Kp·e + Ki·∫e dt + Kd·de/dt`, with optional anti-windup.
+
+aliases: [pid, proportional-integral-derivative, controller]
+tags: [pid, controller, feedback, control]
+
+ports:
+  inputs:
+    - id: in
+      label: e
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 25
+  outputs:
+    - id: out
+      label: u
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 25
+
+params:
+  - name: kp
+    label: Kp
+    type: number
+    default: 1.0
+    description: Proportional gain.
+  - name: ki
+    label: Ki
+    type: number
+    default: 0.0
+    min: 0
+    description: Integral gain.
+  - name: kd
+    label: Kd
+    type: number
+    default: 0.0
+    min: 0
+    description: Derivative gain.
+  - name: anti_windup
+    label: Anti-windup
+    type: bool
+    default: true
+    description: Clamp integrator when output saturates.
+
+symbol:
+  bbox: [60, 50]
+  shape: rect
+  text: "PID"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 2
+  equation_template: control.pid
+
+main_param: kp

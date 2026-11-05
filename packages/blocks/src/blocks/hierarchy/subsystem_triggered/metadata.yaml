@@ -1,0 +1,41 @@
+name: hierarchy.subsystem.triggered
+label: Triggered Subsystem
+version: 1
+category: subsystems
+description: "Triggered subsystem — executes on the specified edge of the `trigger` port signal (spec §11). Renders an extra `trigger` boundary port and a `trigger_kind` selector in the inspector."
+
+aliases: [triggered subsystem]
+tags: [hierarchy, subsystem, triggered]
+
+ports:
+  inputs:
+    - id: trigger
+      label: Trigger
+      kind: { domain: signal, dims: { vector: 1 } }
+      side: top
+      offset: 40
+  outputs: []
+
+params:
+  - name: trigger_kind
+    label: Trigger edge
+    type: enum
+    default: "rising"
+    choices: ["rising", "falling", "either"]
+    description: "Which edge of the trigger signal activates execution."
+  - name: trigger_port_name
+    label: Trigger port name
+    type: string
+    default: "trigger"
+    description: Name of the trigger boundary port as seen from the parent.
+
+symbol:
+  bbox: [80, 60]
+  shape: rect
+  text: "Tr Sub"
+
+behavior:
+  causality: causal
+  domain: mixed
+  state_count: 0
+  equation_template: hierarchy.subsystem.triggered

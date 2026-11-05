@@ -1,0 +1,15 @@
+name: physical_thermal.element.conduction
+type: physical-thermal.element.conduction
+label: Thermal Conduction
+version: 1
+category: element
+description: Thermal Conduction.
+paradigm: physical-network
+domain: physical-thermal
+aliases: [conduction]
+tags: [physical, thermal]
+ports: {inputs: [{id: a, label: a, kind: {domain: physical-thermal}, side: left, offset: 20}], outputs: [{id: b, label: b, kind: {domain: physical-thermal}, side: right, offset: 20}]}
+params: []
+fidelities: [{tier: ideal, doc: Ideal Thermal Conduction.}]
+symbol: {bbox: [70, 40], shape: rect, text: CONDUCTION}
+behavior: {causality: acausal, domain: thermal, state_count: 0, equation_template: physical_thermal.element.conduction}

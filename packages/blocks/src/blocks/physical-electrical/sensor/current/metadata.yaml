@@ -1,0 +1,15 @@
+name: physical_electrical.sensor.current
+type: physical-electrical.sensor.current
+label: Current Sensor
+version: 1
+category: sensor
+description: Current Sensor.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [current]
+tags: [physical, electrical]
+ports: {inputs: [{id: p, label: "+", kind: {domain: physical-electrical}, side: left, offset: 20}], outputs: [{id: n, label: "-", kind: {domain: physical-electrical}, side: right, offset: 20}]}
+params: []
+fidelities: [{tier: ideal, doc: Ideal Current Sensor.}]
+symbol: {bbox: [60, 40], shape: rect, text: CURRENT}
+behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.sensor.current}

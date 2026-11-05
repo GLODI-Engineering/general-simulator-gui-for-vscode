@@ -1,0 +1,76 @@
+name: passive.switch.ideal
+label: "Ideal Switch"
+version: 1
+category: passive
+description: "Block-gated ideal switch: on/off conductance with a threshold and breakdown branch."
+
+aliases: [ideal switch, sw, gated switch, passive.switch.voltage]
+tags: [passive, electrical, switch, ideal, general-simulator]
+
+ports:
+  inputs:
+    - id: d
+      label: "D"
+      kind: { domain: electrical }
+      side: top
+      offset: 51
+    - id: g
+      label: "gate"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 81
+  outputs:
+    - id: s
+      label: "S"
+      kind: { domain: electrical }
+      side: bottom
+      offset: 51
+
+params:
+  - name: r_on
+    label: "On resistance"
+    type: number
+    default: 0.1
+    min: 0
+    description: "Series on-state resistance in ohms."
+  - name: g_on
+    label: "On conductance"
+    type: number
+    default: 5.0
+    min: 0
+    description: "On-state conductance in siemens."
+  - name: g_off
+    label: "Off conductance"
+    type: number
+    default: 1e-09
+    min: 0
+    description: "Off-state leakage conductance in siemens."
+  - name: v_th
+    label: "Threshold voltage"
+    type: number
+    default: 0.6
+    description: "Forward threshold voltage in volts."
+  - name: v_breakdown
+    label: "Breakdown voltage"
+    type: number
+    default: -100.0
+    description: "Reverse breakdown voltage in volts."
+  - name: g_breakdown
+    label: "Breakdown conductance"
+    type: number
+    default: 0.0
+    min: 0
+    description: "Conductance past reverse breakdown, in siemens."
+
+symbol:
+  bbox: [80, 110]
+  shape: rect
+  text: "SW"
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: passive.switch.ideal
+
+main_param: r_on

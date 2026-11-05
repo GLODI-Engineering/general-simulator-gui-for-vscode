@@ -1,0 +1,18 @@
+name: signal_flow.discontinuity.dead_zone
+type: signal-flow.discontinuity.dead_zone
+label: Dead Zone
+version: 1
+category: control
+description: Dead-zone nonlinearity.
+paradigm: signal-flow
+domain: signal
+aliases: [dead zone]
+tags: [signal-flow, discontinuity]
+ports: {inputs: [{id: in, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: [{name: lo, label: Lower limit, type: number, default: -0.1}, {name: hi, label: Upper limit, type: number, default: 0.1}]
+fidelities: [{tier: n_a, ports: [{id: in, kind: signal, direction: in, side: left, offset: 20}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: lo, type: number, default: -0.1}, {id: hi, type: number, default: 0.1}], doc: Dead-zone nonlinearity.}]
+symbol: {bbox: [80, 40], shape: rect, text: dead}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.discontinuity.dead_zone}
+port_sigs:
+  in: "inherit"
+  out: "from(in)"

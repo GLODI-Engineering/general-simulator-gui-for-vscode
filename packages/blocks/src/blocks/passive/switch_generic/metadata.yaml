@@ -1,0 +1,40 @@
+name: passive.switch.generic
+label: Generic Switch (Xyce)
+version: 1
+category: passive
+description: Expression-controlled generic switch. Xyce only.
+
+aliases: [GSW, generic switch, expression switch]
+tags: [passive, electrical, switch, generic, xyce-only]
+
+ports:
+  inputs:
+    - id: p
+      label: "+"
+      kind: { domain: electrical }
+      side: left
+      offset: 20
+  outputs:
+    - id: n
+      label: "-"
+      kind: { domain: electrical }
+      side: right
+      offset: 20
+
+params:
+  - name: model
+    label: Model
+    type: string
+    default: ""
+    description: Xyce switch model name.
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: GSW
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: passive.switch.generic

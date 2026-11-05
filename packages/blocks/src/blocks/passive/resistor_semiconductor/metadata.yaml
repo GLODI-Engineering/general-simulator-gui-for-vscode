@@ -1,0 +1,55 @@
+name: passive.resistor.semiconductor
+label: Semiconductor Resistor
+version: 1
+category: passive
+description: Semiconductor resistor with W/L scaling (sheet-resistance model).
+
+aliases: [R semiconductor, diffusion resistor]
+tags: [passive, electrical, resistor, semiconductor]
+
+ports:
+  inputs:
+    - id: p
+      label: "+"
+      kind: { domain: electrical }
+      side: left
+      offset: 20
+  outputs:
+    - id: n
+      label: "-"
+      kind: { domain: electrical }
+      side: right
+      offset: 20
+
+params:
+  - name: R
+    label: Resistance
+    type: number
+    default: 1000.0
+    description: Resistance in ohms.
+  - name: W
+    label: Width
+    type: number
+    default: 1.0e-6
+    description: Resistor width in meters.
+  - name: L
+    label: Length
+    type: number
+    default: 1.0e-6
+    description: Resistor length in meters.
+  - name: model
+    label: Model
+    type: string
+    default: ""
+    description: SPICE model name.
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: R (semi)
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: passive.resistor.semiconductor

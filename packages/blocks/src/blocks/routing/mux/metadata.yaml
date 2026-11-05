@@ -1,0 +1,46 @@
+name: routing.mux
+label: Mux
+version: 1
+description: Concatenates multiple signal vectors into a single output vector.
+paradigm: routing
+domain: signal
+aliases: [mux, multiplexer, vector concatenate]
+tags: [routing, vector, signal-flow]
+params:
+  - name: n_inputs
+    label: Number of inputs
+    type: integer
+    default: 2
+    description: Number of input ports (in0..in{n_inputs-1}).
+ports:
+  inputs:
+    - id: in0
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 10
+    - id: in1
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 30
+  outputs:
+    - id: out
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: right
+      offset: 20
+fidelities:
+  - tier: n_a
+    ports:
+      - {id: in0, kind: signal, direction: in, side: left, offset: 10}
+      - {id: in1, kind: signal, direction: in, side: left, offset: 30}
+      - {id: out, kind: signal, direction: out, side: right, offset: 20}
+    params:
+      - {id: n_inputs, type: integer, default: 2, doc: Number of input ports.}
+    doc: Concatenates N input vectors into a single output vector.
+symbol: {bbox: [60, 60], shape: rect, text: Mux}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: routing.mux}
+port_sigs:
+  "in*": "inherit"
+  out: "sum(in*)"

@@ -1,0 +1,53 @@
+name: control.counter
+label: "Counter"
+version: 1
+category: control
+description: "Edge-triggered up/down counter with an optional modulus and reset."
+
+aliases: [counter, cnt]
+tags: [control, logic, counter, discrete, general-simulator]
+
+ports:
+  inputs:
+    - id: clk
+      label: "clk"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 16
+    - id: up_down
+      label: "u/d"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 33
+    - id: reset
+      label: "rst"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 50
+  outputs:
+    - id: count
+      label: "count"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 33
+
+params:
+  - name: modulus
+    label: "Modulus"
+    type: integer
+    default: 0
+    min: 0
+    description: "Wrap-around modulus. 0 means an unbounded counter."
+
+symbol:
+  bbox: [60, 66]
+  shape: rect
+  text: "CNT"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 1
+  equation_template: control.counter
+
+main_param: modulus

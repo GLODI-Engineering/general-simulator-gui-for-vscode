@@ -1,0 +1,37 @@
+name: signal.constant
+label: Constant
+version: 1
+category: signal
+description: Outputs a constant value.
+
+aliases: [const, K, dc]
+tags: [source, constant, signal]
+
+ports:
+  inputs: []
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params:
+  - name: value
+    label: Value
+    type: number
+    default: 1.0
+    description: The constant output value.
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "{value}"
+
+behavior:
+  causality: source
+  domain: signal
+  state_count: 0
+  equation_template: signal.constant
+
+main_param: value

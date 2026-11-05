@@ -1,0 +1,45 @@
+name: passive.capacitor.behavioral
+label: Capacitor (expr)
+version: 1
+category: passive
+description: Behavioral capacitor with expression-defined capacitance.
+
+aliases: [C behavioral, expression capacitor]
+tags: [passive, electrical, capacitor, behavioral]
+
+ports:
+  inputs:
+    - id: p
+      label: "+"
+      kind: { domain: electrical }
+      side: left
+      offset: 20
+  outputs:
+    - id: n
+      label: "-"
+      kind: { domain: electrical }
+      side: right
+      offset: 20
+
+params:
+  - name: C
+    label: Capacitance
+    type: number
+    default: 1.0e-6
+    description: Capacitance in farads.
+  - name: expr
+    label: Expression
+    type: string
+    default: ""
+    description: Expression defining capacitance value.
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: C (expr)
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 1
+  equation_template: passive.capacitor.behavioral

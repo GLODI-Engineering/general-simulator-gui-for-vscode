@@ -1,0 +1,139 @@
+[project]
+name = "general-simulator"
+version = "0.1.0"
+description = "Multi-level power electronics and control simulator — system level to physical SPICE level."
+requires-python = ">=3.11"
+
+[tool.uv.workspace]
+members = [
+    "apps/kernel-sidecar",
+    "packages/kernel-core",
+    "packages/schemas",
+    "packages/simulator",
+    "packages/gsim-model",
+    "packages/components",
+    "packages/blocks",
+    "packages/synthesis",
+    "packages/engine-xyce",
+]
+
+[tool.uv.sources]
+kernel-core = { workspace = true }
+schemas = { workspace = true }
+simulator = { workspace = true }
+gsim-model = { workspace = true }
+components = { workspace = true }
+blocks = { workspace = true }
+synthesis = { workspace = true }
+engine-xyce = { workspace = true }
+# Sibling repo, read-only path dependency — same convention general-simulator's own
+# Cargo.toml already uses for *its* sibling repos (general-mna, spice-lsp). Pure Python,
+# no compiled extension, so a plain path source is safe here. gsim_py (the compiled
+# PyO3 extension gsim-tools wraps) is deliberately *not* declared as a dependency here —
+# it is platform/interpreter-specific and must be built locally; see
+# packages/simulator/src/simulator/solvers/general_simulator_solver.py's own module doc
+# comment for the one-time build step.
+gsim-tools = { path = "../gsim-tools" }
+
+[dependency-groups]
+dev = [
+    "ruff>=0.7.4",
+    "mypy>=1.13",
+    "pre-commit>=4.0",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pyfakefs>=5.7",
+    "aiohttp>=3.10",
+]
+
+# ---------------------------------------------------------------------------
+# Ruff — linter + formatter for all Python in the workspace.
+# ---------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["apps/*/src", "packages/*/src"]
+extend-exclude = [
+    "packages/schemas/generated",
+    "**/build",
+    "**/dist",
+]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",   # pycodestyle + pyflakes
+    "I",             # isort
+    "B",             # flake8-bugbear
+    "UP",            # pyupgrade
+    "N",             # pep8-naming
+    "SIM",           # flake8-simplify
+    "RUF",           # ruff-specific
+]
+ignore = [
+    "E501",          # line length — formatter handles it
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]   # re-exports
+
+# Test files use PascalCase for imported class references and have intentional unused vars.
+"tests/**/*.py" = ["N802", "N803", "N806", "UP038", "SIM105", "SIM222", "F841", "B904"]
+"**/tests/*.py" = ["N802", "N803", "N806", "UP038", "SIM105", "SIM222", "F841", "B904"]
+"packages/**/tests/**/*.py" = ["N802", "N803", "N806", "UP038", "SIM105", "SIM222", "F841", "B904"]
+
+# Block equation templates intentionally use conventional electrical notation (V_GS, I_D, etc.).
+"packages/blocks/src/blocks/**/*_ideal.py" = ["N806"]
+"packages/blocks/src/blocks/**/*_behavioral.py" = ["N806"]
+"packages/blocks/src/blocks/**/*_spice.py" = ["N806"]
+
+# generate_reference.py patches sys.path before imports.
+"tests/backend/fixtures/generate_reference.py" = ["E402"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+# ---------------------------------------------------------------------------
+# Mypy — type checking. Strict-ish but not blocking on day one.
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+files = ["apps/kernel-sidecar/src", "packages/*/src"]
+exclude = [
+    "build/",
+    "dist/",
+    "\\.venv/",
+    "packages/schemas/generated/",
+    # Tiered equation templates live under hyphenated directories and are dynamically imported by path,
+    # not as Python packages. Exclude them to avoid mypy module name collisions.
+    "packages/blocks/src/blocks/physical-",
+    "packages/blocks/src/blocks/signal-flow/",
+]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
+# Third-party libs without stubs — silence the noise rather than chase shims.
+[[tool.mypy.overrides]]
+module = ["h5py.*", "scipy.*", "matplotlib.*", "sympy.*", "networkx.*", "yaml", "yaml.*", "pandas", "pandas.*"]
+ignore_missing_imports = true
+
+# ---------------------------------------------------------------------------
+# Pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests", "apps", "packages"]
+addopts = ["-ra", "--strict-markers"]
+asyncio_mode = "auto"
+markers = [
+    "integration: requires external simulator binaries (ngspice, Xyce) on the host",
+]

@@ -1,0 +1,55 @@
+name: tline.linear_device
+label: "S-Param Device (Xyce)"
+version: 1
+category: tline
+description: "Linear device defined by S/Y/Z-parameter Touchstone file. Xyce only."
+
+aliases: [linear device, S-parameter, Touchstone]
+tags: [tline, electrical, s-parameter, touchstone, xyce-only]
+
+ports:
+  inputs:
+    - id: a1
+      label: "A1"
+      kind: { domain: electrical }
+      side: left
+      offset: 10
+    - id: b1
+      label: "B1"
+      kind: { domain: electrical }
+      side: left
+      offset: 30
+  outputs:
+    - id: a2
+      label: "A2"
+      kind: { domain: electrical }
+      side: right
+      offset: 10
+    - id: b2
+      label: "B2"
+      kind: { domain: electrical }
+      side: right
+      offset: 30
+
+params:
+  - name: file
+    label: file
+    type: string
+    default: ""
+    description: "Path to Touchstone S-parameter file"
+  - name: ports
+    label: ports
+    type: integer
+    default: 2
+    description: "Number of ports"
+
+symbol:
+  bbox: [80, 60]
+  shape: rect
+  text: LINEAR
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: tline.linear_device

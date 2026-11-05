@@ -1,0 +1,27 @@
+name: physical_rotational.reference.world
+type: physical-rotational.reference.world
+label: World (Rotational Reference)
+version: 1
+category: power
+description: Rotational mechanical world reference (pins angular velocity to zero).
+paradigm: physical-network
+domain: physical-rotational
+aliases: [world, ground]
+tags: [physical, rotational, reference]
+ports:
+  inputs:
+    - {id: p, label: p, kind: {domain: physical-rotational}, side: left, offset: 20}
+  outputs: []
+params: []
+fidelities:
+  - tier: ideal
+    ports:
+      - {id: p, kind: physical-rotational, direction: inout}
+    params: []
+    doc: Rotational world reference — pins angular velocity to zero.
+symbol: {bbox: [40, 40], shape: rect, text: GND}
+behavior:
+  causality: reference
+  domain: mechanical
+  state_count: 0
+  equation_template: physical_rotational.reference.world

@@ -1,0 +1,65 @@
+name: source.voltage.sin
+label: "V (SIN)"
+version: 1
+category: sources
+description: Sinusoidal voltage source. SPICE element V with SIN waveform.
+
+aliases: [VSIN, sinusoidal voltage source]
+tags: [source, electrical, voltage, sine, ac, transient]
+
+ports:
+  inputs:
+    - id: p
+      label: "+"
+      kind: { domain: electrical }
+      side: left
+      offset: 20
+  outputs:
+    - id: n
+      label: "-"
+      kind: { domain: electrical }
+      side: right
+      offset: 20
+
+params:
+  - name: VO
+    label: Offset Voltage
+    type: number
+    default: 0.0
+    description: offset
+  - name: VA
+    label: Amplitude
+    type: number
+    default: 1.0
+    description: amplitude
+  - name: FREQ
+    label: Frequency
+    type: number
+    default: 1000.0
+    description: frequency Hz
+  - name: TD
+    label: Delay Time
+    type: number
+    default: 0.0
+    description: delay
+  - name: THETA
+    label: Damping Factor
+    type: number
+    default: 0.0
+    description: damping
+  - name: PHASE
+    label: Phase
+    type: number
+    default: 0.0
+    description: phase in degrees
+
+symbol:
+  bbox: [60, 40]
+  shape: circle
+  text: "V (SIN)"
+
+behavior:
+  causality: source
+  domain: electrical
+  state_count: 0
+  equation_template: source.voltage.sin

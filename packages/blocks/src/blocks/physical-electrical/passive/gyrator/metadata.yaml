@@ -1,0 +1,15 @@
+name: physical_electrical.passive.gyrator
+type: physical-electrical.passive.gyrator
+label: Gyrator
+version: 1
+category: passive
+description: Gyrator — two-port element converting voltage to current.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [gyrator]
+tags: [physical, electrical, passive]
+ports: {inputs: [{id: p1, label: "+1", kind: {domain: physical-electrical}, side: left, offset: 10}, {id: n1, label: "-1", kind: {domain: physical-electrical}, side: left, offset: 30}], outputs: [{id: p2, label: "+2", kind: {domain: physical-electrical}, side: right, offset: 10}, {id: n2, label: "-2", kind: {domain: physical-electrical}, side: right, offset: 30}]}
+params: [{name: g, label: Gyration conductance, type: number, default: 1.0}]
+fidelities: [{tier: ideal, doc: Ideal gyrator.}, {tier: behavioral, doc: Behavioral gyrator with parasitic conductance.}, {tier: spice, doc: SPICE gyrator.}]
+symbol: {bbox: [80, 60], shape: rect, text: GY}
+behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.passive.gyrator}

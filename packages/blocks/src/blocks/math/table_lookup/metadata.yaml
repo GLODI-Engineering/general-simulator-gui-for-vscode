@@ -1,0 +1,42 @@
+name: math.table_lookup
+label: "Table Lookup"
+version: 1
+category: signal
+description: "Piecewise-linear lookup table over a list of [x, y] breakpoints."
+
+aliases: [table, lookup, lut, breakpoints]
+tags: [math, signal, lookup, general-simulator]
+
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 20
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params:
+  - name: points
+    label: "Breakpoints"
+    type: matrix
+    default: [[0.0, 0.0], [1.0, 1.0]]
+    description: "Non-empty list of [x, y] breakpoints; sorted by x at load."
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "LUT"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 0
+  equation_template: math.table_lookup
+
+main_param: points

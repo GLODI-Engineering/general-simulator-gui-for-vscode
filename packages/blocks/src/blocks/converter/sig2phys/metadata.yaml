@@ -1,0 +1,44 @@
+name: converter.sig2phys
+label: "Signal to Physical"
+version: 1
+category: power
+description: "Drives a physical-electrical node from a signal, as a voltage or a current."
+paradigm: converter
+
+aliases: [sig2phys, s2p, signal to physical]
+tags: [converter, signal, electrical, general-simulator]
+
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 20
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: electrical }
+      side: right
+      offset: 20
+
+params:
+  - name: domain
+    label: "Domain"
+    type: enum
+    choices: [voltage, current]
+    default: voltage
+    description: "Whether the signal drives a voltage or a current."
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "S2P"
+
+behavior:
+  causality: causal
+  domain: mixed
+  state_count: 0
+  equation_template: converter.sig2phys
+
+main_param: domain

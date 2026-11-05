@@ -1,0 +1,19 @@
+name: signal_flow.logic.or
+type: signal-flow.logic.or
+label: OR
+version: 1
+category: control
+description: Logical OR block.
+paradigm: signal-flow
+domain: signal
+aliases: [or]
+tags: [signal-flow, logic]
+ports: {inputs: [{id: in0, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 14}, {id: in1, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 26}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: []
+fidelities: [{tier: n_a, ports: [{id: in0, kind: signal, direction: in, side: left, offset: 14}, {id: in1, kind: signal, direction: in, side: left, offset: 26}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [], doc: Logical OR block.}]
+symbol: {bbox: [60, 40], shape: rect, text: OR}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.logic.or}
+port_sigs:
+  in0: "inherit"
+  in1: "inherit"
+  out: "[1]"

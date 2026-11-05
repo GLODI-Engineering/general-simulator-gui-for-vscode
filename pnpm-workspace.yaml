@@ -1,0 +1,6 @@
+packages:
+  - "apps/frontend"
+  - "apps/vscode-extension"
+  - "packages/schemas"
+  - "tests/schemas"
+  - "tests/blocks"

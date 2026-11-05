@@ -1,0 +1,49 @@
+name: source.dependent.vccs
+label: VCCS
+version: 1
+category: dependent
+description: Voltage-controlled current source. SPICE element G.
+
+aliases: [G, vccs, voltage-controlled current source]
+tags: [source, electrical, dependent, vccs]
+
+ports:
+  inputs:
+    - id: cp
+      label: "C+"
+      kind: { domain: electrical }
+      side: left
+      offset: 1
+    - id: cn
+      label: "C-"
+      kind: { domain: electrical }
+      side: left
+      offset: 43
+  outputs:
+    - id: p
+      label: "+"
+      kind: { domain: electrical }
+      side: right
+      offset: 1
+    - id: n
+      label: "-"
+      kind: { domain: electrical }
+      side: right
+      offset: 43
+params:
+  - name: gain
+    label: Gain
+    type: number
+    default: 0.001
+    description: Transconductance in siemens.
+
+symbol:
+  bbox: [120, 44]
+  shape: rect
+  text: G
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: source.dependent.vccs

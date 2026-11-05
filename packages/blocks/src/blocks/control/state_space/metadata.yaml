@@ -1,0 +1,55 @@
+name: control.state_space
+label: "State Space"
+version: 1
+category: control
+description: "Continuous-time linear state-space block dx/dt = Ax + Bu, y = Cx + Du."
+
+aliases: [state space, ss, abcd]
+tags: [control, signal, linear, state-space, general-simulator]
+
+ports:
+  inputs:
+    - id: in0
+      label: "u"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 20
+  outputs:
+    - id: out0
+      label: "y"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params:
+  - name: a
+    label: "A"
+    type: matrix
+    default: [[0.0]]
+    description: "State matrix A."
+  - name: b
+    label: "B"
+    type: matrix
+    default: [[1.0]]
+    description: "Input matrix B; its column count sets the input-port count."
+  - name: c
+    label: "C"
+    type: matrix
+    default: [[1.0]]
+    description: "Output matrix C; its row count sets the output-port count."
+  - name: d
+    label: "D"
+    type: matrix
+    default: [[0.0]]
+    description: "Feedthrough matrix D."
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "SS"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: dynamic
+  equation_template: control.state_space

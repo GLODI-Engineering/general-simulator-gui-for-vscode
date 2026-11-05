@@ -1,0 +1,46 @@
+name: routing.demux
+label: Demux
+version: 1
+description: Splits a signal vector into multiple output sub-vectors.
+paradigm: routing
+domain: signal
+aliases: [demux, demultiplexer, vector split]
+tags: [routing, vector, signal-flow]
+params:
+  - name: outputs
+    label: Output dimensions
+    type: vector
+    default: [1, 1]
+    description: List of output port widths; must sum to input dim.
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 20
+  outputs:
+    - id: out0
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: right
+      offset: 10
+    - id: out1
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: right
+      offset: 30
+fidelities:
+  - tier: n_a
+    ports:
+      - {id: in, kind: signal, direction: in, side: left, offset: 20}
+      - {id: out0, kind: signal, direction: out, side: right, offset: 10}
+      - {id: out1, kind: signal, direction: out, side: right, offset: 30}
+    params:
+      - {id: outputs, type: vector, default: [1, 1], doc: Output port widths.}
+    doc: Splits input vector into sub-vectors according to outputs list.
+symbol: {bbox: [60, 60], shape: rect, text: Demux}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: routing.demux}
+port_sigs:
+  in: "inherit"
+  "out*": "partition(in, outputs)"

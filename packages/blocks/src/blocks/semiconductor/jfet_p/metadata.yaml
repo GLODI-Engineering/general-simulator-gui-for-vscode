@@ -1,0 +1,49 @@
+name: semi.jfet.p
+label: P-JFET
+version: 1
+category: semiconductor
+description: "P-channel junction field-effect transistor (Level 1)."
+
+aliases: [J, pjfet, jfet p, JFET-P]
+tags: [semiconductor, electrical, jfet, p-channel, transistor]
+
+ports:
+  inputs:
+    - id: g
+      label: Gate
+      kind: { domain: electrical }
+      side: left
+      offset: 42
+  outputs:
+    - id: d
+      label: Drain
+      kind: { domain: electrical }
+      side: top
+      offset: 43
+    - id: s
+      label: Source
+      kind: { domain: electrical }
+      side: bottom
+      offset: 43
+params:
+  - name: model
+    label: Model
+    type: string
+    default: ""
+    description: SPICE model name.
+  - name: area
+    label: Area
+    type: number
+    default: 1.0
+    description: Area multiplier.
+
+symbol:
+  bbox: [80, 80]
+  shape: rect
+  text: JFET-P
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: semi.jfet.p

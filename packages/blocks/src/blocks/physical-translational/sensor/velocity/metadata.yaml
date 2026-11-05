@@ -1,0 +1,15 @@
+name: physical_translational.sensor.velocity
+type: physical-translational.sensor.velocity
+label: Velocity Sensor
+version: 1
+category: sensor
+description: Translational velocity sensor.
+paradigm: physical-network
+domain: physical-translational
+aliases: [velocity_sensor]
+tags: [physical, translational, sensor]
+ports: {inputs: [{id: p, label: p, kind: {domain: physical-translational}, side: left, offset: 20}, {id: n, label: n, kind: {domain: physical-translational}, side: right, offset: 20}], outputs: [{id: out, label: v, kind: {domain: physical-signal}, side: top, offset: 20}]}
+params: []
+fidelities: [{tier: ideal, doc: Ideal velocity sensor.}, {tier: behavioral, doc: Behavioral velocity sensor.}]
+symbol: {bbox: [70, 40], shape: rect, text: VS}
+behavior: {causality: acausal, domain: mechanical, state_count: 0, equation_template: physical_translational.sensor.velocity}

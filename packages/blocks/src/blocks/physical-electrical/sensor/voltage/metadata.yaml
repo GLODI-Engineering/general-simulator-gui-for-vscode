@@ -1,0 +1,15 @@
+name: physical_electrical.sensor.voltage
+type: physical-electrical.sensor.voltage
+label: Voltage Sensor
+version: 1
+category: sensor
+description: Voltage Sensor.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [voltage]
+tags: [physical, electrical]
+ports: {inputs: [{id: p, label: "+", kind: {domain: physical-electrical}, side: left, offset: 20}], outputs: [{id: n, label: "-", kind: {domain: physical-electrical}, side: right, offset: 20}]}
+params: []
+fidelities: [{tier: ideal, doc: Ideal Voltage Sensor.}]
+symbol: {bbox: [60, 40], shape: rect, text: VOLTAGE}
+behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.sensor.voltage}

@@ -1,0 +1,15 @@
+name: physical_electrical.tline.lossy
+type: physical-electrical.tline.lossy
+label: Lossy Transmission Line
+version: 1
+category: tline
+description: Lossy Transmission Line.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [lossy]
+tags: [physical, electrical]
+ports: {inputs: [{id: p, label: "+", kind: {domain: physical-electrical}, side: left, offset: 20}], outputs: [{id: n, label: "-", kind: {domain: physical-electrical}, side: right, offset: 20}]}
+params: []
+fidelities: [{tier: ideal, doc: Ideal Lossy Transmission Line.}]
+symbol: {bbox: [60, 40], shape: rect, text: LOSSY}
+behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.tline.lossy}

@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://general-simulator.dev/schemas/ir1/ir1.schema.json",
+  "title": "IR1Graph",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["blocks", "connections", "params", "nets", "simulation"],
+  "properties": {
+    "blocks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/IR1Block" }
+    },
+    "connections": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/IR1Connection" }
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    },
+    "nets": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/IR1Net" }
+    },
+    "simulation": { "$ref": "#/$defs/IR1SimulationDirective" }
+  },
+  "$defs": {
+    "Endpoint": {
+      "type": "array",
+      "items": [{ "type": "string", "minLength": 1 }, { "type": "string", "minLength": 1 }],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "IR1Block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instance_id", "block_type", "paradigm", "domain", "fidelity", "params", "ic"],
+      "properties": {
+        "instance_id": { "type": "string", "minLength": 1 },
+        "block_type": { "type": "string", "minLength": 1 },
+        "paradigm": { "type": "string", "minLength": 1 },
+        "domain": { "type": "string", "minLength": 1 },
+        "fidelity": { "type": "string", "minLength": 1 },
+        "params": { "type": "object", "additionalProperties": true },
+        "ic": { "type": "object", "additionalProperties": true },
+        "execution_kind": {
+          "oneOf": [
+            { "type": "string", "enum": ["atomic", "enabled", "triggered"] },
+            { "type": "null" }
+          ]
+        },
+        "enable_signal": {
+          "oneOf": [{ "$ref": "#/$defs/Endpoint" }, { "type": "null" }]
+        },
+        "trigger_signal": {
+          "oneOf": [{ "$ref": "#/$defs/Endpoint" }, { "type": "null" }]
+        },
+        "trigger_kind": {
+          "oneOf": [
+            { "type": "string", "enum": ["rising", "falling", "either"] },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "IR1Connection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["src", "dst", "kind", "net"],
+      "properties": {
+        "src": { "$ref": "#/$defs/Endpoint" },
+        "dst": { "$ref": "#/$defs/Endpoint" },
+        "kind": { "type": "string", "minLength": 1 },
+        "net": {
+          "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }]
+        }
+      }
+    },
+    "IR1Net": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "kind", "scope", "is_reference"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "kind": { "type": "string", "minLength": 1 },
+        "scope": { "type": "string", "enum": ["global", "local"] },
+        "is_reference": { "type": "boolean" }
+      }
+    },
+    "IR1SimulationDirective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["analyses", "solver", "initial_conditions", "output"],
+      "properties": {
+        "analyses": {
+          "type": "array",
+          "items": { "type": "object", "additionalProperties": true }
+        },
+        "solver": { "type": "object", "additionalProperties": true },
+        "initial_conditions": {
+          "type": "array",
+          "items": { "type": "object", "additionalProperties": true }
+        },
+        "output": { "type": "object", "additionalProperties": true }
+      }
+    }
+  }
+}

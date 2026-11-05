@@ -1,0 +1,15 @@
+name: physical_electrical.source.voltage_pwl
+type: physical-electrical.source.voltage_pwl
+label: PWL Voltage Source
+version: 1
+category: sources
+description: Physical electrical PWL Voltage Source.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [voltage_pwl]
+tags: [physical, electrical, source]
+ports: {inputs: [{id: p, label: "+", kind: {domain: physical-electrical}, side: left, offset: 20}], outputs: [{id: n, label: "-", kind: {domain: physical-electrical}, side: right, offset: 20}]}
+params: [{name: V, label: Amplitude, type: number, default: 1.0}]
+fidelities: [{tier: ideal, doc: Ideal PWL Voltage Source.}]
+symbol: {bbox: [60, 40], shape: rect, text: VOLTAGE_PWL}
+behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.source.voltage_pwl}

@@ -1,0 +1,48 @@
+name: signal_flow.attributes.unit_conversion
+type: signal-flow.attributes.unit_conversion
+label: Unit Conversion
+version: 1
+category: signal
+description: >
+  Converts a signal from one unit to another by multiplying by a fixed numeric
+  scale resolved from the built-in unit table at IR-1 build time.
+paradigm: signal-flow
+domain: signal
+aliases: [unit_conv, unit conversion]
+tags: [signal-flow, attributes, units]
+params:
+  - name: from_unit
+    label: From Unit
+    type: string
+    default: ""
+    description: Source unit string (e.g. 'ms', 'kV').
+  - name: to_unit
+    label: To Unit
+    type: string
+    default: ""
+    description: Target unit string (e.g. 's', 'V').
+  - name: scale
+    label: Scale
+    type: number
+    default: 1.0
+    description: >
+      Resolved multiplicative scale (injected by the compiler after unit
+      table lookup).  Set automatically — do not edit by hand.
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 20
+  outputs:
+    - id: out
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: right
+      offset: 20
+symbol: {bbox: [70, 40], shape: rect, text: Unit}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.attributes.unit_conversion}
+port_sigs:
+  in: "inherit"
+  out: "from(in)"

@@ -1,0 +1,60 @@
+name: control.transform.clarke_park_inv
+label: "Inverse Clarke-Park Transform"
+version: 1
+category: control
+description: "Combined inverse Clarke-Park (dq0 to abc) transform."
+
+aliases: [clarke park inv, transform, coordinate transform]
+tags: [control, signal, transform, motor-control, general-simulator]
+
+ports:
+  inputs:
+    - id: d
+      label: "d"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 18
+    - id: q
+      label: "q"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 35
+    - id: zero
+      label: "zero"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 53
+    - id: theta
+      label: "theta"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 70
+  outputs:
+    - id: a
+      label: "a"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 22
+    - id: b
+      label: "b"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 44
+    - id: c
+      label: "c"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 66
+
+params: []
+
+symbol:
+  bbox: [80, 88]
+  shape: rect
+  text: "dq0/abc"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 0
+  equation_template: control.transform.clarke_park_inv

@@ -1,0 +1,19 @@
+name: signal_flow.logic.compare
+type: signal-flow.logic.compare
+label: Compare
+version: 1
+category: control
+description: Relational comparison block.
+paradigm: signal-flow
+domain: signal
+aliases: [compare]
+tags: [signal-flow, logic]
+ports: {inputs: [{id: in0, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 14}, {id: in1, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 26}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: [{name: operator, label: Operator, type: enum, default: ">", choices: ["==", "!=", "<", "<=", ">", ">="]}]
+fidelities: [{tier: n_a, ports: [{id: in0, kind: signal, direction: in, side: left, offset: 14}, {id: in1, kind: signal, direction: in, side: left, offset: 26}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: operator, type: enum, default: ">", choices: ["==", "!=", "<", "<=", ">", ">="]}], doc: Relational comparison block.}]
+symbol: {bbox: [70, 40], shape: rect, text: cmp}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.logic.compare}
+port_sigs:
+  in0: "inherit"
+  in1: "inherit"
+  out: "[1]"

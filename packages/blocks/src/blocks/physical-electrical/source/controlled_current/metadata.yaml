@@ -1,0 +1,15 @@
+name: physical_electrical.source.controlled_current
+type: physical-electrical.source.controlled_current
+label: Controlled Current Source
+version: 1
+category: sources
+description: Physical electrical Controlled Current Source.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [controlled_current]
+tags: [physical, electrical, source]
+ports: {inputs: [{id: p, label: "+", kind: {domain: physical-electrical}, side: left, offset: 20}], outputs: [{id: n, label: "-", kind: {domain: physical-electrical}, side: right, offset: 20}]}
+params: [{name: I, label: Current, type: number, default: 0.0}]
+fidelities: [{tier: ideal, doc: Ideal Controlled Current Source.}]
+symbol: {bbox: [60, 40], shape: rect, text: CONTROLLED_CURRENT}
+behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.source.controlled_current}

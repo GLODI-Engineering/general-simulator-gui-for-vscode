@@ -1,0 +1,64 @@
+name: source.sinwave
+label: "Sine Wave Source"
+version: 1
+category: sources
+description: "Damped sine signal source, using ngspice SIN() semantics."
+
+aliases: [sinwave, sine, sin source]
+tags: [source, signal, sine, transient, general-simulator]
+
+ports:
+  inputs: []
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params:
+  - name: va
+    label: "Amplitude"
+    type: number
+    default: 1.0
+    description: "Peak amplitude."
+  - name: freq
+    label: "Frequency"
+    type: number
+    default: 1000.0
+    min: 0
+    description: "Frequency in Hz."
+  - name: v0
+    label: "Offset"
+    type: number
+    default: 0.0
+    description: "DC offset."
+  - name: td
+    label: "Delay"
+    type: number
+    default: 0.0
+    min: 0
+    description: "Start delay in seconds."
+  - name: theta
+    label: "Damping factor"
+    type: number
+    default: 0.0
+    description: "Exponential damping factor in 1/s."
+  - name: phase
+    label: "Phase"
+    type: number
+    default: 0.0
+    description: "Phase offset in degrees."
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "SIN"
+
+behavior:
+  causality: source
+  domain: signal
+  state_count: 0
+  equation_template: source.sinwave
+
+main_param: freq

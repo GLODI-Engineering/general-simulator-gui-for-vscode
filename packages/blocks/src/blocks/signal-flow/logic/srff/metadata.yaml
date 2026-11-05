@@ -1,0 +1,19 @@
+name: signal_flow.logic.srff
+type: signal-flow.logic.srff
+label: SR Flip-Flop
+version: 1
+category: control
+description: Clocked set-reset flip-flop.
+paradigm: signal-flow
+domain: signal
+aliases: [sr flip-flop, srff]
+tags: [signal-flow, logic, sequential]
+ports: {inputs: [{id: clk, label: clk, kind: {domain: signal, dims: scalar}, side: top, offset: 20}, {id: s, label: S, kind: {domain: signal, dims: scalar}, side: left, offset: 14}, {id: r, label: R, kind: {domain: signal, dims: scalar}, side: left, offset: 26}], outputs: [{id: q, label: Q, kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: []
+fidelities: [{tier: n_a, ports: [{id: clk, kind: signal, direction: in, side: top, offset: 20}, {id: s, kind: signal, direction: in, side: left, offset: 14}, {id: r, kind: signal, direction: in, side: left, offset: 26}, {id: q, kind: signal, direction: out, side: right, offset: 20}], params: [], doc: Clocked set-reset flip-flop.}]
+symbol: {bbox: [70, 60], shape: rect, text: SRFF}
+behavior: {causality: causal, domain: signal, state_count: 1, equation_template: signal_flow.logic.srff}
+port_sigs:
+  s: "inherit"
+  r: "inherit"
+  q: "from(s)"

@@ -1,0 +1,38 @@
+name: sinks.scope
+label: Scope
+version: 1
+category: sinks
+description: Captures the input signal for display in the waveform viewer.
+
+aliases: [scope, plot, oscilloscope, viewer]
+tags: [scope, sink, visualization, output]
+
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 20
+  outputs: []
+
+params:
+  - name: t_window
+    label: Time window
+    type: number
+    default: 10.0
+    min: 0
+    description: Display window in seconds. The waveform viewer shows the most recent `t_window` of data.
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "Scope"
+
+behavior:
+  causality: sink
+  domain: signal
+  state_count: 0
+  equation_template: sinks.scope
+
+main_param: t_window

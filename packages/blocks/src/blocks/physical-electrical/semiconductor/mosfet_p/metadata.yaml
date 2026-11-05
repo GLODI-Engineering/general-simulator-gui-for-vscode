@@ -1,0 +1,65 @@
+name: physical_electrical.semiconductor.mosfet_p
+type: physical-electrical.semiconductor.mosfet_p
+label: PMOS
+version: 1
+category: semiconductor
+description: Physical electrical P-channel MOSFET.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [pmos, mosfet_p]
+tags: [physical, electrical, semiconductor]
+ports:
+  inputs:
+    - id: g
+      label: G
+      kind: { domain: physical-electrical }
+      side: left
+      offset: 81
+  outputs:
+    - id: d
+      label: D
+      kind: { domain: physical-electrical }
+      side: top
+      offset: 51
+    - id: s
+      label: S
+      kind: { domain: physical-electrical }
+      side: bottom
+      offset: 51
+params:
+  - name: model
+    label: Model
+    type: string
+    default: PMOS
+  - name: W
+    label: Width
+    type: number
+    default: 0.000001
+  - name: L
+    label: Length
+    type: number
+    default: 0.00000018
+fidelities:
+  - tier: ideal
+    ports:
+      - { id: g, kind: physical-electrical, direction: inout }
+      - { id: d, kind: physical-electrical, direction: inout }
+      - { id: s, kind: physical-electrical, direction: inout }
+    params:
+      - { id: model, type: string, default: PMOS }
+      - { id: W, type: number, default: 0.000001 }
+      - { id: L, type: number, default: 0.00000018 }
+    doc: Ideal P-channel MOSFET.
+  - tier: behavioral
+    doc: Behavioral P-channel MOSFET.
+  - tier: spice
+    doc: SPICE P-channel MOSFET.
+symbol:
+  bbox: [80, 110]
+  shape: rect
+  text: PMOS
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: physical_electrical.semiconductor.mosfet_p

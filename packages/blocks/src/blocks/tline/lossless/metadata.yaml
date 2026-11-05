@@ -1,0 +1,55 @@
+name: tline.lossless
+label: "Lossless TL"
+version: 1
+category: tline
+description: "Ideal lossless transmission line (T element)."
+
+aliases: [T, lossless TL, ideal TL]
+tags: [tline, electrical, lossless, transmission-line]
+
+ports:
+  inputs:
+    - id: a1
+      label: "A1"
+      kind: { domain: electrical }
+      side: left
+      offset: 10
+    - id: b1
+      label: "B1"
+      kind: { domain: electrical }
+      side: left
+      offset: 30
+  outputs:
+    - id: a2
+      label: "A2"
+      kind: { domain: electrical }
+      side: right
+      offset: 10
+    - id: b2
+      label: "B2"
+      kind: { domain: electrical }
+      side: right
+      offset: 30
+
+params:
+  - name: Z0
+    label: Z0
+    type: number
+    default: 50.0
+    description: "Characteristic impedance in ohms"
+  - name: TD
+    label: TD
+    type: number
+    default: 1e-9
+    description: "One-way delay in seconds"
+
+symbol:
+  bbox: [80, 60]
+  shape: rect
+  text: T
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: tline.lossless

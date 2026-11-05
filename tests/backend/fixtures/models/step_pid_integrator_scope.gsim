@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "model": {
+    "id": "step-pid-integrator-scope",
+    "metadata": {},
+    "name": "Step → PID → Integrator → Scope (canonical smoke)",
+    "grid": 10,
+    "blocks": [
+      {
+        "id": "b-step",
+        "mirror": "none",
+        "params": {"amplitude": 1.0, "t_step": 0.0},
+        "position": [0, 0],
+        "rotation": 0,
+        "type": "signal.step"
+      },
+      {
+        "id": "b-sum",
+        "mirror": "none",
+        "params": {"signs": "+-"},
+        "position": [80, 0],
+        "rotation": 0,
+        "type": "control.sum"
+      },
+      {
+        "id": "b-pid",
+        "mirror": "none",
+        "params": {"anti_windup": false, "kd": 0.1, "ki": 0.5, "kp": 1.0},
+        "position": [160, 0],
+        "rotation": 0,
+        "type": "control.pid"
+      },
+      {
+        "id": "b-integ",
+        "mirror": "none",
+        "params": {"hi": 1000000000.0, "lo": -1000000000.0},
+        "position": [240, 0],
+        "rotation": 0,
+        "type": "control.integrator"
+      },
+      {
+        "id": "b-scope",
+        "mirror": "none",
+        "params": {},
+        "position": [320, 0],
+        "rotation": 0,
+        "type": "sinks.scope"
+      }
+    ],
+    "wires": [
+      {
+        "id": "w1",
+        "from": {"block": "b-step", "port": "out"},
+        "to": {"block": "b-sum", "port": "in0"},
+        "pinned": false,
+        "waypoints": []
+      },
+      {
+        "id": "w2",
+        "from": {"block": "b-integ", "port": "out"},
+        "to": {"block": "b-sum", "port": "in1"},
+        "pinned": false,
+        "waypoints": []
+      },
+      {
+        "id": "w3",
+        "from": {"block": "b-sum", "port": "out"},
+        "to": {"block": "b-pid", "port": "in"},
+        "pinned": false,
+        "waypoints": []
+      },
+      {
+        "id": "w4",
+        "from": {"block": "b-pid", "port": "out"},
+        "to": {"block": "b-integ", "port": "in"},
+        "pinned": false,
+        "waypoints": []
+      },
+      {
+        "id": "w5",
+        "from": {"block": "b-integ", "port": "out"},
+        "to": {"block": "b-scope", "port": "in"},
+        "pinned": false,
+        "waypoints": []
+      }
+    ]
+  }
+}

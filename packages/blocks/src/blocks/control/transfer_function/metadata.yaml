@@ -1,0 +1,47 @@
+name: control.transfer_function
+label: Transfer Function
+version: 1
+category: control
+description: Rational transfer function `H(s) = num(s) / den(s)`, realised as state-space.
+
+aliases: [tf, "H(s)", transfer function, lti]
+tags: [transfer function, continuous, control, frequency, linear]
+
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 25
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 25
+
+params:
+  - name: num
+    label: Numerator
+    type: vector
+    default: [1.0]
+    description: Numerator polynomial coefficients, highest power first.
+  - name: den
+    label: Denominator
+    type: vector
+    default: [1.0, 1.0]
+    description: Denominator polynomial coefficients, highest power first.
+
+symbol:
+  bbox: [60, 50]
+  shape: rect
+  text: "H(s)"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: dynamic
+  equation_template: control.transfer_function
+
+main_param: num

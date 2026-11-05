@@ -1,0 +1,15 @@
+name: physical_electrical.source.cccs
+type: physical-electrical.source.cccs
+label: Current-Controlled Current Source
+version: 1
+category: sources
+description: Physical electrical Current-Controlled Current Source.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [cccs]
+tags: [physical, electrical, source]
+ports: {inputs: [{id: p, label: "+", kind: {domain: physical-electrical}, side: right, offset: 1}], outputs: [{id: n, label: "-", kind: {domain: physical-electrical}, side: right, offset: 59}]}
+params: [{name: B, label: Gain, type: number, default: 1.0}]
+fidelities: [{tier: ideal, doc: Ideal Current-Controlled Current Source.}]
+symbol: {bbox: [80, 60], shape: rect, text: CCCS}
+behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.source.cccs}

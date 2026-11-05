@@ -1,0 +1,15 @@
+name: physical_electrical.passive.mutual_inductor
+type: physical-electrical.passive.mutual_inductor
+label: Mutual Inductor
+version: 1
+category: passive
+description: Magnetically coupled inductors with coupling coefficient k.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [mutual_inductor, M]
+tags: [physical, electrical, passive]
+ports: {inputs: [{id: p1, label: "+1", kind: {domain: physical-electrical}, side: left, offset: 10}, {id: n1, label: "-1", kind: {domain: physical-electrical}, side: left, offset: 30}], outputs: [{id: p2, label: "+2", kind: {domain: physical-electrical}, side: right, offset: 10}, {id: n2, label: "-2", kind: {domain: physical-electrical}, side: right, offset: 30}]}
+params: [{name: L1, label: Inductance 1, type: number, default: 0.000001}, {name: L2, label: Inductance 2, type: number, default: 0.000001}, {name: k, label: Coupling coefficient, type: number, default: 0.99}]
+fidelities: [{tier: ideal, doc: Ideal coupled inductors.}, {tier: behavioral, doc: Behavioral coupled inductors with core losses.}, {tier: spice, doc: SPICE mutual inductor.}]
+symbol: {bbox: [80, 60], shape: rect, text: M}
+behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.passive.mutual_inductor}

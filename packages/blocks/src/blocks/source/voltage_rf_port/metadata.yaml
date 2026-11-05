@@ -1,0 +1,50 @@
+name: source.voltage.rf_port
+label: "RF Port"
+version: 1
+category: sources
+description: RF port for S-parameter and AC analysis. SPICE element V with port definition.
+
+aliases: [PORT, RF port, S-param port]
+tags: [source, electrical, voltage, rf, port, ac]
+
+ports:
+  inputs:
+    - id: p
+      label: "+"
+      kind: { domain: electrical }
+      side: left
+      offset: 20
+  outputs:
+    - id: n
+      label: "-"
+      kind: { domain: electrical }
+      side: right
+      offset: 20
+
+params:
+  - name: Z0
+    label: Impedance
+    type: number
+    default: 50.0
+    description: impedance
+  - name: portnum
+    label: Port Number
+    type: integer
+    default: 1
+    description: port number
+  - name: FREQ
+    label: Frequency
+    type: number
+    default: 1e9
+    description: frequency
+
+symbol:
+  bbox: [60, 40]
+  shape: circle
+  text: "V (RF)"
+
+behavior:
+  causality: source
+  domain: electrical
+  state_count: 0
+  equation_template: source.voltage.rf_port

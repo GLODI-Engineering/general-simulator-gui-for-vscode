@@ -1,0 +1,37 @@
+name: source.const
+label: "Constant"
+version: 1
+category: sources
+description: "Constant signal source."
+
+aliases: [const, constant, dc signal]
+tags: [source, signal, constant, general-simulator]
+
+ports:
+  inputs: []
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params:
+  - name: value
+    label: "Value"
+    type: number
+    default: 1.0
+    description: "Constant output value."
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "CONST"
+
+behavior:
+  causality: source
+  domain: signal
+  state_count: 0
+  equation_template: source.const
+
+main_param: value

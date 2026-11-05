@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://general-simulator.dev/schemas/model/port-kind.schema.json",
+  "title": "PortKind",
+  "description": "Typed v2 port-kind descriptor used by block metadata and .gsim_sch wires.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["domain"],
+  "properties": {
+    "domain": {
+      "type": "string",
+      "enum": [
+        "signal",
+        "signal-bus",
+        "function-call",
+        "physical-electrical",
+        "physical-translational",
+        "physical-rotational",
+        "physical-thermal",
+        "physical-signal",
+        "mixed",
+        "reserved.physical-magnetic",
+        "reserved.physical-hydraulic",
+        "reserved.physical-fluid"
+      ]
+    }
+  }
+}

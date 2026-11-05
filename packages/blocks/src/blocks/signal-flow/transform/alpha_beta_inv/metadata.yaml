@@ -1,0 +1,21 @@
+name: signal_flow.transform.alpha_beta_inv
+type: signal-flow.transform.alpha_beta_inv
+label: Inverse Alpha-Beta Transform
+version: 1
+category: control
+description: Two-phase stationary (alpha-beta) to three-phase (abc) transform.
+paradigm: signal-flow
+domain: signal
+aliases: [inverse clarke transform, alpha-beta to abc]
+tags: [signal-flow, transform, motor-control]
+ports: {inputs: [{id: alpha, label: "α", kind: {domain: signal, dims: scalar}, side: left, offset: 14}, {id: beta, label: "β", kind: {domain: signal, dims: scalar}, side: left, offset: 26}], outputs: [{id: a, label: a, kind: {domain: signal, dims: scalar}, side: right, offset: 10}, {id: b, label: b, kind: {domain: signal, dims: scalar}, side: right, offset: 20}, {id: c, label: c, kind: {domain: signal, dims: scalar}, side: right, offset: 30}]}
+params: []
+fidelities: [{tier: n_a, ports: [{id: alpha, kind: signal, direction: in, side: left, offset: 14}, {id: beta, kind: signal, direction: in, side: left, offset: 26}, {id: a, kind: signal, direction: out, side: right, offset: 10}, {id: b, kind: signal, direction: out, side: right, offset: 20}, {id: c, kind: signal, direction: out, side: right, offset: 30}], params: [], doc: alpha-beta to abc transform.}]
+symbol: {bbox: [70, 60], shape: rect, text: "αβ→abc"}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.transform.alpha_beta_inv}
+port_sigs:
+  alpha: "inherit"
+  beta: "inherit"
+  a: "from(alpha)"
+  b: "from(alpha)"
+  c: "from(alpha)"

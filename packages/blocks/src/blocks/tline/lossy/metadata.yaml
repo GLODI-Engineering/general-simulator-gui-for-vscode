@@ -1,0 +1,70 @@
+name: tline.lossy
+label: "Lossy TL (LTRA)"
+version: 1
+category: tline
+description: "Lossy distributed transmission line (LTRA model)."
+
+aliases: [LTRA, lossy TL, W element]
+tags: [tline, electrical, lossy, transmission-line, distributed]
+
+ports:
+  inputs:
+    - id: a1
+      label: "A1"
+      kind: { domain: electrical }
+      side: left
+      offset: 10
+    - id: b1
+      label: "B1"
+      kind: { domain: electrical }
+      side: left
+      offset: 30
+  outputs:
+    - id: a2
+      label: "A2"
+      kind: { domain: electrical }
+      side: right
+      offset: 10
+    - id: b2
+      label: "B2"
+      kind: { domain: electrical }
+      side: right
+      offset: 30
+
+params:
+  - name: R
+    label: R
+    type: number
+    default: 0.0
+    description: "Resistance per metre (Ω/m)"
+  - name: L
+    label: L
+    type: number
+    default: 0.0
+    description: "Inductance per metre (H/m)"
+  - name: C
+    label: C
+    type: number
+    default: 100e-12
+    description: "Capacitance per metre (F/m)"
+  - name: G
+    label: G
+    type: number
+    default: 0.0
+    description: "Conductance per metre (S/m)"
+  - name: LEN
+    label: LEN
+    type: number
+    default: 1.0
+    description: "Length in metres"
+
+symbol:
+  bbox: [80, 60]
+  shape: rect
+  text: LTRA
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: tline.lossy

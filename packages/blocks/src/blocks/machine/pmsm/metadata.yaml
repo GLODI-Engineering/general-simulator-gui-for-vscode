@@ -1,0 +1,104 @@
+name: machine.pmsm
+label: "PMSM"
+version: 1
+category: power
+description: "Permanent-magnet synchronous machine in the dq frame, with mechanical dynamics."
+
+aliases: [pmsm, motor, synchronous machine, bldc]
+tags: [machine, motor, power, dq, general-simulator]
+
+ports:
+  inputs:
+    - id: vd
+      label: "vd"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 22
+    - id: vq
+      label: "vq"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 44
+    - id: t_load
+      label: "t_load"
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 66
+  outputs:
+    - id: id
+      label: "id"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 18
+    - id: iq
+      label: "iq"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 35
+    - id: omega_m
+      label: "ω"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 53
+    - id: theta_e
+      label: "θe"
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 70
+
+params:
+  - name: r_s
+    label: "Stator resistance"
+    type: number
+    default: 0.5
+    min: 0
+    description: "Stator phase resistance in ohms."
+  - name: l_d
+    label: "d-axis inductance"
+    type: number
+    default: 0.001
+    min: 0
+    description: "d-axis inductance in henries."
+  - name: l_q
+    label: "q-axis inductance"
+    type: number
+    default: 0.001
+    min: 0
+    description: "q-axis inductance in henries."
+  - name: lambda_pm
+    label: "PM flux linkage"
+    type: number
+    default: 0.05
+    min: 0
+    description: "Permanent-magnet flux linkage in Wb."
+  - name: pole_pairs
+    label: "Pole pairs"
+    type: integer
+    default: 4
+    min: 1
+    description: "Number of pole pairs."
+  - name: inertia
+    label: "Inertia"
+    type: number
+    default: 0.001
+    min: 0
+    description: "Rotor inertia in kg·m²."
+  - name: friction
+    label: "Viscous friction"
+    type: number
+    default: 0.0001
+    min: 0
+    description: "Viscous friction coefficient in N·m·s."
+
+symbol:
+  bbox: [80, 88]
+  shape: rect
+  text: "PMSM"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 4
+  equation_template: machine.pmsm
+
+main_param: pole_pairs

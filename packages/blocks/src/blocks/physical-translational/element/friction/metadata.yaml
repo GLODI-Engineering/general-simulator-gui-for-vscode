@@ -1,0 +1,15 @@
+name: physical_translational.element.friction
+type: physical-translational.element.friction
+label: Translational Friction
+version: 1
+category: element
+description: Dry (Coulomb) and viscous friction element.
+paradigm: physical-network
+domain: physical-translational
+aliases: [friction]
+tags: [physical, translational]
+ports: {inputs: [{id: p, label: p, kind: {domain: physical-translational}, side: left, offset: 20}], outputs: [{id: n, label: n, kind: {domain: physical-translational}, side: right, offset: 20}]}
+params: [{name: coulomb, label: Coulomb friction force N, type: number, default: 1.0}, {name: viscous, label: Viscous damping Ns/m, type: number, default: 0.1}]
+fidelities: [{tier: ideal, doc: Smooth friction (ideal).}, {tier: behavioral, doc: Behavioral friction with stiction.}]
+symbol: {bbox: [70, 40], shape: rect, text: Ff}
+behavior: {causality: acausal, domain: mechanical, state_count: 0, equation_template: physical_translational.element.friction}

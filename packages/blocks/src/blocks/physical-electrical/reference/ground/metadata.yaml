@@ -1,0 +1,15 @@
+name: physical_electrical.reference.ground
+type: physical-electrical.reference.ground
+label: Ground Reference
+version: 1
+category: reference
+description: Ground Reference.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [ground]
+tags: [physical, electrical]
+ports: {inputs: [{id: gnd, label: GND, kind: {domain: physical-electrical}, side: top, offset: 20}]}
+params: []
+fidelities: [{tier: ideal, doc: Ideal Ground Reference.}]
+symbol: {bbox: [40, 40], shape: rect, text: GND}
+behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.reference.ground}

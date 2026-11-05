@@ -1,0 +1,19 @@
+name: signal_flow.math.product
+type: signal-flow.math.product
+label: Product
+version: 1
+category: control
+description: Signal product block.
+paradigm: signal-flow
+domain: signal
+aliases: [product, multiply]
+tags: [signal-flow, math]
+ports: {inputs: [{id: in0, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 14}, {id: in1, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 26}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: [{name: signs, label: Operators, type: string, default: "**"}]
+fidelities: [{tier: n_a, ports: [{id: in0, kind: signal, direction: in, side: left, offset: 14}, {id: in1, kind: signal, direction: in, side: left, offset: 26}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: signs, type: string, default: "**"}], doc: Signal product block.}]
+symbol: {bbox: [60, 40], shape: rect, text: ×}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.math.product}
+port_sigs:
+  in0: "inherit"
+  in1: "inherit"
+  out: "from(in0)"

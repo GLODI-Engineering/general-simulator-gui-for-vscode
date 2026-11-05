@@ -1,0 +1,367 @@
+manifest_version: 1
+created_at: "2026-05-31"
+project: general-simulator
+simulator: xyce
+reference_guide_version: "7.10"
+sources:
+  - working-tools/pdf-to-md/output/Xyce_RG.md
+  - Misc/spice-simulator-analsys/XYCE-COMPONENT-CATALOG.md
+
+legend:
+  class:
+    passive: Two-terminal passive element
+    source: Independent source/port stimulus
+    controlled_source: Dependent source
+    switch: Switching element
+    transmission_line: Distributed line element
+    semiconductor: Diode/transistor compact model element
+    digital_behavioral: Behavioral digital gate/FF/latch family
+    hierarchical_subckt: Subcircuit instance
+    tcad_pde: PDE/TCAD numerical device
+    multiphysics: Non-electrical/mixed-domain model
+
+primary_elements:
+  - id: B
+    designator: B
+    name: Nonlinear dependent source
+    class: controlled_source
+    ports: [n_plus, n_minus]
+    control_form: expression
+    netlist_template: "B<name> <+> <-> <I|V>={expression}"
+    model_required: false
+    section: "2.3.16"
+
+  - id: C
+    designator: C
+    name: Capacitor
+    class: passive
+    ports: [n_plus, n_minus]
+    netlist_template: "C<name> <+> <-> [model] <value> [IC=<init>]"
+    model_required: false
+    section: "2.3.4"
+
+  - id: D
+    designator: D
+    name: Diode
+    class: semiconductor
+    ports: [anode, cathode]
+    netlist_template: "D<name> <anode> <cathode> <model> [area]"
+    model_required: true
+    section: "2.3.8"
+
+  - id: E
+    designator: E
+    name: Voltage controlled voltage source
+    class: controlled_source
+    ports: [n_plus, n_minus, ctrl_plus, ctrl_minus]
+    netlist_template: "E<name> <+> <-> <+c> <-c> <gain>"
+    model_required: false
+    section: "2.3.12"
+
+  - id: F
+    designator: F
+    name: Current controlled current source
+    class: controlled_source
+    ports: [n_plus, n_minus]
+    control_reference: voltage_source_name
+    netlist_template: "F<name> <+> <-> <vsource_name> <gain>"
+    model_required: false
+    section: "2.3.13"
+
+  - id: G
+    designator: G
+    name: Voltage controlled current source
+    class: controlled_source
+    ports: [n_plus, n_minus, ctrl_plus, ctrl_minus]
+    netlist_template: "G<name> <+> <-> <+c> <-c> <transconductance>"
+    model_required: false
+    section: "2.3.14"
+
+  - id: H
+    designator: H
+    name: Current controlled voltage source
+    class: controlled_source
+    ports: [n_plus, n_minus]
+    control_reference: voltage_source_name
+    netlist_template: "H<name> <+> <-> <vsource_name> <gain>"
+    model_required: false
+    section: "2.3.15"
+
+  - id: I
+    designator: I
+    name: Independent current source
+    class: source
+    ports: [n_plus, n_minus]
+    netlist_template: "I<name> <+> <-> [DC value] [AC ...] [transient ...]"
+    model_required: false
+    section: "2.3.9"
+
+  - id: J
+    designator: J
+    name: JFET
+    class: semiconductor
+    ports: [drain, gate, source]
+    netlist_template: "J<name> <d> <g> <s> <model> [area]"
+    model_required: true
+    section: "2.3.18"
+
+  - id: K
+    designator: K
+    name: Mutual inductor
+    class: passive
+    ports: []
+    references: [inductor_instances]
+    netlist_template: "K<name> <L1> [<Ln>]* <coupling_or_model>"
+    model_required: false
+    section: "2.3.6"
+
+  - id: L
+    designator: L
+    name: Inductor
+    class: passive
+    ports: [n_plus, n_minus]
+    netlist_template: "L<name> <+> <-> [model] <value> [IC=<init>]"
+    model_required: false
+    section: "2.3.5"
+
+  - id: M
+    designator: M
+    name: MOSFET
+    class: semiconductor
+    ports: [drain, gate, source, bulk]
+    optional_ports: [soi_nodes]
+    netlist_template: "M<name> <d> <g> <s> <b> [SOI node(s)] <model>"
+    model_required: true
+    section: "2.3.20"
+
+  - id: O
+    designator: O
+    name: Lossy transmission line (LTRA)
+    class: transmission_line
+    ports: [a_plus, a_minus, b_plus, b_minus]
+    netlist_template: "O<name> <A+> <A-> <B+> <B-> <model>"
+    model_required: true
+    section: "2.3.21"
+
+  - id: P
+    designator: P
+    name: Port device
+    class: source
+    ports: [n_plus, n_minus]
+    netlist_template: "P<name> <+> <-> [DC] port=<num> [Z0=...] [AC ...]"
+    model_required: false
+    section: "2.3.11"
+
+  - id: Q
+    designator: Q
+    name: Bipolar junction transistor
+    class: semiconductor
+    ports: [collector, base, emitter]
+    optional_ports: [substrate]
+    netlist_template: "Q<name> <c> <b> <e> [substrate] <model> [area]"
+    model_required: true
+    section: "2.3.17"
+
+  - id: R
+    designator: R
+    name: Resistor
+    class: passive
+    ports: [n_plus, n_minus]
+    netlist_template: "R<name> <+> <-> [model] <value> [L=...] [W=...]"
+    model_required: false
+    section: "2.3.7"
+
+  - id: S_VCTRL
+    designator: S
+    name: Voltage controlled switch
+    class: switch
+    ports: [path_plus, path_minus, ctrl_plus, ctrl_minus]
+    netlist_template: "S<name> <+sw> <-sw> <+ctrl> <-ctrl> <model>"
+    model_required: true
+    section: "2.3.22"
+
+  - id: S_GENERIC
+    designator: S
+    name: Generic switch (expression-controlled)
+    class: switch
+    ports: [path_plus, path_minus]
+    control_form: expression
+    netlist_template: "S<name> <+sw> <-sw> <model> CONTROL={expr}"
+    model_required: true
+    section: "2.3.23"
+
+  - id: T
+    designator: T
+    name: Lossless transmission line
+    class: transmission_line
+    ports: [a_plus, a_minus, b_plus, b_minus]
+    netlist_template: "T<name> <A+> <A-> <B+> <B-> <ideal_spec>"
+    model_required: false
+    section: "2.3.25"
+
+  - id: U
+    designator: U
+    name: Behavioral digital device
+    class: digital_behavioral
+    ports: model_defined
+    required_nodes: [digital_power, digital_ground]
+    netlist_template: "U<name> <type>(<N>) DPWR DGND <in...> <out...> <model>"
+    model_required: true
+    section: "2.3.28"
+
+  - id: V
+    designator: V
+    name: Independent voltage source
+    class: source
+    ports: [n_plus, n_minus]
+    netlist_template: "V<name> <+> <-> [DC value] [AC ...] [transient ...]"
+    model_required: false
+    section: "2.3.10"
+
+  - id: W
+    designator: W
+    name: Current controlled switch
+    class: switch
+    ports: [path_plus, path_minus]
+    control_reference: voltage_source_name
+    netlist_template: "W<name> <+sw> <-sw> <vsource_name> <model>"
+    model_required: true
+    section: "2.3.22"
+
+  - id: X
+    designator: X
+    name: Subcircuit instance
+    class: hierarchical_subckt
+    ports: model_defined
+    netlist_template: "X<name> [node]* <subckt_name> [PARAMS:...]"
+    model_required: false
+    section: "2.3.33"
+
+  - id: Y_TYPE
+    designator: "Y<type>"
+    name: Legacy Y-type behavioral digital device
+    class: digital_behavioral
+    lifecycle: deprecated
+    ports: model_defined
+    netlist_template: "Y<type> <name> [node]* <model>"
+    model_required: true
+    section: "2.3.29"
+
+  - id: YPDE
+    designator: YPDE
+    name: PDE (TCAD) device
+    class: tcad_pde
+    ports: model_defined
+    netlist_template: "YPDE <name> <node...> <model> [params]"
+    model_required: true
+    section: "2.4"
+
+  - id: YACC
+    designator: YACC
+    name: Accelerated mass device
+    class: multiphysics
+    ports: [acceleration, velocity, position]
+    netlist_template: "YACC <name> <accel> <vel> <pos> [x0=...] [v0=...]"
+    model_required: false
+    section: "2.3.30"
+
+  - id: YLIN
+    designator: YLIN
+    name: Linear device
+    class: transmission_line
+    ports: [n_plus, n_minus]
+    netlist_template: "YLIN <name> <+> <-> <model>"
+    model_required: true
+    section: "2.3.24"
+
+  - id: YMEMRISTOR
+    designator: YMEMRISTOR
+    name: Memristor device
+    class: semiconductor
+    ports: [n_plus, n_minus]
+    netlist_template: "YMEMRISTOR <name> <+> <-> <model>"
+    model_required: true
+    section: "2.3.32"
+
+  - id: Z
+    designator: Z
+    name: MESFET
+    class: semiconductor
+    ports: [drain, gate, source]
+    netlist_template: "Z<name> <d> <g> <s> <model> [area]"
+    model_required: true
+    section: "2.3.19"
+
+xyce_model_families:
+  bjt_levels:
+    - { level: 1, family: "SPICE-like BJT", section: "2.3.17.1" }
+    - { level: 11, family: "VBIC 1.3 (3-terminal)", section: "2.3.17.4" }
+    - { level: 12, family: "VBIC 1.3 (4-terminal)", section: "2.3.17.4" }
+    - { level: 23, family: "FBH HBT_X", section: "2.3.17.5" }
+    - { level: 230, family: "HICUM/L0", section: "2.3.17.6" }
+    - { level: 234, family: "HICUM/L2", section: "2.3.17.7" }
+    - { level: 504, family: "MEXTRAM", section: "2.3.17.8" }
+    - { level: 505, family: "MEXTRAM (self-heating)", section: "2.3.17.8" }
+
+  mos_levels:
+    - { level: 1, family: "SPICE MOS1", section: "2.3.20.1" }
+    - { level: 2, family: "SPICE MOS2", section: "2.3.20.2" }
+    - { level: 3, family: "SPICE MOS3", section: "2.3.20.3" }
+    - { level: 6, family: "SPICE MOS6", section: "2.3.20.4" }
+    - { level: 9, family: "BSIM3", section: "2.3.20.5" }
+    - { level: 10, family: "BSIM-SOI", section: "2.3.20.6" }
+    - { level: "14/54", family: "BSIM4", section: "2.3.20.7" }
+    - { level: 18, family: "VDMOS", section: "2.3.20.8" }
+    - { level: "70/70450", family: "BSIM-SOI variants", section: "2.3.20.9" }
+    - { level: 77, family: "BSIM6", section: "2.3.20.10" }
+    - { level: 102, family: "PSP 102.5 legacy", section: "2.3.20.11" }
+    - { level: "103/1031", family: "PSP 103.4", section: "2.3.20.12" }
+    - { level: 111, family: "BSIM-CMG 111.x", section: "2.3.20.13" }
+    - { level: 110, family: "BSIM-CMG 110.x", section: "2.3.20.14" }
+    - { level: "107/108", family: "BSIM-CMG 107/108", section: "2.3.20.15" }
+    - { level: "2000/2001", family: "MVS 2.0.0", section: "2.3.20.16" }
+    - { level: 2002, family: "MVSG_CMC", section: "2.3.20.17" }
+    - { level: 260, family: "EKV 2.6", section: "2.3.20.18" }
+    - { level: 301, family: "EKV 3.0.1", section: "2.3.20.19" }
+    - { level: 10240, family: "L_UTSOI 102.4.0", section: "2.3.20.20" }
+
+xyce_digital_behavioral:
+  preferred_u_type:
+    section: "2.3.28"
+    model_form: ".MODEL <name> DIG (...)"
+    instance_form: "U<name> <type>(N) DPWR DGND in... out... <model>"
+    supported_types: [INV, BUF, AND, NAND, OR, NOR, XOR, NXOR, DFF, JKFF, TFF, DLTCH, ADD]
+    variable_input_types: [AND, NAND, OR, NOR]
+    fixed_input_type_notes:
+      INV: "1 in, 1 out"
+      BUF: "1 in, 1 out"
+      XOR: "2 in, 1 out"
+      NXOR: "2 in, 1 out"
+      ADD: "3 in (in1,in2,carryIn), 2 out (sumOut,carryOut)"
+      DFF: "4 in (PREB,CLRB,Clock,Data), 2 out (Q,Qbar)"
+      JKFF: "5 in (PREB,CLRB,Clock,J,K), 2 out (Q,Qbar)"
+      TFF: "2 in (T,Clock), 2 out (Q,Qbar)"
+      DLTCH: "4 in (PREB,CLRB,Enable,Data), 2 out (Q,Qbar)"
+
+  legacy_y_type:
+    section: "2.3.29"
+    status: deprecated
+    supported_types: [NOT, BUF, AND, NAND, OR, NOR, XOR, NXOR, DFF, JKFF, TFF, DLTCH, ADD]
+    migration_note: "Prefer U-type syntax for new libraries."
+
+tcad_models:
+  ypde:
+    section: "2.4"
+    model_form: ".MODEL <name> ZOD LEVEL=<1|2>"
+    instance_form_1d: "YPDE <name> <node...> <model> [params]"
+    instance_form_2d: "YPDE <name> <node...> <model> [params]"
+    levels:
+      - { level: 1, dimensions: "1D PDE device" }
+      - { level: 2, dimensions: "2D PDE device" }
+
+cad_generation_rules:
+  - "Use designator-specific symbol templates for B/C/D/E/F/G/H/I/J/L/M/O/P/Q/R/S/T/V/W/Z"
+  - "For K/F/H/W, store control/reference links in metadata, not as physical pins"
+  - "For U, Y<type>, X, YPDE and P, use parameterized/auto-generated pin maps"
+  - "Treat Y<type> as import-compatible but deprecated; prefer U for emission"
+  - "Keep model level metadata separate from symbol topology for M, Q, D"

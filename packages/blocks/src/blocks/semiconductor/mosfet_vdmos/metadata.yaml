@@ -1,0 +1,55 @@
+name: semi.mosfet.vdmos
+label: VDMOS
+version: 1
+category: semiconductor
+description: "Vertical double-diffused power MOSFET."
+
+aliases: [M, vdmos, VDMOS, power mosfet]
+tags: [semiconductor, electrical, mosfet, vdmos, power, transistor]
+
+ports:
+  inputs:
+    - id: g
+      label: Gate
+      kind: { domain: electrical }
+      side: left
+      offset: 81
+  outputs:
+    - id: d
+      label: Drain
+      kind: { domain: electrical }
+      side: top
+      offset: 51
+    - id: s
+      label: Source
+      kind: { domain: electrical }
+      side: bottom
+      offset: 51
+
+params:
+  - name: model
+    label: Model
+    type: string
+    default: ""
+    description: SPICE model name.
+  - name: W
+    label: Width
+    type: number
+    default: 1.0e-6
+    description: Channel width m.
+  - name: L
+    label: Length
+    type: number
+    default: 1.0e-6
+    description: Channel length m.
+
+symbol:
+  bbox: [80, 110]
+  shape: rect
+  text: VDMOS
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: semi.mosfet.vdmos

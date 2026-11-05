@@ -1,0 +1,47 @@
+name: logic.hysteresis
+label: "Hysteresis"
+version: 1
+category: signal
+description: "Schmitt-trigger hysteresis comparator with separate low and high thresholds."
+
+aliases: [hysteresis, schmitt trigger, comparator]
+tags: [logic, signal, hysteresis, general-simulator]
+
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: left
+      offset: 20
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params:
+  - name: low
+    label: "Low threshold"
+    type: number
+    default: -1.0
+    description: "Falling-edge threshold."
+  - name: high
+    label: "High threshold"
+    type: number
+    default: 1.0
+    description: "Rising-edge threshold."
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "HYST"
+
+behavior:
+  causality: causal
+  domain: signal
+  state_count: 1
+  equation_template: logic.hysteresis
+
+main_param: high

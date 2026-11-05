@@ -1,0 +1,32 @@
+name: converter.electrical_to_thermal
+type: converter.electrical_to_thermal
+label: Electrical to Thermal
+version: 1
+category: power
+description: Models Joule heating — converts electrical power dissipation to a thermal heat-flow source.
+paradigm: converter
+domain: physical-thermal
+aliases: [electrical to thermal, joule heating]
+tags: [converter]
+ports:
+  inputs:
+    - {id: e, label: e, kind: {domain: physical-electrical}, side: left, offset: 20}
+  outputs:
+    - {id: th, label: th, kind: {domain: physical-thermal}, side: right, offset: 20}
+params: []
+fidelities:
+  - tier: ideal
+    ports:
+      - {id: e, kind: physical-electrical, direction: inout}
+      - {id: th, kind: physical-thermal, direction: out}
+    params: []
+    doc: Joule heating — electrical power P=V·I becomes thermal heat flow Q=P.
+symbol:
+  bbox: [90, 40]
+  shape: rect
+  text: e-th
+behavior:
+  causality: acausal
+  domain: mixed
+  state_count: 0
+  equation_template: converter.electrical_to_thermal

@@ -1,0 +1,34 @@
+name: converter.electrical_to_translational
+type: converter.electrical_to_translational
+label: Electrical to Translational
+version: 1
+category: power
+description: Converts electrical energy to translational mechanical energy (voice coil / BL coupling).
+paradigm: converter
+domain: physical-translational
+aliases: [electrical to translational, voice coil]
+tags: [converter]
+ports:
+  inputs:
+    - {id: e, label: e, kind: {domain: physical-electrical}, side: left, offset: 20}
+  outputs:
+    - {id: t, label: t, kind: {domain: physical-translational}, side: right, offset: 20}
+params:
+  - {name: bl, label: Force factor BL (N/A or V·s/m), type: number, default: 1.0}
+fidelities:
+  - tier: ideal
+    ports:
+      - {id: e, kind: physical-electrical, direction: inout}
+      - {id: t, kind: physical-translational, direction: inout}
+    params:
+      - {id: bl, type: number, default: 1.0}
+    doc: Ideal BL (Lorentz force) coupling between electrical and translational domains.
+symbol:
+  bbox: [90, 40]
+  shape: rect
+  text: e-t
+behavior:
+  causality: acausal
+  domain: mixed
+  state_count: 0
+  equation_template: converter.electrical_to_translational

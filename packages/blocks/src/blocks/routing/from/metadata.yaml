@@ -1,0 +1,31 @@
+name: routing.from
+label: From
+version: 1
+description: Receives a signal from a matching Goto tag.
+paradigm: routing
+domain: signal
+aliases: [from, tag-recv]
+tags: [routing, signal-flow, tag]
+params:
+  - name: tag
+    label: Tag
+    type: string
+    default: sig
+    description: Signal tag name to resolve against Goto blocks.
+ports:
+  inputs: []
+  outputs:
+    - id: out
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: right
+      offset: 20
+fidelities:
+  - tier: n_a
+    ports:
+      - {id: out, kind: signal, direction: out, side: right, offset: 20}
+    params:
+      - {id: tag, type: string, default: sig, doc: Tag name}
+    doc: From endpoint for tag-routed signal.
+symbol: {bbox: [70, 40], shape: rect, text: From}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: routing.from}

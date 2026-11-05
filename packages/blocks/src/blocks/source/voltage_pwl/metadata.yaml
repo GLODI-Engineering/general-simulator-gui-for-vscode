@@ -1,0 +1,40 @@
+name: source.voltage.pwl
+label: "V (PWL)"
+version: 1
+category: sources
+description: Piecewise-linear voltage source. SPICE element V with PWL waveform.
+
+aliases: [VPWL, piecewise linear voltage source]
+tags: [source, electrical, voltage, pwl, transient]
+
+ports:
+  inputs:
+    - id: p
+      label: "+"
+      kind: { domain: electrical }
+      side: left
+      offset: 20
+  outputs:
+    - id: n
+      label: "-"
+      kind: { domain: electrical }
+      side: right
+      offset: 20
+
+params:
+  - name: points
+    label: PWL Points
+    type: string
+    default: "0 0 1u 1 2u 0"
+    description: space-separated time-value pairs
+
+symbol:
+  bbox: [60, 40]
+  shape: circle
+  text: "V (PWL)"
+
+behavior:
+  causality: source
+  domain: electrical
+  state_count: 0
+  equation_template: source.voltage.pwl

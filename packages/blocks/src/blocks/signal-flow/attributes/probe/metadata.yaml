@@ -1,0 +1,57 @@
+name: signal_flow.attributes.probe
+type: signal-flow.attributes.probe
+label: Probe
+version: 1
+category: signal
+description: >
+  Read-only attribute readout block. Outputs scalar values describing the
+  input wire's resolved attributes: width (total element count), dim (JSON-
+  encoded shape list), and complexity flag.
+paradigm: signal-flow
+domain: signal
+aliases: [probe]
+tags: [signal-flow, attributes, probe, dimension]
+params:
+  - name: dim
+    label: Resolved Dimension
+    type: vector
+    default: [1]
+    description: >
+      Resolved input wire dimension (list of ints, e.g. [2,3]).  Injected
+      by the compiler after dim-propagation.
+  - name: complexity
+    label: Complexity
+    type: enum
+    default: real
+    choices: [real, complex]
+    description: "Resolved signal complexity: 'real' or 'complex'."
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 20
+  outputs:
+    - id: width_out
+      label: "w"
+      kind: {domain: signal, dims: scalar}
+      side: right
+      offset: 10
+    - id: dim_out
+      label: "d"
+      kind: {domain: signal, dims: scalar}
+      side: right
+      offset: 20
+    - id: complexity_out
+      label: "c"
+      kind: {domain: signal, dims: scalar}
+      side: right
+      offset: 30
+symbol: {bbox: [70, 40], shape: rect, text: Probe}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.attributes.probe}
+port_sigs:
+  in: "inherit"
+  width_out: "scalar"
+  dim_out: "scalar"
+  complexity_out: "scalar"

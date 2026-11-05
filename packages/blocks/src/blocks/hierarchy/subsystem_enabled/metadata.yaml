@@ -1,0 +1,35 @@
+name: hierarchy.subsystem.enabled
+label: Enabled Subsystem
+version: 1
+category: subsystems
+description: "Enabled subsystem — active when the `enable` port signal is non-zero (spec §11). Renders an extra `enable` boundary port (kind signal, dim [1]) on the parent-side block."
+
+aliases: [enabled subsystem]
+tags: [hierarchy, subsystem, enabled]
+
+ports:
+  inputs:
+    - id: enable
+      label: Enable
+      kind: { domain: signal, dims: { vector: 1 } }
+      side: top
+      offset: 40
+  outputs: []
+
+params:
+  - name: enable_port_name
+    label: Enable port name
+    type: string
+    default: "enable"
+    description: Name of the enable boundary port as seen from the parent.
+
+symbol:
+  bbox: [80, 60]
+  shape: rect
+  text: "En Sub"
+
+behavior:
+  causality: causal
+  domain: mixed
+  state_count: 0
+  equation_template: hierarchy.subsystem.enabled

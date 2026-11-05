@@ -1,0 +1,45 @@
+name: passive.inductor.behavioral
+label: Inductor (expr)
+version: 1
+category: passive
+description: Behavioral inductor with expression-defined inductance.
+
+aliases: [L behavioral, expression inductor]
+tags: [passive, electrical, inductor, behavioral]
+
+ports:
+  inputs:
+    - id: p
+      label: "+"
+      kind: { domain: electrical }
+      side: left
+      offset: 20
+  outputs:
+    - id: n
+      label: "-"
+      kind: { domain: electrical }
+      side: right
+      offset: 20
+
+params:
+  - name: L
+    label: Inductance
+    type: number
+    default: 1.0e-6
+    description: Inductance in henries.
+  - name: expr
+    label: Expression
+    type: string
+    default: ""
+    description: Expression defining inductance value.
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: L (expr)
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 1
+  equation_template: passive.inductor.behavioral

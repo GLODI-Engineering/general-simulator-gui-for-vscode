@@ -1,0 +1,258 @@
+{
+  "schema_version": 2,
+  "model": {
+    "id": "buck-converter-synchronous-pwm",
+    "name": "Synchronous buck converter (PWM)",
+    "grid": 10,
+    "params": [],
+    "blocks": [
+      {
+        "id": "v1",
+        "type": "source.voltage.dc",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [40, 240],
+        "rotation": 90,
+        "mirror": "none",
+        "params": { "V": 12 },
+        "ic": {},
+        "label": "V1"
+      },
+      {
+        "id": "m1",
+        "type": "physical-electrical.semiconductor.mosfet_n",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [300, 80],
+        "rotation": 0,
+        "mirror": "none",
+        "params": { "model": "NMOS", "W": 0.000001, "L": 1.8e-7 },
+        "ic": {},
+        "label": "M1"
+      },
+      {
+        "id": "m2",
+        "type": "physical-electrical.semiconductor.mosfet_n",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [300, 280],
+        "rotation": 0,
+        "mirror": "none",
+        "params": { "model": "NMOS", "W": 0.000001, "L": 1.8e-7 },
+        "ic": {},
+        "label": "M2"
+      },
+      {
+        "id": "v3",
+        "type": "source.voltage.pulse",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [140, 80],
+        "rotation": 90,
+        "mirror": "none",
+        "params": {
+          "V1": 0,
+          "V2": 10,
+          "TD": 0,
+          "TR": 1e-7,
+          "TF": 1e-7,
+          "PW": 4.2e-5,
+          "PER": 1e-4
+        },
+        "ic": {},
+        "label": "V3"
+      },
+      {
+        "id": "v2",
+        "type": "source.voltage.pulse",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [140, 320],
+        "rotation": 90,
+        "mirror": "none",
+        "params": {
+          "V1": 0,
+          "V2": 10,
+          "TD": 4.3e-5,
+          "TR": 1e-7,
+          "TF": 1e-7,
+          "PW": 5.6e-5,
+          "PER": 1e-4
+        },
+        "ic": {},
+        "label": "V2"
+      },
+      {
+        "id": "l1",
+        "type": "physical-electrical.passive.inductor",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [480, 180],
+        "rotation": 0,
+        "mirror": "none",
+        "params": { "L": 0.001 },
+        "ic": {},
+        "label": "L1"
+      },
+      {
+        "id": "c1",
+        "type": "physical-electrical.passive.capacitor",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [640, 140],
+        "rotation": 90,
+        "mirror": "none",
+        "params": { "C": 0.0001 },
+        "ic": {},
+        "label": "C1"
+      },
+      {
+        "id": "r1",
+        "type": "physical-electrical.passive.resistor",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [780, 140],
+        "rotation": 90,
+        "mirror": "none",
+        "params": { "R": 5 },
+        "ic": {},
+        "label": "R1"
+      }
+    ],
+    "wires": [
+      {
+        "id": "w-v1-m1d",
+        "from": { "block": "v1", "port": "p" },
+        "to": { "block": "m1", "port": "d" },
+        "waypoints": [[220, 240], [220, 80]],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-m1s-m2d",
+        "from": { "block": "m1", "port": "s" },
+        "to": { "block": "m2", "port": "d" },
+        "waypoints": [[300, 180]],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-m2d-l1p",
+        "from": { "block": "m2", "port": "d" },
+        "to": { "block": "l1", "port": "p" },
+        "waypoints": [[400, 220], [480, 180]],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-v3p-m1g",
+        "from": { "block": "v3", "port": "p" },
+        "to": { "block": "m1", "port": "g" },
+        "waypoints": [[200, 80]],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-v2p-m2g",
+        "from": { "block": "v2", "port": "p" },
+        "to": { "block": "m2", "port": "g" },
+        "waypoints": [[200, 320]],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-l1n-c1p",
+        "from": { "block": "l1", "port": "n" },
+        "to": { "block": "c1", "port": "p" },
+        "waypoints": [[600, 180], [600, 140]],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-l1n-r1p",
+        "from": { "block": "l1", "port": "n" },
+        "to": { "block": "r1", "port": "p" },
+        "waypoints": [[600, 180], [700, 140]],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-v1n-m2s",
+        "from": { "block": "v1", "port": "n" },
+        "to": { "block": "m2", "port": "s" },
+        "waypoints": [[40, 380], [400, 380]],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-v3n-v1n",
+        "from": { "block": "v3", "port": "n" },
+        "to": { "block": "v1", "port": "n" },
+        "waypoints": [[140, 400], [40, 380]],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-v2n-m2s",
+        "from": { "block": "v2", "port": "n" },
+        "to": { "block": "m2", "port": "s" },
+        "waypoints": [[140, 420], [400, 380]],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-c1n-m2s",
+        "from": { "block": "c1", "port": "n" },
+        "to": { "block": "m2", "port": "s" },
+        "waypoints": [[660, 140], [660, 380], [400, 380]],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w-r1n-m2s",
+        "from": { "block": "r1", "port": "n" },
+        "to": { "block": "m2", "port": "s" },
+        "waypoints": [[800, 140], [800, 380], [400, 380]],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      }
+    ],
+    "lines": [],
+    "nets": [],
+    "simulation": {
+      "analyses": [
+        {
+          "id": "buck_pwm",
+          "type": "TRAN",
+          "t_end": 0.01,
+          "t_step": 1e-5,
+          "uic": true
+        }
+      ],
+      "default_analysis": "buck_pwm"
+    },
+    "metadata": {
+      "notes": "Synchronous buck: V1=12V in, M1 high-side / M2 low-side switch at 10 kHz (PER=100us) with ~42% duty and 1us dead time (V3/V2 PULSE gate drives), L1=1mH, C1=100uF, R1=5 ohm load -> ~5V/1A output. Matches the default TRAN settings (t_end=10ms, t_step=10us, i.e. 100 switching cycles) so it runs cleanly with no setup needed -- just open this file and click Run."
+    }
+  }
+}

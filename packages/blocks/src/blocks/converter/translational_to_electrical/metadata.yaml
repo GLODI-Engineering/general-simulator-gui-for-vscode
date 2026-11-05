@@ -1,0 +1,34 @@
+name: converter.translational_to_electrical
+type: converter.translational_to_electrical
+label: Translational to Electrical
+version: 1
+category: power
+description: Converts translational mechanical energy to electrical energy (back-EMF / generator).
+paradigm: converter
+domain: physical-electrical
+aliases: [translational to electrical]
+tags: [converter]
+ports:
+  inputs:
+    - {id: t, label: t, kind: {domain: physical-translational}, side: left, offset: 20}
+  outputs:
+    - {id: e, label: e, kind: {domain: physical-electrical}, side: right, offset: 20}
+params:
+  - {name: bl, label: Force factor BL (N/A or V·s/m), type: number, default: 1.0}
+fidelities:
+  - tier: ideal
+    ports:
+      - {id: t, kind: physical-translational, direction: inout}
+      - {id: e, kind: physical-electrical, direction: inout}
+    params:
+      - {id: bl, type: number, default: 1.0}
+    doc: Ideal BL (Lorentz force) coupling between translational and electrical domains.
+symbol:
+  bbox: [90, 40]
+  shape: rect
+  text: t-e
+behavior:
+  causality: acausal
+  domain: mixed
+  state_count: 0
+  equation_template: converter.translational_to_electrical

@@ -1,0 +1,158 @@
+{
+  "schema_version": 2,
+  "model": {
+    "id": "subckt-fixture",
+    "name": "SPICE subckt instances",
+    "grid": 10,
+    "params": [],
+    "blocks": [
+      {
+        "id": "V1",
+        "type": "physical-electrical.source.voltage_dc",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [40, 120],
+        "rotation": 0,
+        "mirror": "none",
+        "params": { "V": 5.0 },
+        "ic": {}
+      },
+      {
+        "id": "R1",
+        "type": "physical-electrical.passive.resistor",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [420, 120],
+        "rotation": 0,
+        "mirror": "none",
+        "params": { "R": 1000.0 },
+        "ic": {}
+      },
+      {
+        "id": "X1",
+        "type": "spice-subckt.instance",
+        "paradigm": "spice-subckt",
+        "domain": "physical-electrical",
+        "fidelity": "spice",
+        "position": [200, 100],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {},
+        "ic": {},
+        "subckt_ref": "opamp_def",
+        "subsystem": null
+      },
+      {
+        "id": "X2",
+        "type": "spice-subckt.instance",
+        "paradigm": "spice-subckt",
+        "domain": "physical-electrical",
+        "fidelity": "spice",
+        "position": [200, 320],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {},
+        "ic": {},
+        "subckt_ref": "rc_leaf",
+        "subsystem": null
+      }
+    ],
+    "wires": [
+      {
+        "id": "w_v1_x1",
+        "from": { "block": "V1", "port": "p" },
+        "to": { "block": "X1", "port": "inp" },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical",
+        "label": null
+      },
+      {
+        "id": "w_x1_r1",
+        "from": { "block": "X1", "port": "out" },
+        "to": { "block": "R1", "port": "p" },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical",
+        "label": null
+      }
+    ],
+    "lines": [],
+    "nets": [],
+    "simulation": {
+      "default_analysis": "op1",
+      "analyses": [{ "id": "op1", "type": "OP" }]
+    },
+    "metadata": {
+      "description": "Two spice-subckt.instance blocks: one netlist-only def, one with a .gsim_sch-native body."
+    },
+    "subckt_defs": [
+      {
+        "id": "opamp_def",
+        "name": "OPAMP",
+        "ports": [
+          { "id": "inp", "kind": "physical-electrical" },
+          { "id": "inn", "kind": "physical-electrical" },
+          { "id": "vcc", "kind": "physical-electrical" },
+          { "id": "vee", "kind": "physical-electrical" },
+          { "id": "out", "kind": "physical-electrical" }
+        ],
+        "body": "E1 out 0 inp inn 1e5\nRout out 0 1e6"
+      },
+      {
+        "id": "rc_leaf",
+        "name": "RCLEAF",
+        "ports": [
+          { "id": "a", "kind": "physical-electrical" },
+          { "id": "b", "kind": "physical-electrical" }
+        ],
+        "body": "",
+        "blocks": [
+          {
+            "id": "Rin",
+            "type": "physical-electrical.passive.resistor",
+            "paradigm": "physical-network",
+            "domain": "physical-electrical",
+            "fidelity": "ideal",
+            "position": [0, 0],
+            "rotation": 0,
+            "mirror": "none",
+            "params": { "R": 100.0 },
+            "ic": {}
+          },
+          {
+            "id": "Cout",
+            "type": "physical-electrical.passive.capacitor",
+            "paradigm": "physical-network",
+            "domain": "physical-electrical",
+            "fidelity": "ideal",
+            "position": [160, 0],
+            "rotation": 90,
+            "mirror": "none",
+            "params": { "C": 1e-6 },
+            "ic": {}
+          }
+        ],
+        "wires": [
+          {
+            "id": "w_rc",
+            "from": { "block": "Rin", "port": "n" },
+            "to": { "block": "Cout", "port": "p" },
+            "waypoints": [
+              [96, 32],
+              [160, 32]
+            ],
+            "pinned": false,
+            "net": null,
+            "kind": "physical-electrical",
+            "label": null
+          }
+        ]
+      }
+    ]
+  }
+}

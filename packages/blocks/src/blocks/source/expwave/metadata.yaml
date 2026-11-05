@@ -1,0 +1,66 @@
+name: source.expwave
+label: "Exponential Wave Source"
+version: 1
+category: sources
+description: "Exponential rise/fall signal source, using ngspice EXP() semantics."
+
+aliases: [expwave, exp, exponential source]
+tags: [source, signal, exponential, transient, general-simulator]
+
+ports:
+  inputs: []
+  outputs:
+    - id: out
+      label: ""
+      kind: { domain: signal, dims: scalar }
+      side: right
+      offset: 20
+
+params:
+  - name: v1
+    label: "Initial value"
+    type: number
+    default: 0.0
+    description: "Value before the rise starts."
+  - name: v2
+    label: "Pulsed value"
+    type: number
+    default: 1.0
+    description: "Asymptotic value of the rise."
+  - name: td1
+    label: "Rise delay"
+    type: number
+    default: 0.0
+    min: 0
+    description: "Delay before the rise, in seconds."
+  - name: tau1
+    label: "Rise time constant"
+    type: number
+    default: 1.0
+    min: 0
+    description: "Rise time constant in seconds."
+  - name: td2
+    label: "Fall delay"
+    type: number
+    default: 1e+30
+    min: 0
+    description: "Delay before the fall, in seconds (1e30 = never falls)."
+  - name: tau2
+    label: "Fall time constant"
+    type: number
+    default: 1.0
+    min: 0
+    description: "Fall time constant in seconds."
+
+symbol:
+  bbox: [60, 40]
+  shape: rect
+  text: "EXP"
+
+behavior:
+  causality: source
+  domain: signal
+  state_count: 0
+  equation_template: source.expwave
+
+main_param: tau1

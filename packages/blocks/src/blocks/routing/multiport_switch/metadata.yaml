@@ -1,0 +1,53 @@
+name: routing.multiport_switch
+label: Multiport Switch
+version: 1
+description: Selects one of multiple data inputs based on an integer control signal.
+paradigm: routing
+domain: signal
+aliases: [multiport switch, n-way switch, indexed switch]
+tags: [routing, switch, signal-flow]
+params:
+  - name: n_data
+    label: Number of data inputs
+    type: integer
+    default: 2
+    description: Number of data input ports (data0..data{n_data-1}).
+ports:
+  inputs:
+    - id: control
+      label: ctrl
+      kind: {domain: signal, dims: scalar}
+      side: top
+      offset: 30
+    - id: data0
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 10
+    - id: data1
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 30
+  outputs:
+    - id: out
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: right
+      offset: 20
+fidelities:
+  - tier: n_a
+    ports:
+      - {id: control, kind: signal, direction: in, side: top, offset: 30}
+      - {id: data0, kind: signal, direction: in, side: left, offset: 10}
+      - {id: data1, kind: signal, direction: in, side: left, offset: 30}
+      - {id: out, kind: signal, direction: out, side: right, offset: 20}
+    params:
+      - {id: n_data, type: integer, default: 2, doc: Number of data input ports.}
+    doc: Selects one of N data inputs using an integer control signal.
+symbol: {bbox: [70, 60], shape: rect, text: MSW}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: routing.multiport_switch}
+port_sigs:
+  control: "[1]"
+  "data*": "inherit"
+  out: "from(data0)"

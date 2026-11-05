@@ -1,0 +1,27 @@
+Title: RC transient
+Date: Mon Jan  1 00:00:00 2024
+Plotname: Transient Analysis
+Flags: real
+No. Variables: 3
+No. Points: 5
+Command: version 27
+Variables:
+	0	time	time
+	1	V(net1)	voltage
+	2	I(R1)	current
+Values:
+0	0.00000e+00
+	5.00000e+00
+	5.00000e-03
+1	2.50000e-04
+	3.93469e+00
+	3.93469e-03
+2	5.00000e-04
+	3.03265e+00
+	3.03265e-03
+3	7.50000e-04
+	2.36883e+00
+	2.36883e-03
+4	1.00000e-03
+	1.83940e+00
+	1.83940e-03

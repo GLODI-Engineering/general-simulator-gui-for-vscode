@@ -1,0 +1,15 @@
+name: converter.physical_signal_to_signal
+type: converter.physical_signal_to_signal
+label: Physical Signal to Signal
+version: 1
+category: power
+description: Converts a physical-signal value to a signal-flow signal.
+paradigm: converter
+domain: signal
+aliases: [physical signal to signal]
+tags: [converter]
+ports: {inputs: [{id: in, label: in, kind: {domain: physical-signal}, side: left, offset: 20}], outputs: [{id: out, label: out, kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: [{name: gain, label: Gain, type: number, default: 1.0}]
+fidelities: [{tier: ideal, ports: [{id: in, kind: physical-signal, direction: in}, {id: out, kind: signal, direction: out}], params: [{id: gain, type: number, default: 1.0}], doc: Converts a physical-signal value to a signal-flow signal.}]
+symbol: {bbox: [90, 40], shape: rect, text: ps-s}
+behavior: {causality: causal, domain: mixed, state_count: 0, equation_template: converter.physical_signal_to_signal}

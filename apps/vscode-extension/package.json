@@ -1,0 +1,164 @@
+{
+  "name": "general-simulator-gui",
+  "displayName": "General Simulator GUI for VS Code",
+  "description": "Schematic capture, component authoring and circuit/system simulation inside VS Code, powered by the general-simulator engine.",
+  "version": "0.1.0",
+  "private": false,
+  "publisher": "gensim",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Visualization",
+    "Data Science",
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "generalSimulator",
+          "title": "General Simulator",
+          "icon": "media/gsim.svg"
+        }
+      ]
+    },
+    "views": {
+      "generalSimulator": [
+        {
+          "id": "generalSimulator.library",
+          "name": "Block Library",
+          "type": "webview",
+          "contextualTitle": "General Simulator"
+        }
+      ]
+    },
+    "customEditors": [
+      {
+        "viewType": "generalSimulator.schematic",
+        "displayName": "General Simulator Schematic",
+        "selector": [
+          {
+            "filenamePattern": "*.gsim_sch"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
+    "commands": [
+      {
+        "command": "generalSimulator.showWaveforms",
+        "title": "Show Waveforms",
+        "category": "General Simulator",
+        "icon": "$(graph-line)"
+      },
+      {
+        "command": "generalSimulator.restartKernel",
+        "title": "Restart Simulation Kernel",
+        "category": "General Simulator",
+        "icon": "$(debug-restart)"
+      },
+      {
+        "command": "generalSimulator.showKernelLog",
+        "title": "Show Kernel Log",
+        "category": "General Simulator"
+      },
+      {
+        "command": "generalSimulator.newSchematic",
+        "title": "New Schematic",
+        "category": "General Simulator"
+      },
+      {
+        "command": "generalSimulator.openSchematic",
+        "title": "Open Schematic\u2026",
+        "category": "General Simulator"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "generalSimulator.showWaveforms",
+          "when": "activeCustomEditorId == generalSimulator.schematic",
+          "group": "navigation@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "generalSimulator.showWaveforms"
+        },
+        {
+          "command": "generalSimulator.restartKernel"
+        },
+        {
+          "command": "generalSimulator.showKernelLog"
+        },
+        {
+          "command": "generalSimulator.newSchematic"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "General Simulator",
+      "properties": {
+        "generalSimulator.workspaceRoot": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to the general-simulator checkout (the directory containing pyproject.toml). Leave empty to auto-discover from the open workspace folders."
+        },
+        "generalSimulator.pythonRunner": {
+          "type": "string",
+          "default": "uv",
+          "description": "Command used to run the kernel sidecar. With the default 'uv', the sidecar is launched as `uv run --project <root> python -m kernel_sidecar`."
+        },
+        "generalSimulator.autoStartKernel": {
+          "type": "boolean",
+          "default": true,
+          "description": "Start the kernel sidecar automatically when the extension activates."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p ./",
+    "watch": "tsc -w -p ./",
+    "typecheck": "tsc -p ./ --noEmit",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:integration": "tsc -p ./ && node ./out/integration/runTests.js",
+    "package": "vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/glob": "^9.0.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.90.0",
+    "@vscode/test-electron": "^3.1.0",
+    "glob": "^13.0.6",
+    "mocha": "^12.0.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4",
+    "@vscode/vsce": "^3.2.0"
+  },
+  "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GLODI-Engineering/general-simulator-gui-for-vscode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/GLODI-Engineering/general-simulator-gui-for-vscode/issues"
+  },
+  "homepage": "https://github.com/GLODI-Engineering/general-simulator-gui-for-vscode#readme",
+  "keywords": [
+    "spice",
+    "simulation",
+    "schematic",
+    "power-electronics",
+    "circuit",
+    "ngspice",
+    "control-systems"
+  ]
+}

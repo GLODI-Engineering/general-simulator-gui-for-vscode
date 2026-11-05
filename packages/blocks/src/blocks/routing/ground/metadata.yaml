@@ -1,0 +1,30 @@
+name: routing.ground
+label: "Ground"
+version: 1
+category: reference
+description: "Circuit ground / 0 V reference node."
+
+aliases: [ground, gnd, 0V, physical_electrical.reference.ground]
+tags: [routing, reference, ground, electrical]
+
+ports:
+  inputs:
+    - id: gnd
+      label: "GND"
+      kind: { domain: electrical }
+      side: top
+      offset: 20
+  outputs: []
+
+params: []
+
+symbol:
+  bbox: [40, 40]
+  shape: rect
+  text: "GND"
+
+behavior:
+  causality: acausal
+  domain: electrical
+  state_count: 0
+  equation_template: routing.ground

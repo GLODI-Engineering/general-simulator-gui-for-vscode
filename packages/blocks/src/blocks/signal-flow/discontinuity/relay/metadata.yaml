@@ -1,0 +1,18 @@
+name: signal_flow.discontinuity.relay
+type: signal-flow.discontinuity.relay
+label: Relay
+version: 1
+category: control
+description: Relay hysteresis block.
+paradigm: signal-flow
+domain: signal
+aliases: [relay]
+tags: [signal-flow, discontinuity]
+ports: {inputs: [{id: in, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
+params: [{name: on_switch, label: On switch, type: number, default: 0.5}, {name: off_switch, label: Off switch, type: number, default: -0.5}, {name: on_out, label: On output, type: number, default: 1.0}, {name: off_out, label: Off output, type: number, default: 0.0}]
+fidelities: [{tier: n_a, ports: [{id: in, kind: signal, direction: in, side: left, offset: 20}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: on_switch, type: number, default: 0.5}, {id: off_switch, type: number, default: -0.5}, {id: on_out, type: number, default: 1.0}, {id: off_out, type: number, default: 0.0}], doc: Relay hysteresis block.}]
+symbol: {bbox: [80, 40], shape: rect, text: relay}
+behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.discontinuity.relay}
+port_sigs:
+  in: "inherit"
+  out: "from(in)"

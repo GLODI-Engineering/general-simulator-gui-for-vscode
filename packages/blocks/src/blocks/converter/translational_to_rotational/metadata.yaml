@@ -1,0 +1,15 @@
+name: converter.translational_to_rotational
+type: converter.translational_to_rotational
+label: Translational to Rotational
+version: 1
+category: power
+description: Converts translational mechanical motion to rotational motion.
+paradigm: converter
+domain: physical-rotational
+aliases: [rack pinion]
+tags: [converter]
+ports: {inputs: [{id: t, label: t, kind: {domain: physical-translational}, side: left, offset: 20}], outputs: [{id: r, label: r, kind: {domain: physical-rotational}, side: right, offset: 20}]}
+params: [{name: ratio, label: Ratio, type: number, default: 1.0}]
+fidelities: [{tier: ideal, ports: [{id: t, kind: physical-translational, direction: inout}, {id: r, kind: physical-rotational, direction: inout}], params: [{id: ratio, type: number, default: 1.0}], doc: Converts translational mechanical motion to rotational motion.}]
+symbol: {bbox: [90, 40], shape: rect, text: t-r}
+behavior: {causality: acausal, domain: mixed, state_count: 0, equation_template: converter.translational_to_rotational}

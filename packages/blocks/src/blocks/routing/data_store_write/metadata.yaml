@@ -1,0 +1,33 @@
+name: routing.data_store_write
+label: Data Store Write
+version: 1
+description: Writes a signal value to a named data store.
+paradigm: routing
+domain: signal
+aliases: [data store write, write store, global write]
+tags: [routing, data-store, signal-flow]
+params:
+  - name: store
+    label: Store name
+    type: string
+    default: "store1"
+    description: Name of the data_store_memory block to write to.
+ports:
+  inputs:
+    - id: in
+      label: ""
+      kind: {domain: signal, dims: scalar}
+      side: left
+      offset: 20
+  outputs: []
+fidelities:
+  - tier: n_a
+    ports:
+      - {id: in, kind: signal, direction: in, side: left, offset: 20}
+    params:
+      - {id: store, type: string, default: "store1", doc: Name of the data store to write.}
+    doc: Writes a signal value to a named data store.
+symbol: {bbox: [70, 40], shape: rect, text: DSW}
+behavior: {causality: sink, domain: signal, state_count: 0, equation_template: routing.data_store_write}
+port_sigs:
+  in: "inherit"

@@ -1,0 +1,15 @@
+name: physical_electrical.switch.voltage_controlled
+type: physical-electrical.switch.voltage_controlled
+label: Voltage-Controlled Switch
+version: 1
+category: switch
+description: Voltage-controlled switch with on/off resistance.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [voltage_switch, vswitch]
+tags: [physical, electrical, switch]
+ports: {inputs: [{id: p, label: "+", kind: {domain: physical-electrical}, side: left, offset: 10}, {id: n, label: "-", kind: {domain: physical-electrical}, side: left, offset: 30}, {id: p_ctl, label: "+ctl", kind: {domain: physical-electrical}, side: right, offset: 10}, {id: n_ctl, label: "-ctl", kind: {domain: physical-electrical}, side: right, offset: 30}]}
+params: [{name: v_on, label: Turn-on voltage, type: number, default: 1.0}, {name: v_off, label: Turn-off voltage, type: number, default: 0.0}, {name: r_on, label: On resistance, type: number, default: 0.001}, {name: r_off, label: Off resistance, type: number, default: 1000000.0}]
+fidelities: [{tier: ideal, doc: Ideal voltage-controlled switch.}, {tier: behavioral, doc: Behavioral voltage-controlled switch with smooth transition.}]
+symbol: {bbox: [80, 60], shape: rect, text: SW_V}
+behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.switch.voltage_controlled}

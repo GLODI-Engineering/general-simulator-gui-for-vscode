@@ -1,0 +1,15 @@
+name: physical_electrical.passive.memristor
+type: physical-electrical.passive.memristor
+label: Memristor
+version: 1
+category: passive
+description: Memristive element — resistance depends on charge history.
+paradigm: physical-network
+domain: physical-electrical
+aliases: [memristor]
+tags: [physical, electrical, passive]
+ports: {inputs: [{id: p, label: "+", kind: {domain: physical-electrical}, side: left, offset: 20}], outputs: [{id: n, label: "-", kind: {domain: physical-electrical}, side: right, offset: 20}]}
+params: [{name: R_on, label: On resistance, type: number, default: 100.0}, {name: R_off, label: Off resistance, type: number, default: 16000.0}, {name: D, label: Device length, type: number, default: 1.0e-8}]
+fidelities: [{tier: ideal, doc: Ideal memristor (HP-type linear drift).}, {tier: behavioral, doc: Behavioral memristor with smooth window function.}, {tier: spice, doc: SPICE memristor model.}]
+symbol: {bbox: [60, 40], shape: rect, text: MR}
+behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.passive.memristor}

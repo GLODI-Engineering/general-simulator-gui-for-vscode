@@ -1,0 +1,25 @@
+name: hierarchy.subsystem.virtual
+label: Virtual Subsystem
+version: 1
+category: subsystems
+description: "Virtual subsystem — a subsystem whose boundary is dissolved at compile time (spec §11). No hardware boundary; ports are passed through transparently."
+
+aliases: [virtual subsystem]
+tags: [hierarchy, subsystem, virtual]
+
+ports:
+  inputs: []
+  outputs: []
+
+params: []
+
+symbol:
+  bbox: [80, 60]
+  shape: rect
+  text: "vSub"
+
+behavior:
+  causality: causal
+  domain: mixed
+  state_count: 0
+  equation_template: hierarchy.subsystem.virtual
