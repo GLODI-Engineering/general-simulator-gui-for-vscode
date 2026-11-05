@@ -8,7 +8,7 @@ paradigm: physical-network
 domain: physical-electrical
 aliases: [finite_gain_opamp]
 tags: [physical, electrical, opamp]
-ports: {inputs: [{id: vp, label: V+, kind: {domain: physical-electrical}, side: left, offset: 10}, {id: vn, label: V-, kind: {domain: physical-electrical}, side: left, offset: 30}], outputs: [{id: out, label: out, kind: {domain: physical-electrical}, side: right, offset: 20}]}
+ports: {inputs: [{id: vp, label: V+, kind: {domain: physical-electrical}, side: left, offset: 20}, {id: vn, label: V-, kind: {domain: physical-electrical}, side: left, offset: 40}], outputs: [{id: out, label: out, kind: {domain: physical-electrical}, side: right, offset: 30}]}
 params: [{name: Av, label: Open-loop gain, type: number, default: 100000.0}, {name: v_sat, label: Saturation voltage, type: number, default: 15.0}]
 fidelities: [{tier: ideal, doc: Finite-gain op-amp (ideal).}, {tier: behavioral, doc: Finite-gain op-amp with saturation.}]
 symbol: {bbox: [80, 60], shape: rect, text: OA_Av}

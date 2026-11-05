@@ -8,7 +8,7 @@ paradigm: physical-network
 domain: physical-electrical
 aliases: [opamp, ideal_opamp]
 tags: [physical, electrical, opamp]
-ports: {inputs: [{id: vp, label: V+, kind: {domain: physical-electrical}, side: left, offset: 10}, {id: vn, label: V-, kind: {domain: physical-electrical}, side: left, offset: 30}], outputs: [{id: out, label: out, kind: {domain: physical-electrical}, side: right, offset: 20}]}
+ports: {inputs: [{id: vp, label: V+, kind: {domain: physical-electrical}, side: left, offset: 20}, {id: vn, label: V-, kind: {domain: physical-electrical}, side: left, offset: 40}], outputs: [{id: out, label: out, kind: {domain: physical-electrical}, side: right, offset: 30}]}
 params: []
 fidelities: [{tier: ideal, doc: Ideal op-amp.}, {tier: behavioral, doc: Behavioral op-amp with finite saturation.}]
 symbol: {bbox: [80, 60], shape: rect, text: OA}

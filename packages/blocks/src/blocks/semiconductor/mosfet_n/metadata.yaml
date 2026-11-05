@@ -13,17 +13,17 @@ ports:
       label: Gate
       kind: { domain: physical-electrical }
       side: left
-      offset: 81
+      offset: 30
     - id: d
       label: Drain
       kind: { domain: physical-electrical }
       side: top
-      offset: 51
+      offset: 30
     - id: s
       label: Source
       kind: { domain: physical-electrical }
       side: bottom
-      offset: 51
+      offset: 30
 
 params:
   - name: model
@@ -68,7 +68,7 @@ params:
     description: Source diffusion perimeter.
 
 symbol:
-  bbox: [80, 110]
+  bbox: [60, 60]
   shape: rect
   text: NMOS
 

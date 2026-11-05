@@ -14,19 +14,19 @@ ports:
       label: B
       kind: { domain: physical-electrical }
       side: left
-      offset: 41
+      offset: 30
   outputs:
     - id: c
       label: C
       kind: { domain: physical-electrical }
       side: top
-      offset: 46
+      offset: 30
     - id: e
       label: E
       kind: { domain: physical-electrical }
       side: bottom
-      offset: 46
+      offset: 30
 params: [{name: model, label: Model, type: string, default: QPNP}, {name: beta_F, label: Forward beta, type: number, default: 100.0}]
 fidelities: [{tier: ideal, doc: Ideal PNP BJT.}, {tier: behavioral, doc: Ebers-Moll PNP BJT.}, {tier: spice, doc: SPICE PNP BJT.}]
-symbol: {bbox: [80, 80], shape: rect, text: PNP}
+symbol: {bbox: [60, 60], shape: rect, text: PNP}
 behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.semiconductor.bjt_pnp}

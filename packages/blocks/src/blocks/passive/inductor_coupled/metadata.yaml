@@ -13,23 +13,23 @@ ports:
       label: "p1"
       kind: { domain: physical-electrical }
       side: left
-      offset: 10
+      offset: 20
     - id: n1
       label: "n1"
       kind: { domain: physical-electrical }
       side: left
-      offset: 30
+      offset: 40
   outputs:
     - id: p2
       label: "p2"
       kind: { domain: physical-electrical }
       side: right
-      offset: 10
+      offset: 20
     - id: n2
       label: "n2"
       kind: { domain: physical-electrical }
       side: right
-      offset: 30
+      offset: 40
 
 params:
   - name: K

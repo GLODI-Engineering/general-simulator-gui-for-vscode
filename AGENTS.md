@@ -35,6 +35,39 @@ tests/                cross-package integration, e2e, validation
 Languages: TypeScript (pnpm workspace), Python (uv workspace). The single
 source of truth for cross-language schemas is `packages/schemas/definitions/`.
 
+## Invariant 0a — `general-simulator` is the contract
+
+**The engine is the ground truth. The front end conforms to it, not the other
+way round, and not to several backends at once.**
+
+An earlier attempt made the front end target ngspice, Xyce and
+`general-simulator` simultaneously. Three taxonomies, three sets of
+parameter names and three notions of what a block *is* had to be reconciled
+by hand in the UI, and the result was unmanageable. ngspice and Xyce support
+comes back later, if it comes back, as a translation *from* this contract.
+
+What that means in practice:
+
+- `gsim-core`'s compile registry (`crates/gsim-core/src/compile/spec.rs`) is
+  the authority on what a block is and what it compiles to. When the catalog
+  and the registry disagree, the registry wins and the catalog is wrong.
+- A block type offered in the library should be one the engine can actually
+  run. **Today that is not true**: the catalog carries 265 types and the
+  registry knows 59, and the two use different names — a part spelled
+  `physical-electrical.source.voltage_dc` renders but only
+  `source.voltage.dc` compiles. A sheet you can draw is therefore often not
+  a sheet you can run, with nothing in the UI saying so. Closing that gap is
+  real work and is not done.
+- Parameter names come from the registry too: a DC source takes `V`, an
+  inductor `L` and `IC`, an ideal switch `r_on`/`g_on`/`g_off`/`v_th`/
+  `v_breakdown`/`g_breakdown`. Inventing friendlier names in the front end
+  re-creates the mess this invariant exists to prevent.
+- Engine rules that look like restrictions are part of the contract. A
+  switch gate must be driven through a `converter.sig2phys` in the voltage
+  domain; pointing it straight at a signal source fails with
+  `GateTargetNotSig2Voltage`. The front end should make that shape easy, not
+  paper over it.
+
 ## Invariant 0 — VS Code is the only host
 
 This repo exists because the previous one tried to be a website, a Tauri

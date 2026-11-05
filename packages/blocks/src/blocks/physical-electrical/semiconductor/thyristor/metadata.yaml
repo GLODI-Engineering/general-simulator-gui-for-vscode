@@ -8,8 +8,8 @@ paradigm: physical-network
 domain: physical-electrical
 aliases: [thyristor, scr, SCR]
 tags: [physical, electrical, semiconductor]
-ports: {inputs: [{id: g, label: G, kind: {domain: physical-electrical}, side: left, offset: 20}], outputs: [{id: a, label: A, kind: {domain: physical-electrical}, side: right, offset: 12}, {id: k, label: K, kind: {domain: physical-electrical}, side: right, offset: 28}]}
+ports: {inputs: [{id: g, label: G, kind: {domain: physical-electrical}, side: bottom, offset: 20}], outputs: [{id: a, label: A, kind: {domain: physical-electrical}, side: left, offset: 20}, {id: k, label: K, kind: {domain: physical-electrical}, side: right, offset: 20}]}
 params: [{name: model, label: Model, type: string, default: SCR}, {name: V_bo, label: Breakover voltage, type: number, default: 400.0}, {name: I_h, label: Holding current, type: number, default: 0.01}]
 fidelities: [{tier: ideal, doc: Ideal thyristor.}, {tier: behavioral, doc: Behavioral thyristor.}, {tier: spice, doc: SPICE thyristor model.}]
-symbol: {bbox: [70, 40], shape: rect, text: SCR}
+symbol: {bbox: [60, 40], shape: rect, text: SCR}
 behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.semiconductor.thyristor}

@@ -8,7 +8,7 @@ paradigm: physical-network
 domain: physical-electrical
 aliases: [band_limited_opamp]
 tags: [physical, electrical, opamp]
-ports: {inputs: [{id: vp, label: V+, kind: {domain: physical-electrical}, side: left, offset: 10}, {id: vn, label: V-, kind: {domain: physical-electrical}, side: left, offset: 30}], outputs: [{id: out, label: out, kind: {domain: physical-electrical}, side: right, offset: 20}]}
+ports: {inputs: [{id: vp, label: V+, kind: {domain: physical-electrical}, side: left, offset: 20}, {id: vn, label: V-, kind: {domain: physical-electrical}, side: left, offset: 40}], outputs: [{id: out, label: out, kind: {domain: physical-electrical}, side: right, offset: 30}]}
 params: [{name: gbp, label: Gain-bandwidth product Hz, type: number, default: 1000000.0}, {name: sr, label: Slew rate V/s, type: number, default: 500000.0}, {name: rin, label: Input resistance, type: number, default: 1000000.0}, {name: rout, label: Output resistance, type: number, default: 75.0}]
 fidelities: [{tier: ideal, doc: Band-limited op-amp (ideal tier).}, {tier: behavioral, doc: Band-limited op-amp with GBP and slew rate.}]
 symbol: {bbox: [80, 60], shape: rect, text: OA_BW}

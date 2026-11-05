@@ -14,18 +14,18 @@ ports:
       label: G
       kind: { domain: physical-electrical }
       side: left
-      offset: 81
+      offset: 30
   outputs:
     - id: d
       label: D
       kind: { domain: physical-electrical }
       side: top
-      offset: 51
+      offset: 30
     - id: s
       label: S
       kind: { domain: physical-electrical }
       side: bottom
-      offset: 51
+      offset: 30
 params:
   - name: model
     label: Model
@@ -55,7 +55,7 @@ fidelities:
   - tier: spice
     doc: SPICE P-channel MOSFET.
 symbol:
-  bbox: [80, 110]
+  bbox: [60, 60]
   shape: rect
   text: PMOS
 behavior:
