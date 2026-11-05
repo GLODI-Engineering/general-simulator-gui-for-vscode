@@ -53,8 +53,8 @@ bar, toasts).
 **Why.** OpenModelica's OMEdit couples its canvas tightly to the compiler;
 the result is the editor freezing for 5–6 seconds on every keystroke for
 medium-sized models. The single biggest UX failure mode of every
-open-source Simulink alternative is this synchronous coupling. Source:
-`docs/specs/simulink_oss_gui_analysis.md` §3, `docs/specs/simulator-architecture-spec.md`
+open-source block-diagram alternative is this synchronous coupling. Source:
+`docs/specs/block-diagram-gui-analysis.md` §3, `docs/specs/simulator-architecture-spec.md`
 §4 "Interaction latency requirement" and §10 design principle 1.
 
 **Check.** `scripts/check-invariants.sh` greps the canvas folder for

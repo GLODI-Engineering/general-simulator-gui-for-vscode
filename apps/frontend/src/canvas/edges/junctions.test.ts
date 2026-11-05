@@ -82,12 +82,19 @@ describe("computeJunctions", () => {
       "b:p": [200, 100],
       "c:k": [100, 300],
     });
-    expect(computeJunctions([rail, tap], tips)).toEqual([{ x: 100, y: 100 }]);
+    // Two junctions here, both real: the tap at (100,100), and (200,100)
+    // where both wires terminate on b's pin — that pin's own lead makes three.
+    expect(computeJunctions([rail, tap], tips)).toEqual(
+      expect.arrayContaining([{ x: 100, y: 100 }, { x: 200, y: 100 }]),
+    );
   });
 
-  it("does not dot a vertex sitting on another wire's endpoint-only extremity", () => {
-    // Touching the very end of a segment is the port case, not a tap: the
-    // terminal is already drawn there.
+  it("dots a pin where two wires terminate — the component's lead is the third conductor", () => {
+    // The everyday case: a capacitor tapping a rail that carries on to the
+    // load. Both wires *end* on the cap's pin, so no wire has three vertices
+    // anywhere and nothing bends onto a segment — yet three conductors meet.
+    // This came out undotted while the identical node one component along,
+    // formed by a bend instead, was dotted.
     const a = wire("a", "p1:n", "p2:p", []);
     const b = wire("b", "p2:p", "p3:p", []);
     const tips = endpoints({
@@ -95,7 +102,15 @@ describe("computeJunctions", () => {
       "p2:p": [100, 100],
       "p3:p": [100, 200],
     });
-    expect(computeJunctions([a, b], tips)).toEqual([]);
+    expect(computeJunctions([a, b], tips)).toEqual([{ x: 100, y: 100 }]);
+  });
+
+  it("does not dot a pin where only one wire terminates", () => {
+    // An ordinary two-conductor termination; Port.tsx already draws the
+    // terminal there.
+    const only = wire("a", "p1:n", "p2:p", []);
+    const tips = endpoints({ "p1:n": [0, 100], "p2:p": [100, 100] });
+    expect(computeJunctions([only], tips)).toEqual([]);
   });
 
   it("reports each junction once, however many wires meet there", () => {

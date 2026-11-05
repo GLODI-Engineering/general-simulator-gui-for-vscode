@@ -27,8 +27,8 @@
 
 A cross-platform power electronics and control system simulator that bridges the gap between:
 
-- **SPICE-class tools** (LTspice, Xyce): real device physics, switching transients, but no control blocks
-- **Block diagram tools** (Simulink, PLECS): clean control integration, but ideal switches only
+- **SPICE-class tools** (a reference SPICE, Xyce): real device physics, switching transients, but no control blocks
+- **Block diagram tools** (the commercial block-diagram and piecewise-linear simulators): clean control integration, but ideal switches only
 
 The software allows users to work at the abstraction level they need and **synthesize downward** on demand:
 
@@ -36,12 +36,12 @@ The software allows users to work at the abstraction level they need and **synth
 |---|---|---|
 | 0 — Behavioral | Math blocks | TF block, PID block, hysteresis block |
 | 1 — Functional | Averaged models | Averaged switch model, CCM/DCM |
-| 2 — Circuit (ideal) | Ideal switches + passives | PLECS-style |
-| 3 — Circuit (physical) | Real device models + parasitics | LTspice-style |
+| 2 — Circuit (ideal) | Ideal switches + passives | a commercial piecewise-linear simulator-style |
+| 3 — Circuit (physical) | Real device models + parasitics | a reference SPICE-style |
 
 ### Key differentiators
 
-- Python as the scripting language (not MATLAB)
+- Python as the scripting language (not a numerical computing environment)
 - Live workspace with numpy/scipy/matplotlib/PyTorch access
 - Web-first, natively cross-platform without UI rewrites
 - Paid web SaaS tier with GPU/HPC backend — same frontend, different kernel URL
@@ -78,7 +78,7 @@ The software allows users to work at the abstraction level they need and **synth
 
 **Rationale:** Web-first design target with full reuse on desktop via Tauri. React is the only frontend ecosystem mature enough to credibly serve browser, desktop, and (if needed) mobile without rewriting the UI layer.
 
-The inverse of the MATLAB Online failure mode: MATLAB was designed for desktop and ported to web as an afterthought, producing a buggy, slow web experience. This project is designed web-first and wrapped for desktop.
+The inverse of the a numerical computing environment Online failure mode: a numerical computing environment was designed for desktop and ported to web as an afterthought, producing a buggy, slow web experience. This project is designed web-first and wrapped for desktop.
 
 ### Core dependencies
 
@@ -153,7 +153,7 @@ All canvas operations (drag, connect, delete, undo) must feel instantaneous. Tar
 
 ### Design goal
 
-Give users the MATLAB workspace experience with Python as the language. After every code execution, the user sees their live variables — name, type, shape, preview value — in a persistent panel. This state survives across executions within a session.
+Give users the a numerical computing environment workspace experience with Python as the language. After every code execution, the user sees their live variables — name, type, shape, preview value — in a persistent panel. This state survives across executions within a session.
 
 ### What the kernel provides
 
@@ -510,7 +510,7 @@ Zero frontend code changes between these contexts. This is the architectural pro
 
 ## 10. Design Principles Derived from Prior Art
 
-These are lessons from the failure modes of OpenModelica, Xcos, Scilab, and MATLAB Online, incorporated as hard requirements.
+These are lessons from the failure modes of OpenModelica, Xcos, Scilab, and a numerical computing environment Online, incorporated as hard requirements.
 
 **1. Optimistic canvas.** All canvas operations are instantaneous. Solver validation is asynchronous. The user is never blocked by a compiler round-trip to complete a diagram edit.
 
@@ -518,7 +518,7 @@ These are lessons from the failure modes of OpenModelica, Xcos, Scilab, and MATL
 
 **3. Inline type validation.** Port compatibility is checked on wire draw. Type mismatches surface as visual indicators on the wire, not as cryptic solver errors at run time.
 
-**4. Orthogonal wire routing.** All wires are horizontal/vertical segments. Routing is deterministic and stable across save/load cycles. Diagonal wires are not permitted. This matches Simulink's routing and is what engineers expect.
+**4. Orthogonal wire routing.** All wires are horizontal/vertical segments. Routing is deterministic and stable across save/load cycles. Diagonal wires are not permitted. This matches the conventional editor's routing and is what engineers expect.
 
 **5. Hierarchy with breadcrumbs.** Composite blocks are navigable by double-click. The current hierarchy level is shown in a breadcrumb bar. Edits inside a subsystem propagate immediately.
 
@@ -526,7 +526,7 @@ These are lessons from the failure modes of OpenModelica, Xcos, Scilab, and MATL
 
 **7. Never transfer full simulation data.** The waveform viewer operates on LOD slices. Raw data never transits the network to the frontend. First paint uses the coarsest LOD level (kilobytes).
 
-**8. Python, not MATLAB.** The scripting language is Python throughout. numpy, scipy, and matplotlib are first-class citizens. The workspace panel reflects the Python namespace, not a proprietary variable system.
+**8. Python, not a numerical computing environment.** The scripting language is Python throughout. numpy, scipy, and matplotlib are first-class citizens. The workspace panel reflects the Python namespace, not a proprietary variable system.
 
 **9. Same UI for all platforms.** The React frontend is the product. Desktop and web are deployment targets, not separate products. Features developed for web are available on desktop immediately.
 

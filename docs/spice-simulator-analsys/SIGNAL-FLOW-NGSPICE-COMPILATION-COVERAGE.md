@@ -2,7 +2,7 @@
 title: signal-flow -> ngspice compilation coverage
 status: living document — update alongside packages/simulator/src/simulator/compiler/signal_flow_spice_lower.py
 related:
-  - Misc/oss-analysis/work-on-simulink/palette-catalogue.md (source Simulink catalog)
+  - the block-diagram palette catalogue (clean-room analysis notes, not tracked here)
   - docs/spice-simulator-analsys/NGSPICE-XSPICE-MODEL-CATALOG.md (ngspice primitive reference)
   - progress.backend.yaml BP17 (BE-60..BE-63)
   - docs/simulator-component-support.md (the *other* coverage doc — frontend simulator-compat.yaml filter, unrelated system, see "Relationship to the frontend simulator filter" below)
@@ -34,14 +34,14 @@ Two mechanisms, chosen per block, both implemented in `signal_flow_spice_lower.p
   `packages/simulator/src/simulator/solvers/xspice_bootstrap.py` (BE-60) to
   actually load at solve time — this happens automatically now, no manual setup.
 
-## Coverage by Simulink category
+## Coverage by the block-diagram convention category
 
 Legend: **Compiled** = real ngspice card(s) emitted and verified against a live
 ngspice run · **Unsupported (explicit)** = the block type is recognized but
 raises `UnsupportedSignalFlowParamError` with a documented reason, never
 silently wrong · **Not started** = no compiler entry exists; falls through to
 the generic "Unknown block type" error if you try, and no catalog block exists
-at all for most of the remaining Simulink-side rows.
+at all for most of the remaining the block-diagram convention-side rows.
 
 ### Continuous
 
@@ -52,7 +52,7 @@ at all for most of the remaining Simulink-side rows.
 | `transfer_function` | **Compiled** | XSPICE `s_xfer` — LAPLACE isn't a native E-source keyword in this ngspice build, emulated via `s_xfer`'s `num_coeff`/`den_coeff` per the manual's own documented workaround (§5.2.5) |
 | `pid` | **Not started** | Catalog block exists (`signal_flow.continuous.pid`); no compiler entry yet. Natural next step: compile to a `sum`+`gain`+`int`+`d_dt` network (P/I/D terms), or a single `s_xfer` if the PID form reduces to one transfer function |
 | `state_space` | **Not started** | Catalog block exists (`signal_flow.continuous.state_space`); `s_xfer` is SISO-scalar only, so a general A/B/C/D matrix needs a *generated* network of one `int`+B-source per state — a codegen problem, not a single codemodel |
-| Integrator Limited, Second-Order (+Limited), Descriptor State-Space, PID 2DOF, Transport/Variable Delay, Zero-Pole | **Not started** | No catalog block exists for any of these yet (Simulink-only, per the source catalog) |
+| Integrator Limited, Second-Order (+Limited), Descriptor State-Space, PID 2DOF, Transport/Variable Delay, Zero-Pole | **Not started** | No catalog block exists for any of these yet (the block-diagram convention-only, per the source catalog) |
 
 ### Discontinuities
 
@@ -92,7 +92,7 @@ at all for most of the remaining Simulink-side rows.
 
 ### Lookup Tables
 
-Not one of the main Simulink categories tracked above, but a real `signal-flow.*`
+Not one of the main the block-diagram convention categories tracked above, but a real `signal-flow.*`
 family with two catalog blocks:
 
 | `signal-flow.lookup.*` block | Status | Mechanism / note |
@@ -104,7 +104,7 @@ family with two catalog blocks:
 
 - **`signal-flow.attributes.*`** (`ic`, `probe`, `signal_specification`, `unit_conversion`) — structural/annotation blocks, not computational; out of scope for this compiler pass by nature, not by gap.
 - **`signal-flow.routing.*`**, **`signal-flow.sink.*`**, **`signal-flow.source.*`** — separate concern (signal routing/sinks/sources), not touched by BE-60..63 and not part of this document's scope.
-- **Matrix Operations**, **User-Defined Functions** (Simulink categories) — no catalog blocks exist for either. Per the earlier ngspice/XSPICE capability survey: Matrix Operations aren't circuit primitives at all (vector/matrix preprocessing, better suited to the scipy path or parameter-resolution time); User-Defined Functions have no real SPICE-native equivalent beyond simple B-source expressions (already covered for `math_function`-style single-expression cases) — arbitrary user code would need ngspice's `d_process`/`d_cosim` external co-simulation escape hatch, a materially different, unstarted piece of work.
+- **Matrix Operations**, **User-Defined Functions** (the block-diagram convention categories) — no catalog blocks exist for either. Per the earlier ngspice/XSPICE capability survey: Matrix Operations aren't circuit primitives at all (vector/matrix preprocessing, better suited to the scipy path or parameter-resolution time); User-Defined Functions have no real SPICE-native equivalent beyond simple B-source expressions (already covered for `math_function`-style single-expression cases) — arbitrary user code would need ngspice's `d_process`/`d_cosim` external co-simulation escape hatch, a materially different, unstarted piece of work.
 
 ## The `astate` timestep caveat (Discrete category)
 
@@ -163,5 +163,5 @@ be user-selectable from the UI rather than purely a backend capability.
 - `packages/simulator/tests/test_signal_flow_spice_lower.py` and
   `test_signal_flow_spice_lower_discrete.py` — the exact-card-text unit tests
   plus real-ngspice integration tests to mirror for a new block type.
-- `Misc/oss-analysis/work-on-simulink/palette-catalogue.md` — the source
-  Simulink catalog every "Not started" row above is drawn from.
+- the block-diagram palette catalogue (clean-room analysis notes, not tracked here) — the source
+  the block-diagram convention catalog every "Not started" row above is drawn from.

@@ -182,4 +182,4 @@ def test_unknown_target_is_rejected() -> None:
     ir1 = _rc_to_ground([])
 
     with pytest.raises(ValueError, match="Unknown netlist target"):
-        write_netlist(ir1, _TRAN, target="ltspice")
+        write_netlist(ir1, _TRAN, target="not-a-real-target")

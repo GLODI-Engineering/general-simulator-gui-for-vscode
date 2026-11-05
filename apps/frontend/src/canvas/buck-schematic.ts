@@ -104,7 +104,7 @@ function place(
 }
 
 /**
- * Synchronous buck converter matching the LTspice reference schematic:
+ * Synchronous buck converter matching the a reference SPICE reference schematic:
  * - M1 (high-side NMOS): drain → Vin+, source → switching node, gate → V3
  * - M2 (low-side NMOS): drain → switching node, source → GND, gate → V2
  * - V1: input supply (Vin+ / GND)

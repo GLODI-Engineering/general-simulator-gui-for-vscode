@@ -638,7 +638,7 @@ def _r_source_constant(block: IR1Block, nets: dict[str, str]) -> str:
 
 def _r_source_sine(block: IR1Block, nets: dict[str, str]) -> str:
     # A zero-input B-source using ngspice's special `time` variable —
-    # phase/frequency/amplitude/bias all match Simulink's Sine Wave block
+    # phase/frequency/amplitude/bias all match the conventional editor's Sine Wave block
     # convention (phase in radians).
     amp = _num(block, "amplitude", 1.0)
     freq = _num(block, "frequency", 1.0)

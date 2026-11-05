@@ -12,7 +12,7 @@ tier are deferred behind explicit hooks documented in §15.
 | Topic | Source of truth |
 |---|---|
 | Architectural invariants | [`AGENTS.md`](../../AGENTS.md) + [`simulator-architecture-spec.md`](./simulator-architecture-spec.md) §10 |
-| Problem catalogue | [`simulink_oss_gui_analysis.md`](./simulink_oss_gui_analysis.md) |
+| Problem catalogue | [`block-diagram-gui-analysis.md`](./block-diagram-gui-analysis.md) |
 | Keyboard map | [`keyboard-map.md`](./keyboard-map.md) (binding registry derives from it) |
 | IR-1 / IR-2 contract | [`pipeline_IR_design.md`](./pipeline_IR_design.md) |
 | OSS clean-room rules | AGENTS.md §1 (license firewall) |
@@ -82,7 +82,7 @@ v1 ships when **all** of the following work:
 
 - Drag a block from Quick Insert (`Ctrl+.` twice) onto the canvas.
 - Drag from one port to another to create an orthogonal wire.
-- Rotate (`Ctrl+R`), mirror (`Ctrl+I`), delete, copy/paste with Simulink
+- Rotate (`Ctrl+R`), mirror (`Ctrl+I`), delete, copy/paste following the block-diagram convention
   chords from [`keyboard-map.md`](./keyboard-map.md).
 - Undo and redo, including wire repair after rotate/delete.
 - Edit a block's parameters in the docked property inspector; changes
@@ -585,7 +585,7 @@ to keep undo granular.
 
 ### 10.2 `Alt+Enter` — main parameter focus
 
-Per Simulink and `keyboard-map.md` §6:
+Per the block-diagram convention and `keyboard-map.md` §6:
 
 - Pressing `Alt+Enter` with a single block selected focuses the *main*
   parameter of that block (declared in the catalog's metadata YAML as
@@ -596,7 +596,7 @@ This is the keyboard-driven inline edit lane. No modal opens.
 
 ### 10.3 Property panel toggle
 
-`Ctrl+Shift+I` toggles panel visibility (Simulink-aligned).
+`Ctrl+Shift+I` toggles panel visibility (convention-aligned).
 
 ### 10.4 Validation in the inspector
 
@@ -642,7 +642,7 @@ type ActionId = string  // dot.notation, e.g. "canvas.rotate.cw"
 
 type Binding = {
   id: ActionId
-  chord: string           // Simulink-style, e.g. "Ctrl+R"
+  chord: string           // block-diagram-style, e.g. "Ctrl+R"
   contexts: Context[]     // when this binding applies
   handler: (ctx: ActionContext) => void
 }

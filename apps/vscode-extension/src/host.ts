@@ -27,6 +27,13 @@ import * as vscode from "vscode";
 
 import { KernelSidecar } from "./kernel";
 import {
+  SYMBOLS_DIR,
+  SymbolLibraryError,
+  loadSymbols,
+  saveSymbol,
+  symbolWorkspace,
+} from "./symbolLibrary";
+import {
   type HostBoundMessage,
   type WebviewBoundMessage,
   type WebviewRole,
@@ -112,6 +119,74 @@ export class GsimHost implements vscode.Disposable {
    * the message was consumed, so callers can fall through to their own
    * surface-specific handling (document lifecycle, etc.).
    */
+  /**
+   * Write an authored component to the workspace and tell every webview.
+   *
+   * The catalog merge in the authoring webview is optimistic — the component
+   * appears in the library immediately — so this reports only the outcome,
+   * and a failure has to be visible or the user believes a component is saved
+   * that is not.
+   */
+  private async persistSymbol(name: string, metadata: unknown): Promise<void> {
+    const workspace = symbolWorkspace();
+    if (!workspace) {
+      const reason =
+        "no workspace folder is open, so there is nowhere to save it. " +
+        "Open the folder your design lives in and save again.";
+      this.log.appendLine(`[symbols] refused to save ${name}: ${reason}`);
+      this.broadcast({ type: "gsim/symbolSaveFailed", name, reason });
+      void vscode.window.showErrorMessage(`Could not save component "${name}": ${reason}`);
+      return;
+    }
+
+    try {
+      const file = await saveSymbol(workspace, name, metadata);
+      this.log.appendLine(`[symbols] saved ${name} -> ${file.fsPath}`);
+      this.broadcast({ type: "gsim/symbolSaved", name, path: file.fsPath });
+      await this.publishSymbols();
+    } catch (error) {
+      const reason =
+        error instanceof SymbolLibraryError || error instanceof Error
+          ? error.message
+          : String(error);
+      this.log.appendLine(`[symbols] failed to save ${name}: ${reason}`);
+      this.broadcast({ type: "gsim/symbolSaveFailed", name, reason });
+      void vscode.window.showErrorMessage(`Could not save component "${name}": ${reason}`);
+    }
+  }
+
+  /** Read the workspace's components and push them to every webview. */
+  async publishSymbols(): Promise<void> {
+    const symbols = await this.readSymbols();
+    this.broadcast({ type: "gsim/userSymbols", metadata: symbols });
+  }
+
+  /**
+   * Components currently on disk. Also used to seed a webview's init payload,
+   * so the library has them before React mounts instead of popping in after.
+   */
+  async readSymbols(): Promise<unknown[]> {
+    const workspace = symbolWorkspace();
+    if (!workspace) {
+      return [];
+    }
+    const { metadata, failures } = await loadSymbols(workspace);
+    for (const failure of failures) {
+      // Reported, never silently skipped: a component that vanishes with no
+      // explanation is worse than one that is visibly broken.
+      this.log.appendLine(
+        `[symbols] ignoring ${SYMBOLS_DIR}/${failure.file}: ${failure.reason}`,
+      );
+    }
+    if (failures.length > 0) {
+      void vscode.window.showWarningMessage(
+        `${failures.length} component file(s) in ${SYMBOLS_DIR} could not be read. ` +
+          "See General Simulator: Show Kernel Log.",
+      );
+    }
+    return metadata;
+  }
+
   handleCommonMessage(source: vscode.Webview, raw: unknown): boolean {
     if (!isHostBoundMessage(raw)) {
       return false;
@@ -126,6 +201,11 @@ export class GsimHost implements vscode.Disposable {
     switch (message.type) {
       case "gsim/restartKernel":
         void this.kernel.restart();
+        return true;
+
+      // --- user-authored components --------------------------------------
+      case "gsim/saveSymbol":
+        void this.persistSymbol(message.name, message.metadata);
         return true;
 
       // --- in-app File buttons -> the workbench's own commands -----------

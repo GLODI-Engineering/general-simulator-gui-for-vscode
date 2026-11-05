@@ -18,6 +18,7 @@ import { serialize } from "../file/serializer";
 import { initKernelFromVsCode } from "../ipc/transport";
 import { getWebviewInit, onHostMessage, postToHost } from "../ipc/vscode-host";
 import { loadCatalogFromManifest } from "../library/catalog";
+import { mergeUserSymbols } from "../symbol-editor/save";
 import { insertCatalogBlock } from "../library/insert";
 import { ErrorBoundary } from "../shell/ErrorBoundary";
 import { useGraphStore, useIpcStore, useLibraryStore } from "../store";
@@ -93,6 +94,17 @@ function boot(): void {
   if (Object.keys(useLibraryStore.getState().catalog).length === 0) {
     useLibraryStore.getState().setCatalog(loadCatalogFromManifest());
   }
+
+  // User components are files in the workspace. The host reads them before
+  // this bundle runs and puts them in the init payload, so they are in the
+  // library from the first paint rather than popping in afterwards; the
+  // subscription below keeps up with edits made on disk.
+  mergeUserSymbols(getWebviewInit()?.userSymbols ?? []);
+  onHostMessage((message) => {
+    if (message.type === "gsim/userSymbols") {
+      mergeUserSymbols(message.metadata);
+    }
+  });
 
   const init = getWebviewInit();
   if (typeof init?.documentText === "string" && init.documentText.trim().length > 0) {

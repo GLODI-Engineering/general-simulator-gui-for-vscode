@@ -18,7 +18,7 @@ guide in the same commit.
 
 `general-simulator` is a multi-level power-electronics and
 control-system simulator. Vision: bridge SPICE-class circuits and
-Simulink-class block diagrams, with **downward synthesis** (block →
+block-diagram-class block diagrams, with **downward synthesis** (block →
 op-amp circuit, block → C code) as the marquee feature. v1 ships the
 control-block tier first.
 
@@ -108,7 +108,7 @@ Same reading order as your sibling implementation track, plus:
 ### 3.4 You are studying an OSS tool (research output)
 
 1. [`AGENTS.md`](../../AGENTS.md) — note the GPL firewall.
-2. [`docs/specs/simulink_oss_gui_analysis.md`](../specs/simulink_oss_gui_analysis.md)
+2. [`docs/specs/block-diagram-gui-analysis.md`](../specs/block-diagram-gui-analysis.md)
    — the 10 problem categories. Every extraction must map back to
    one or more of these.
 
@@ -168,11 +168,11 @@ Sequence:
 | [`simulator-architecture-spec.md`](../specs/simulator-architecture-spec.md) | Big-picture architecture: stack choices, contexts (desktop/web), the IPC contract at the top level, HDF5/LOD story, compute architecture. Strategic level. |
 | [`frontend-spec.md`](../specs/frontend-spec.md) | Everything inside `apps/frontend/`: canvas, store, routing, library, inspector, registries, file persistence, layout shell. Implementation level. |
 | [`backend-spec.md`](../specs/backend-spec.md) | Everything inside `apps/kernel-sidecar/` and `packages/simulator/`: process model, IPC server, kernel namespace, simulation pipeline, solver protocol, Xyce plug-in point, path discovery. Implementation level. |
-| [`keyboard-map.md`](../specs/keyboard-map.md) | Every keyboard chord, the context in which it fires, and the source (Simulink-aligned or "ours" with rationale). The binding registry in `keymap.ts` derives from this file. |
+| [`keyboard-map.md`](../specs/keyboard-map.md) | Every keyboard chord, the context in which it fires, and the source (convention-aligned or "ours" with rationale). The binding registry in `keymap.ts` derives from this file. |
 | [`pipeline_IR_design.md`](../specs/pipeline_IR_design.md) | IR-1 (topology graph) and IR-2 (flat equation system) design; component-library policy; legacy-code interfacing (C/Python external blocks). |
 | [`adaptive_simulation_backend_idea.md`](../specs/adaptive_simulation_backend_idea.md) | Solver roadmap: PWL custom engine, SPICE-class via EEspice/ngspice, Xyce for HPC. Auto-detection cascade. Strategic. |
 | [`simulator_concept.md`](../specs/simulator_concept.md) | Product vision: multi-level abstraction, downward synthesis, the QSPICE-driven market hypothesis. Strategic. |
-| [`simulink_oss_gui_analysis.md`](../specs/simulink_oss_gui_analysis.md) | The 10 problem categories every research note maps back to. Reference. |
+| [`block-diagram-gui-analysis.md`](../specs/block-diagram-gui-analysis.md) | The 10 problem categories every research note maps back to. Reference. |
 | [`dae_ode_coupling_hybrid_simulation.md`](../specs/dae_ode_coupling_hybrid_simulation.md) | Mathematical background: how the physical DAE layer couples to the control ODE layer. Reference. |
 
 ### 4.3 Progress plans
@@ -354,7 +354,7 @@ the answer lives.
 | Why we use IndexedDB on web (not File System Access API) | `frontend-spec.md` §16.5 |
 | Why we use scipy in v1 (not Xyce) | `backend-spec.md` §1.2 |
 | What we will not import from GPL OSS | AGENTS.md §1 (license firewall) |
-| The 10 OSS problem categories | `simulink_oss_gui_analysis.md` |
+| The 10 OSS problem categories | `block-diagram-gui-analysis.md` |
 
 ---
 
