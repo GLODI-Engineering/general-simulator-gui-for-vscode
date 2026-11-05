@@ -13,13 +13,13 @@ ports:
       label: ""
       kind: { domain: signal, dims: scalar }
       side: left
-      offset: 25
+      offset: 20
   outputs:
     - id: out
       label: ""
       kind: { domain: signal, dims: scalar }
       side: right
-      offset: 25
+      offset: 20
 
 params:
   - name: num
@@ -34,7 +34,7 @@ params:
     description: Denominator polynomial coefficients, highest power first.
 
 symbol:
-  bbox: [60, 50]
+  bbox: [60, 40]
   shape: rect
   text: "H(s)"
 

@@ -13,6 +13,8 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import Ajv from "ajv";
 import yaml from "js-yaml";
+
+import { loadCatalog } from "./catalog-core";
 import { describe, expect, it } from "vitest";
 import loadCatalogImpl from "./catalog";
 
@@ -274,28 +276,52 @@ describe("FE-49: tline block names in catalog manifest", () => {
 // catalog-manifest.json).
 // ---------------------------------------------------------------------------
 
-describe("FE-170: build-catalog-manifest.ts preserves symbol.primitives", () => {
-  it("bjt_npn and mosfet_n manifest entries carry a non-empty primitives array", () => {
-    const manifestPath = resolve(__dirname, "./catalog-manifest.json");
-    const manifest = JSON.parse(readFileSync(manifestPath, "utf-8")) as Array<{
-      metadata: {
-        name: string;
-        symbol: { shape: string; primitives?: Array<{ type: string }> };
-      };
-    }>;
+describe("primitive artwork survives the catalog loader", () => {
+  // This used to read bjt_npn and mosfet_n out of the manifest, which were
+  // the only two built-ins authored with `shape: primitives`. Their artwork
+  // now lives in `canvas/nodes/symbols/` and the metadata carries none, so
+  // there is no built-in example left — but the path is still live and still
+  // matters: the symbol editor writes `shape: "primitives"` for every
+  // component a user draws (see symbol-editor/save.ts). A fixture covers the
+  // property without depending on a built-in that may be redrawn again.
+  it("keeps a primitives array, with every primitive's discriminator intact", () => {
+    const authored = {
+      name: "user.test_widget",
+      label: "Test widget",
+      version: 1 as const,
+      category: "user",
+      description: "fixture",
+      paradigm: "physical-network",
+      domain: "physical-electrical",
+      aliases: [],
+      tags: [],
+      fidelities: [{ tier: "n_a" as const, ports: [], params: [], doc: "fixture" }],
+      ports: { inputs: [], outputs: [] },
+      params: [],
+      symbol: {
+        bbox: [60, 40] as [number, number],
+        shape: "primitives" as const,
+        primitives: [
+          { type: "line", x1: 0, y1: 20, x2: 60, y2: 20 },
+          { type: "rect", x: 10, y: 10, w: 40, h: 20 },
+        ],
+      },
+      behavior: {
+        causality: "acausal" as const,
+        domain: "electrical",
+        state_count: 0,
+        equation_template: "user.test_widget",
+      },
+    };
 
-    for (const name of [
-      "physical_electrical.semiconductor.bjt_npn",
-      "physical_electrical.semiconductor.mosfet_n",
-    ]) {
-      const entry = manifest.find((e) => e.metadata.name === name);
-      expect(entry, `Missing manifest entry: ${name}`).toBeDefined();
-      expect(entry?.metadata.symbol.shape).toBe("primitives");
-      expect(entry?.metadata.symbol.primitives?.length).toBeGreaterThan(0);
-      // No field dropped/renamed: every primitive kept its discriminator.
-      for (const p of entry?.metadata.symbol.primitives ?? []) {
-        expect(typeof p.type).toBe("string");
-      }
+    const loaded = loadCatalog([authored as never]);
+    const entry = loaded["user.test_widget"];
+    expect(entry).toBeDefined();
+    const symbol = entry?.symbol as { shape: string; primitives?: Array<{ type: string }> };
+    expect(symbol.shape).toBe("primitives");
+    expect(symbol.primitives?.length).toBe(2);
+    for (const primitive of symbol.primitives ?? []) {
+      expect(typeof primitive.type).toBe("string");
     }
   });
 });

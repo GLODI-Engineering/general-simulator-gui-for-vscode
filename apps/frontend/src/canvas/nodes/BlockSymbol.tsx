@@ -212,7 +212,16 @@ const PORT_CLEARANCE = 26;
 /** Vertical pitch between the static label and the value label when stacked. */
 const LABEL_ROW = 15;
 
-const LABEL_SIDE_PREFERENCE: readonly PortSide[] = ["top", "bottom", "right", "left"];
+/**
+ * Below the part first.
+ *
+ * A name above a symbol sits where the part's own leads and any wire coming
+ * into the top of it already are, and on a three-terminal device whose only
+ * free face is the right it ended up written across the body. Below is clear
+ * on almost every part, because a two-terminal symbol's artwork is a thin
+ * band on its port row and the space under it is empty.
+ */
+const LABEL_SIDE_PREFERENCE: readonly PortSide[] = ["bottom", "top", "right", "left"];
 
 /**
  * Which face of the block the static label (and the value under it) sits on.
@@ -243,15 +252,13 @@ export function pickLabelSide(occupiedSides: ReadonlySet<PortSide>): PortSide {
  */
 export function pickValuePlacement(
   labelSide: PortSide,
-  occupiedSides: ReadonlySet<PortSide>,
+  _occupiedSides: ReadonlySet<PortSide>,
   hasName: boolean,
 ): [PortSide, number] {
-  if (labelSide === "top" || labelSide === "bottom") {
-    const opposite = labelSide === "top" ? "bottom" : "top";
-    if (!occupiedSides.has(opposite)) {
-      return [opposite, 0];
-    }
-  }
+  // The value stacks directly under the name, on the same side. Splitting
+  // them to opposite faces put a part's two pieces of text as far apart as
+  // the symbol is tall, and the reader had to work out that they belonged
+  // together. `R1` then `10 kΩ` on consecutive lines reads as one caption.
   return [labelSide, hasName ? 1 : 0];
 }
 
@@ -539,7 +546,13 @@ export function BlockSymbol({
     : (labelForTop ?? schematic?.staticLabel ?? (schematic ? undefined : metadata.label));
   const inlineFallbackLabel = schematic === undefined ? (typeText ?? metadata.label) : undefined;
 
-  const inkHeight = symbolInkHeight(
+  // A drawing that declares its own band is believed; the derivation below is
+  // only a fallback for the older artwork that cannot say.
+  const declaredInk =
+    schematic?.inkHeight !== undefined
+      ? schematic.inkHeight * SYMBOL_SCALE
+      : undefined;
+  const derivedInk = symbolInkHeight(
     ports.map((port) => ({
       rotatedSide: port.rotatedSide as string,
       offset: resolvedPorts.inputs
@@ -549,8 +562,13 @@ export function BlockSymbol({
     resolvedBbox,
     scaledHeight,
     rotated,
-    schematic !== undefined,
+    schematic !== undefined && schematic.inkHeight === undefined,
   );
+  const inkHeight = declaredInk ?? derivedInk;
+
+  const signalPortCount = [...resolvedPorts.inputs, ...resolvedPorts.outputs].filter(
+    (port) => shouldShowPortLabel(port.kind, 2),
+  ).length;
 
   const occupiedSides = new Set<PortSide>(ports.map((port) => port.rotatedSide as PortSide));
   const labelSide = pickLabelSide(occupiedSides);
@@ -573,7 +591,12 @@ export function BlockSymbol({
     >
       {showLabels ? <title>{metadata.label}</title> : null}
       <g transform={`scale(${SYMBOL_SCALE}) ${symbolTransform(rotation, mirror, resolvedBbox)}`}>
-        {schematic ? (
+        {/* A `shape: "custom"` path is artwork the document itself carries, so
+            it outranks a catalog drawing: the more specific description of
+            this particular block wins over the generic one for its type. */}
+        {metadata.symbol.shape === "custom" && metadata.symbol.path ? (
+          <path d={metadata.symbol.path} fill="#ffffff" stroke="#111827" strokeWidth={1.5} />
+        ) : schematic ? (
           schematic.render({ width, height, params, rotation, mirror })
         ) : (
           <>
@@ -639,7 +662,7 @@ export function BlockSymbol({
             y={port.center.y - blockPosition[1]}
             kind={portDef.kind}
             direction={direction}
-            label={shouldShowPortLabel(portDef.kind) ? portDef.label : undefined}
+            label={shouldShowPortLabel(portDef.kind, signalPortCount) ? portDef.label : undefined}
             side={port.rotatedSide}
             decorate={!schematic?.selfDrawnPorts}
           />

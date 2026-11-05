@@ -40,7 +40,7 @@ params:
     description: "Fixed sample period in seconds."
 
 symbol:
-  bbox: [80, 40]
+  bbox: [60, 40]
   shape: rect
   text: "N(z)/D(z)"
 

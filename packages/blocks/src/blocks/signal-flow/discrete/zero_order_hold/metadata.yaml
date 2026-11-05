@@ -11,7 +11,7 @@ tags: [signal-flow, discrete]
 ports: {inputs: [{id: in, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
 params: [{name: sample_time, label: Sample time, type: number, default: 0.01}]
 fidelities: [{tier: n_a, ports: [{id: in, kind: signal, direction: in, side: left, offset: 20}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: sample_time, type: number, default: 0.01}], doc: Zero-order hold sampler.}]
-symbol: {bbox: [70, 40], shape: rect, text: ZOH}
+symbol: {bbox: [60, 40], shape: rect, text: ZOH}
 behavior: {causality: causal, domain: signal, state_count: 0, equation_template: signal_flow.discrete.zero_order_hold}
 port_sigs:
   in: "inherit"

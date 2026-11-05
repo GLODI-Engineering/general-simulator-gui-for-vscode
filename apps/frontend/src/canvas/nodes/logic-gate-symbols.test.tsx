@@ -74,12 +74,21 @@ describe("logic.hysteresis — box with the Schmitt-trigger loop glyph", () => {
   });
 });
 
-describe("passive.inductor.coupled — transformer symbol (two coils + core)", () => {
-  it("draws two winding paths, a laminated core, and two polarity dots", () => {
+describe("coupled windings — with and without a core", () => {
+  it("draws a coupled inductor as two coils and two polarity dots, no core", () => {
+    // A coupled inductor is air-cored. It used to be drawn with core bars,
+    // which made it indistinguishable from a transformer — and the two are
+    // different parts.
     const markup = markupFor("passive.inductor.coupled");
-    expect((markup.match(/<path/g) ?? []).length).toBe(2);
+    expect((markup.match(/<path/g) ?? []).length).toBeGreaterThanOrEqual(2);
     expect((markup.match(/<circle/g) ?? []).length).toBe(2);
-    // Core: two vertical bars in addition to the four lead lines + two coils.
-    expect((markup.match(/<line/g) ?? []).length).toBe(6);
+  });
+
+  it("draws a transformer with the core bars the coupled inductor lacks", () => {
+    const coupled = markupFor("passive.inductor.coupled");
+    const transformer = markupFor("physical_electrical.passive.transformer");
+    const lines = (markup: string) => (markup.match(/<line/g) ?? []).length;
+    expect(lines(transformer)).toBeGreaterThan(lines(coupled));
+    expect((transformer.match(/<circle/g) ?? []).length).toBe(2);
   });
 });

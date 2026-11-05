@@ -157,8 +157,11 @@ function renderSymbol(
 }
 
 describe("pickLabelSide", () => {
-  it("puts the name above a block whose ports are on its left and right", () => {
-    expect(pickLabelSide(sides("left", "right"))).toBe("top");
+  it("puts the name below a block whose ports are on its left and right", () => {
+    // Below, not above: a name above sits where the part's leads and any wire
+    // entering the top already are, while the space under a two-terminal
+    // symbol's thin band is empty.
+    expect(pickLabelSide(sides("left", "right"))).toBe("bottom");
   });
 
   it("falls through to the right of a vertically-ported part, as a schematic does", () => {
@@ -179,12 +182,15 @@ describe("pickLabelSide", () => {
 });
 
 describe("pickValuePlacement", () => {
-  it("brackets the symbol: name above, value below", () => {
-    expect(pickValuePlacement("top", sides("left", "right"), true)).toEqual(["bottom", 0]);
+  it("stacks the value directly under the name, as one caption", () => {
+    // Split to opposite faces, a part's two pieces of text ended up as far
+    // apart as the symbol is tall and the reader had to work out they
+    // belonged together. `R1` then `10 kΩ` on consecutive lines does not.
+    expect(pickValuePlacement("bottom", sides("left", "right"), true)).toEqual(["bottom", 1]);
   });
 
-  it("keeps the value below the box even when the block has no name", () => {
-    expect(pickValuePlacement("top", sides("left", "right"), false)).toEqual(["bottom", 0]);
+  it("puts the value on the name's row when there is no name", () => {
+    expect(pickValuePlacement("bottom", sides("left", "right"), false)).toEqual(["bottom", 0]);
   });
 
   it("stacks the value under a name that sits beside the part", () => {
@@ -197,21 +203,23 @@ describe("pickValuePlacement", () => {
 });
 
 describe("static label placement avoids the block's own ports", () => {
-  it("puts a tall right-ported block's name above it, not over its port labels", () => {
-    // machine.pmsm is 80×88 — taller than it is wide, and every one of its four
-    // outputs draws a label just off its right edge. The aspect-ratio rule this
-    // replaced put the name there too.
+  it("keeps a tall right-ported block's name off its port labels", () => {
+    // machine.pmsm is 80×88, and every one of its four outputs draws a label
+    // just off its right edge. The rule this replaced read the aspect ratio
+    // and put the name there too, on top of them. Ports are what a label has
+    // to avoid, so the name goes to a face with none — below, here.
     const { outerTexts } = renderSymbol(metadataFor("machine.pmsm"), {}, "Traction motor");
     const name = outerTexts.find((node) => node.textContent === "Traction motor");
     expect(name).toBeDefined();
     expect(name?.getAttribute("text-anchor")).toBe("middle");
-    expect(Number(name?.getAttribute("y"))).toBeLessThan(0);
+    // Below the box, not beside it where the port labels are.
+    expect(Number(name?.getAttribute("y"))).toBeGreaterThan(0);
   });
 
-  it("keeps a wide block's name above it", () => {
+  it("puts a wide block's name below it", () => {
     const { outerTexts } = renderSymbol(metadataFor("extensibility.pyblock"), {}, "Long name here");
     const name = outerTexts.find((node) => node.textContent === "Long name here");
-    expect(Number(name?.getAttribute("y"))).toBeLessThan(0);
+    expect(Number(name?.getAttribute("y"))).toBeGreaterThan(0);
   });
 });
 

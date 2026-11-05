@@ -11,7 +11,7 @@ tags: [signal-flow, discrete]
 ports: {inputs: [{id: in, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
 params: [{name: length, label: Length, type: integer, default: 1}, {name: ic, label: Initial condition, type: number, default: 0.0}, {name: sample_time, label: Sample time, type: number, default: 0.01}]
 fidelities: [{tier: n_a, ports: [{id: in, kind: signal, direction: in, side: left, offset: 20}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: length, type: integer, default: 1}, {id: ic, type: number, default: 0.0}, {id: sample_time, type: number, default: 0.01}], doc: Multi-sample discrete delay.}]
-symbol: {bbox: [70, 40], shape: rect, text: z^-N}
+symbol: {bbox: [60, 40], shape: rect, text: z^-N}
 behavior: {causality: causal, domain: signal, state_count: dynamic, equation_template: signal_flow.discrete.delay}
 port_sigs:
   in: "inherit"

@@ -8,8 +8,8 @@ paradigm: physical-network
 domain: physical-electrical
 aliases: [comparator]
 tags: [physical, electrical, opamp]
-ports: {inputs: [{id: vp, label: V+, kind: {domain: physical-electrical}, side: left, offset: 20}, {id: vn, label: V-, kind: {domain: physical-electrical}, side: left, offset: 40}], outputs: [{id: out, label: out, kind: {domain: physical-electrical}, side: right, offset: 30}]}
+ports: {inputs: [{id: vp, label: V+, kind: {domain: physical-electrical}, side: left, offset: 20}, {id: vn, label: V-, kind: {domain: physical-electrical}, side: left, offset: 40}], outputs: [{id: out, label: out, kind: {domain: physical-electrical}, side: right, offset: 20}]}
 params: [{name: v_hys, label: Hysteresis voltage, type: number, default: 0.0}, {name: v_oh, label: Output high, type: number, default: 5.0}, {name: v_ol, label: Output low, type: number, default: 0.0}]
 fidelities: [{tier: ideal, doc: Ideal comparator.}, {tier: behavioral, doc: Behavioral comparator with hysteresis.}]
-symbol: {bbox: [80, 60], shape: rect, text: CMP}
+symbol: {bbox: [60, 40], shape: rect, text: CMP}
 behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.opamp.comparator}

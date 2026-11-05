@@ -64,53 +64,7 @@ symbol:
   bbox:
     - 60
     - 60
-  shape: primitives
-  primitives:
-  - type: line
-    x1: 0
-    y1: 41
-    x2: 29
-    y2: 41
-  - type: line
-    x1: 29
-    y1: 24
-    x2: 29
-    y2: 58
-    lw: 2.52
-  - type: line
-    x1: 29
-    y1: 31
-    x2: 46
-    y2: 14
-  - type: line
-    x1: 46
-    y1: 14
-    x2: 46
-    y2: 0
-  - type: line
-    x1: 29
-    y1: 50
-    x2: 46
-    y2: 67
-  - type: line
-    x1: 46
-    y1: 67
-    x2: 46
-    y2: 80
-  - type: polygon
-    pts:
-    - - 44
-      - 62
-    - - 37
-      - 58
-    - - 37
-      - 65
-    filled: true
-  - type: circle
-    cx: 40
-    cy: 40
-    r: 40
-    lw: 1.6800000000000002
+  shape: rect
 behavior:
   causality: acausal
   domain: electrical

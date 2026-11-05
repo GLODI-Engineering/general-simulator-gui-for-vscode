@@ -1,0 +1,130 @@
+import type { SymbolDrawing } from "../symbol-drawing";
+
+import absDrawing from "./abs";
+import bjtNpnDrawing from "./bjtNpn";
+import bjtPnpDrawing from "./bjtPnp";
+import comparatorDrawing from "./comparator";
+import controlledCurrentSourceDrawing from "./controlledCurrentSource";
+import controlledVoltageSourceDrawing from "./controlledVoltageSource";
+import coupledInductorDrawing from "./coupledInductor";
+import currentSensorDrawing from "./currentSensor";
+import deadbandDrawing from "./deadband";
+import derivativeDrawing from "./derivative";
+import gainDrawing from "./gain";
+import genericSwitchDrawing from "./genericSwitch";
+import idealSwitchDrawing from "./idealSwitch";
+import integratorDrawing from "./integrator";
+import jfetNDrawing from "./jfetN";
+import jfetPDrawing from "./jfetP";
+import ledDrawing from "./led";
+import mathFunctionDrawing from "./mathFunction";
+import memristorDrawing from "./memristor";
+import minMaxDrawing from "./minMax";
+import mosfetNDrawing from "./mosfetN";
+import mosfetPDrawing from "./mosfetP";
+import opampDrawing from "./opamp";
+import productDrawing from "./product";
+import quantizerDrawing from "./quantizer";
+import rateLimiterDrawing from "./rateLimiter";
+import saturationDrawing from "./saturation";
+import signDrawing from "./sign";
+import sumDrawing from "./sum";
+import thyristorDrawing from "./thyristor";
+import tlineLosslessDrawing from "./tlineLossless";
+import transferFunctionDrawing from "./transferFunction";
+import transformerDrawing from "./transformer";
+import unitDelayDrawing from "./unitDelay";
+import voltageSensorDrawing from "./voltageSensor";
+import zenerDrawing from "./zener";
+import zeroOrderHoldDrawing from "./zeroOrderHold";
+
+/**
+ * Which artwork draws which catalog types.
+ *
+ * This is the whole seam. A new or replaced drawing is one file in this
+ * directory plus one entry here; nothing about what a component *is* —
+ * ports, bbox, parameters, what it compiles to — lives on this side, so
+ * swapping artwork cannot change behaviour.
+ *
+ * A type may appear once. Several types sharing one drawing is normal: the
+ * catalog carries both a short and a namespaced spelling of most electrical
+ * parts, and they are the same component.
+ */
+export const SYMBOL_DRAWINGS: Record<string, SymbolDrawing> = {
+  // ── Transistors ──────────────────────────────────────────────────────────
+  "semi.mosfet.n": mosfetNDrawing,
+  "physical_electrical.semiconductor.mosfet_n": mosfetNDrawing,
+  "semi.mosfet.vdmos": mosfetNDrawing,
+  "semi.mosfet.p": mosfetPDrawing,
+  "physical_electrical.semiconductor.mosfet_p": mosfetPDrawing,
+  "semi.bjt.npn": bjtNpnDrawing,
+  "physical_electrical.semiconductor.bjt_npn": bjtNpnDrawing,
+  "semi.bjt.pnp": bjtPnpDrawing,
+  "physical_electrical.semiconductor.bjt_pnp": bjtPnpDrawing,
+  "semi.jfet.n": jfetNDrawing,
+  "semi.jfet.p": jfetPDrawing,
+
+  // ── Switches ─────────────────────────────────────────────────────────────
+  "passive.switch.ideal": idealSwitchDrawing,
+  "passive.switch.generic": genericSwitchDrawing,
+
+  // ── Magnetics ────────────────────────────────────────────────────────────
+  "physical_electrical.passive.transformer": transformerDrawing,
+  "physical_electrical.passive.mutual_inductor": transformerDrawing,
+  "passive.inductor.coupled": coupledInductorDrawing,
+
+  // ── Diodes and two-terminal specials ─────────────────────────────────────
+  "semi.diode.zener": zenerDrawing,
+  "physical_electrical.semiconductor.zener": zenerDrawing,
+  "physical_electrical.semiconductor.led": ledDrawing,
+  "physical_electrical.semiconductor.thyristor": thyristorDrawing,
+  "passive.memristor": memristorDrawing,
+  "physical_electrical.passive.memristor": memristorDrawing,
+  "physical_electrical.sensor.current": currentSensorDrawing,
+  "physical_electrical.sensor.voltage": voltageSensorDrawing,
+  "physical_electrical.tline.lossless": tlineLosslessDrawing,
+  "physical_electrical.tline.lossy": tlineLosslessDrawing,
+  "physical_electrical.source.controlled_voltage": controlledVoltageSourceDrawing,
+  "physical_electrical.source.controlled_current": controlledCurrentSourceDrawing,
+
+  // ── Op-amps ──────────────────────────────────────────────────────────────
+  "physical_electrical.opamp.ideal": opampDrawing,
+  "physical_electrical.opamp.finite_gain": opampDrawing,
+  "physical_electrical.opamp.band_limited": opampDrawing,
+  "physical_electrical.opamp.comparator": opampDrawing,
+
+  // ── Signal-flow / control ────────────────────────────────────────────────
+  "control.gain": gainDrawing,
+  "signal_flow.math.gain": gainDrawing,
+  "control.integrator": integratorDrawing,
+  "control.derivative": derivativeDrawing,
+  "control.saturation": saturationDrawing,
+  "control.deadband": deadbandDrawing,
+  "control.rate_limiter": rateLimiterDrawing,
+  "control.transfer_function": transferFunctionDrawing,
+  "control.discrete_transfer_function": transferFunctionDrawing,
+  "control.sum": sumDrawing,
+  "signal_flow.math.sum": sumDrawing,
+  "control.product": productDrawing,
+  "signal_flow.math.product": productDrawing,
+  "control.delay": unitDelayDrawing,
+  "control.zero_order_hold": zeroOrderHoldDrawing,
+  "control.quantizer": quantizerDrawing,
+  "signal_flow.math.abs": absDrawing,
+  "signal_flow.math.sign": signDrawing,
+  "signal_flow.math.min_max": minMaxDrawing,
+  "math.fn1": mathFunctionDrawing,
+  "math.fn2": mathFunctionDrawing,
+  "math.fn3": mathFunctionDrawing,
+  "logic.comparator": comparatorDrawing,
+};
+
+/** The artwork for a catalog type, if this directory supplies one. */
+export function findDrawing(...names: Array<string | undefined>): SymbolDrawing | undefined {
+  for (const name of names) {
+    if (name && SYMBOL_DRAWINGS[name]) {
+      return SYMBOL_DRAWINGS[name];
+    }
+  }
+  return undefined;
+}

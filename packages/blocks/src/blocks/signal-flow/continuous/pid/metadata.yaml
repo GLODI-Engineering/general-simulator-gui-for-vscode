@@ -11,7 +11,7 @@ tags: [signal-flow, continuous]
 ports: {inputs: [{id: in, label: "", kind: {domain: signal, dims: scalar}, side: left, offset: 20}], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
 params: [{name: kp, label: Kp, type: number, default: 1.0}, {name: ki, label: Ki, type: number, default: 0.0}, {name: kd, label: Kd, type: number, default: 0.0}, {name: n, label: Filter N, type: number, default: 100.0}, {name: form, label: Form, type: enum, default: parallel, choices: [parallel, ideal]}]
 fidelities: [{tier: n_a, ports: [{id: in, kind: signal, direction: in, side: left, offset: 20}, {id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: kp, type: number, default: 1.0}, {id: ki, type: number, default: 0.0}, {id: kd, type: number, default: 0.0}, {id: n, type: number, default: 100.0}, {id: form, type: enum, default: parallel, choices: [parallel, ideal]}], doc: Continuous PID controller.}]
-symbol: {bbox: [70, 40], shape: rect, text: PID}
+symbol: {bbox: [60, 40], shape: rect, text: PID}
 behavior: {causality: causal, domain: signal, state_count: 1, equation_template: signal_flow.continuous.pid}
 main_param: kp
 port_sigs:

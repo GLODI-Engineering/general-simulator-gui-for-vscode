@@ -13,13 +13,13 @@ ports:
       label: e
       kind: { domain: signal, dims: scalar }
       side: left
-      offset: 25
+      offset: 20
   outputs:
     - id: out
       label: u
       kind: { domain: signal, dims: scalar }
       side: right
-      offset: 25
+      offset: 20
 
 params:
   - name: kp
@@ -46,7 +46,7 @@ params:
     description: Clamp integrator when output saturates.
 
 symbol:
-  bbox: [60, 50]
+  bbox: [60, 40]
   shape: rect
   text: "PID"
 
