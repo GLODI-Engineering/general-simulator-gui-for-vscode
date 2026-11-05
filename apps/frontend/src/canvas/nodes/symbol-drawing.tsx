@@ -157,10 +157,20 @@ export function SymbolLabel({
   ...rest
 }: SymbolLabelProps): ReactNode {
   let fontSize: number = LABEL_SIZE[size];
-  if (maxWidth !== undefined && children.length > 0) {
-    const estimated = GLYPH_ADVANCE * fontSize * children.length;
+  let content = children;
+  if (maxWidth !== undefined && content.length > 0) {
+    const estimated = GLYPH_ADVANCE * fontSize * content.length;
     if (estimated > maxWidth) {
       fontSize = Math.max(MIN_FONT, (fontSize * maxWidth) / estimated);
+      // Shrinking stops at MIN_FONT, so on its own the floor *guarantees*
+      // overflow for a long enough string — a gain of `0.011068` drew at the
+      // floor and still ran outside its own triangle and over the wires.
+      // Past that point the text is clipped instead, which loses a character
+      // but never damages the drawing.
+      const fits = Math.floor(maxWidth / (GLYPH_ADVANCE * fontSize));
+      if (content.length > fits) {
+        content = fits > 1 ? `${content.slice(0, fits - 1)}…` : "…";
+      }
     }
   }
   const transform = uprightAbout(x, y, ctx.rotation ?? 0, ctx.mirror ?? "none");
@@ -175,7 +185,7 @@ export function SymbolLabel({
       pointerEvents="none"
       {...rest}
     >
-      {children}
+      {content}
     </text>
   );
   return transform ? <g transform={transform}>{text}</g> : text;

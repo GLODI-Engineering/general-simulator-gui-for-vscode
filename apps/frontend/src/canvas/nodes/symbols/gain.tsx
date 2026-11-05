@@ -39,18 +39,57 @@ const curve = (pts: string) => (
   <polyline points={pts} fill="none" stroke={STROKE} strokeWidth={SW} strokeLinejoin="round" strokeLinecap="round" />
 );
 
+const SI: ReadonlyArray<[number, string]> = [
+  [1e9, "G"],
+  [1e6, "M"],
+  [1e3, "k"],
+  [1, ""],
+  [1e-3, "m"],
+  [1e-6, "µ"],
+  [1e-9, "n"],
+];
+
+/**
+ * A gain's value, short enough to read inside its own triangle.
+ *
+ * The value *is* the block's data, so it belongs in the symbol rather than
+ * beside it — but a real controller gain is `0.011067758972493853`, which no
+ * triangle holds. Clipping it to "0.0…" says less than nothing.
+ *
+ * Engineering notation is what an engineer writes anyway: that gain is
+ * `11.1m`, five characters, and it fits. Three significant figures, because
+ * the inspector is where full precision belongs.
+ */
+function compact(value: string): string {
+  const n = Number(value);
+  if (!Number.isFinite(n) || value.trim() === "") {
+    return value;
+  }
+  if (n === 0) {
+    return "0";
+  }
+  const magnitude = Math.abs(n);
+  for (const [scale, prefix] of SI) {
+    if (magnitude >= scale) {
+      const scaled = Number((n / scale).toPrecision(3));
+      return `${scaled}${prefix}`;
+    }
+  }
+  return n.toExponential(1);
+}
+
 function draw(ctx: DrawContext): ReactNode {
   return (
     <g>
       {L(0, 20, 12, 20)}
       {L(50, 20, 60, 20)}
       <polygon points="12,6 12,34 50,20" fill={FILL} stroke={STROKE} strokeWidth={SW} strokeLinejoin="round" />
-      <SymbolLabel ctx={ctx} x={24} y={20} size="md" maxWidth={20}>
-        {param(ctx, "k", "k")}
+      <SymbolLabel ctx={ctx} x={24} y={20} size="md" maxWidth={24}>
+        {compact(param(ctx, "k", "k"))}
       </SymbolLabel>
     </g>
   );
 }
 
-const drawing: SymbolDrawing = { draw };
+const drawing: SymbolDrawing = { draw, inkHeight: 30 };
 export default drawing;
