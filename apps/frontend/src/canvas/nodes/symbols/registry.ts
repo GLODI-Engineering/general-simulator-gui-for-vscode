@@ -31,6 +31,7 @@ import opampDrawing from "./opamp";
 import productDrawing from "./product";
 import quantizerDrawing from "./quantizer";
 import rateLimiterDrawing from "./rateLimiter";
+import { fromDrawing, gotoDrawing } from "./routingTag";
 import saturationDrawing from "./saturation";
 import signDrawing from "./sign";
 import sumDrawing from "./sum";
@@ -89,6 +90,13 @@ export const SYMBOL_DRAWINGS: Record<string, SymbolDrawing> = {
   "physical_electrical.sensor.voltage": voltageSensorDrawing,
   "physical_electrical.tline.lossless": tlineLosslessDrawing,
   "physical_electrical.tline.lossy": tlineLosslessDrawing,
+  // The Goto/From pair, which lets a sheet carry a signal without drawing a
+  // wire across it. Both were blank rectangles, which defeats the point:
+  // the value of a tag is reading where the signal goes without following
+  // a line, and a tag you cannot read is not a tag.
+  "routing.goto": gotoDrawing,
+  "routing.from": fromDrawing,
+
   // Domain converters. Every one of these fell back to a blank rectangle,
   // so eleven different parts drew identically; the symbol now carries the
   // boundary it exists to cross.
