@@ -29,6 +29,7 @@ const COMPAT_DATA: SimulatorCompatMap = {
         "passive.inductor",
         // Independent sources
         "source.voltage.dc",
+        "source.voltage.sin",
         "source.current.dc",
         // Dependent sources
         "source.dependent.vcvs",
@@ -55,6 +56,9 @@ const COMPAT_DATA: SimulatorCompatMap = {
         "control.gain",
         "control.saturation",
         "control.vco",
+        "control.integrator",
+        "control.derivative",
+        "control.delay",
         "control.sum",
         "control.product",
         "control.pid",

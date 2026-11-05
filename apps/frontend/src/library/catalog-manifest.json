@@ -1072,22 +1072,6 @@
           ],
           "ports": [
             {
-              "direction": "in",
-              "id": "in0",
-              "kind": "signal",
-              "label": "",
-              "offset": 10,
-              "side": "left"
-            },
-            {
-              "direction": "in",
-              "id": "in1",
-              "kind": "signal",
-              "label": "",
-              "offset": 30,
-              "side": "left"
-            },
-            {
               "direction": "out",
               "id": "out",
               "kind": "signal",
@@ -1114,28 +1098,7 @@
         }
       ],
       "ports": {
-        "inputs": [
-          {
-            "id": "in0",
-            "kind": {
-              "dims": "scalar",
-              "domain": "signal"
-            },
-            "label": "",
-            "offset": 10,
-            "side": "left"
-          },
-          {
-            "id": "in1",
-            "kind": {
-              "dims": "scalar",
-              "domain": "signal"
-            },
-            "label": "",
-            "offset": 30,
-            "side": "left"
-          }
-        ],
+        "inputs": [],
         "outputs": [
           {
             "id": "out",
@@ -1147,7 +1110,20 @@
             "offset": 20,
             "side": "right"
           }
-        ]
+        ],
+        "variadic_inputs": {
+          "count_from": "n_inputs",
+          "template": {
+            "id": "in",
+            "kind": {
+              "dims": "scalar",
+              "domain": "signal"
+            },
+            "label": "",
+            "offset": 0,
+            "side": "left"
+          }
+        }
       },
       "symbol": {
         "bbox": [
