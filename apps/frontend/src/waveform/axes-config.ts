@@ -176,7 +176,10 @@ export function buildAxes(
   theme: ChartTheme = CHART_THEME_FALLBACK,
 ): uPlot.Axis[] {
   const common = {
-    space: 44,
+    // Minimum pixels between y ticks. Tight enough that a short pane — one
+    // sharing its height with a legend and a measurement table — still gets
+    // three or four labels rather than a lone "0".
+    space: 34,
     font: theme.font,
     labelFont: theme.labelFont,
     stroke: theme.tickText,
@@ -393,9 +396,28 @@ export function buildAlignedData(
     const key = `${ref.simId}::${ref.signalName}`;
     const sig = cache.get(key);
     const values = sig ? sig.values : new Float64Array(timeArray.length);
-    data.push(indices ? _applyIndices(values, indices) : values);
+    const sampled = indices ? _applyIndices(values, indices) : values;
+    // Display gain is applied *after* decimation, not before. The two are
+    // equivalent — scaling by a positive constant cannot change which
+    // sample of a bucket is its min or max — and doing it here scales at
+    // most MAX_RENDER_POINTS values instead of all 300,000 of them.
+    data.push(applyGain(sampled, ref.gain));
   }
   return data;
+}
+
+/**
+ * `values` scaled by `gain`, or `values` itself when there is nothing to do.
+ *
+ * Returning the input unchanged in the common case matters: this runs on
+ * every redraw, and copying a full-resolution signal per frame to multiply
+ * it by 1 is a megabyte of garbage per frame for no effect.
+ */
+export function applyGain(values: Float64Array, gain: number | undefined): Float64Array {
+  if (gain === undefined || gain === 1) return values;
+  const out = new Float64Array(values.length);
+  for (let i = 0; i < values.length; i++) out[i] = (values[i] as number) * gain;
+  return out;
 }
 
 /**
@@ -485,8 +507,12 @@ export function valueExtents(
         const t = sig.time[i];
         if (t === undefined || t < xMin || t > xMax) continue;
       }
-      const v = sig.values[i];
-      if (v === undefined) continue;
+      const raw = sig.values[i];
+      if (raw === undefined) continue;
+      // What is *drawn*, gain included: "Fit Y" and the horizontal cursors
+      // are about the picture, and a scaled trace that falls outside the
+      // range Fit Y just chose is not fitted.
+      const v = ref.gain === undefined ? raw : raw * ref.gain;
       if (v < vMin) vMin = v;
       if (v > vMax) vMax = v;
     }

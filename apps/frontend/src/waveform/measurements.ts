@@ -73,6 +73,29 @@ export function measureMean(
   return { value: sum / v.length, unit: "" };
 }
 
+/**
+ * Trapezoidal integral over the window — the area under the trace.
+ *
+ * Matches `integ` in the engine's own measurement crate, and it is the one
+ * that answers the questions a converter actually raises: charge out of a
+ * current, energy out of a power, volt-seconds across a winding.
+ */
+export function measureIntegral(
+  time: Float64Array,
+  values: Float64Array,
+  tStart?: number,
+  tEnd?: number,
+): MeasurementResult {
+  const { time: t, values: v } = _windowedArrays(time, values, tStart, tEnd);
+  if (v.length < 2) return { value: Number.NaN, unit: "" };
+  let area = 0;
+  for (let i = 1; i < v.length; i++) {
+    const dt = (t[i] as number) - (t[i - 1] as number);
+    area += (((v[i] as number) + (v[i - 1] as number)) / 2) * dt;
+  }
+  return { value: area, unit: "" };
+}
+
 export function measureMin(
   time: Float64Array,
   values: Float64Array,
@@ -320,6 +343,7 @@ function _windowedArrays(
 export type MeasurementKey =
   | "rms"
   | "mean"
+  | "integral"
   | "min"
   | "max"
   | "peakToPeak"
@@ -332,6 +356,7 @@ export type MeasurementKey =
 export const MEASUREMENT_LABELS: Record<MeasurementKey, string> = {
   rms: "RMS",
   mean: "Mean",
+  integral: "Integral",
   min: "Min",
   max: "Max",
   peakToPeak: "Peak-to-peak",
@@ -354,6 +379,8 @@ export function computeMeasurement(
       return measureRms(time, values, tStart, tEnd);
     case "mean":
       return measureMean(time, values, tStart, tEnd);
+    case "integral":
+      return measureIntegral(time, values, tStart, tEnd);
     case "min":
       return measureMin(time, values, tStart, tEnd);
     case "max":

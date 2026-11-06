@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 import { getIpcClient } from "../ipc/transport";
+import type { MeasurementKey } from "../waveform/measurements";
 import type {
   Axes,
   AxesMode,
@@ -39,6 +40,15 @@ function _signalCacheKey(simId: string, signalName: string): string {
 export interface WaveformState {
   figures: Map<string, Figure>;
   axes: Map<string, Axes>;
+  /**
+   * The axes the signal browser's checkboxes act on.
+   *
+   * Something has to answer "add it where?", and an implicit notion of
+   * focus answers it differently depending on where the pointer last was.
+   * This is explicit: the browser shows which axes it is targeting and lets
+   * it be changed, and clicking an axes retargets it.
+   */
+  activeAxesId: string | null;
   couplingGroups: Map<string, CouplingGroup>;
   signalCache: Map<string, WaveformSignal>;
   streamingSignals: Set<string>;
@@ -61,6 +71,11 @@ export interface WaveformState {
   removeSignalFromAxes: (axesId: string, simId: string, signalName: string) => void;
   /** FE-161: update one signal's display color on an axes. No-op if the (simId, signalName) pair isn't on that axes. */
   setSignalColor: (axesId: string, simId: string, signalName: string, color: string) => void;
+  /**
+   * Set one signal's display-only multiplier on an axes (see SignalRef.gain).
+   * A gain of 1, or a non-finite or zero value, clears it.
+   */
+  setSignalGain: (axesId: string, simId: string, signalName: string, gain: number) => void;
   /** Replace all signals on the given axes atomically (clears old, adds new). */
   resetAxesSignals: (axesId: string, signals: Array<{ simId: string; signalName: string }>) => void;
   /** FE-164: empty an axes' signals and reset its zoom/cursor state, leaving id/figureId/row/col/mode/couplingGroupId untouched. */
@@ -79,6 +94,12 @@ export interface WaveformState {
    */
   ensureFigureXCoupling: (figureId: string) => void;
   deleteCouplingGroup: (id: string) => void;
+
+  /** Point the signal browser at an axes. Null when it no longer exists. */
+  setActiveAxes: (axesId: string | null) => void;
+
+  /** Which measurements the bar above this axes shows, in order. */
+  setAxesMeasurements: (axesId: string, measurements: MeasurementKey[]) => void;
 
   // Zoom / cursor actions
   setAxesZoom: (axesId: string, xMin: number, xMax: number) => void;
@@ -111,6 +132,7 @@ export interface WaveformState {
 export const useWaveformStore = create<WaveformState>((set, get) => ({
   figures: new Map(),
   axes: new Map(),
+  activeAxesId: null,
   couplingGroups: new Map(),
   signalCache: new Map(),
   streamingSignals: new Set(),
@@ -199,6 +221,9 @@ export const useWaveformStore = create<WaveformState>((set, get) => ({
     // X-coupled by default (a fresh multi-axes figure shouldn't require a
     // manual step to link zoom across its axes).
     get().ensureFigureXCoupling(figureId);
+    // The signal browser needs somewhere to put a ticked signal from the
+    // moment there is anywhere at all.
+    if (get().activeAxesId === null) get().setActiveAxes(id);
     return id;
   },
 
@@ -208,6 +233,8 @@ export const useWaveformStore = create<WaveformState>((set, get) => ({
       if (!axesEntry) return {};
       const axes = new Map(state.axes);
       axes.delete(id);
+      const activeAxesId =
+        state.activeAxesId === id ? (axes.keys().next().value ?? null) : state.activeAxesId;
       const figures = new Map(state.figures);
       const figure = figures.get(axesEntry.figureId);
       if (figure) {
@@ -216,7 +243,7 @@ export const useWaveformStore = create<WaveformState>((set, get) => ({
           axesIds: figure.axesIds.filter((aid) => aid !== id),
         });
       }
-      return { axes, figures };
+      return { axes, figures, activeAxesId };
     });
   },
 
@@ -265,6 +292,39 @@ export const useWaveformStore = create<WaveformState>((set, get) => ({
       const signals = [...entry.signals];
       signals[idx] = { ...(signals[idx] as SignalRef), color };
       axesMap.set(axesId, { ...entry, signals });
+      return { axes: axesMap };
+    });
+  },
+
+  setSignalGain: (axesId, simId, signalName, gain) => {
+    set((state) => {
+      const axesMap = new Map(state.axes);
+      const entry = axesMap.get(axesId);
+      if (!entry) return {};
+      const idx = entry.signals.findIndex((s) => s.simId === simId && s.signalName === signalName);
+      if (idx === -1) return {};
+      const signals = [...entry.signals];
+      const current = signals[idx] as SignalRef;
+      // A gain of 0 would flatten the trace onto the axis and read as "this
+      // signal is zero", which is the one thing a display aid must never
+      // say. Non-finite is the same mistake typed differently.
+      const clean = Number.isFinite(gain) && gain !== 0 ? gain : 1;
+      signals[idx] = clean === 1 ? { ...current, gain: undefined } : { ...current, gain: clean };
+      axesMap.set(axesId, { ...entry, signals });
+      return { axes: axesMap };
+    });
+  },
+
+  setActiveAxes: (axesId) => {
+    set((state) => (state.activeAxesId === axesId ? {} : { activeAxesId: axesId }));
+  },
+
+  setAxesMeasurements: (axesId, measurements) => {
+    set((state) => {
+      const axesMap = new Map(state.axes);
+      const entry = axesMap.get(axesId);
+      if (!entry) return {};
+      axesMap.set(axesId, { ...entry, measurements });
       return { axes: axesMap };
     });
   },
