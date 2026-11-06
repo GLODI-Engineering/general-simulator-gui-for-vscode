@@ -107,9 +107,7 @@ export class SchematicPage {
       jitterPx: options.jitterPx ?? 4,
       settleMs: options.settleMs ?? 80,
       seed: options.seed ?? 1,
-      ...(options.onAction
-        ? { onAction: (a) => options.onAction?.(JSON.stringify(a)) }
-        : {}),
+      ...(options.onAction ? { onAction: (a) => options.onAction?.(JSON.stringify(a)) } : {}),
     });
   }
 
@@ -127,9 +125,7 @@ export class SchematicPage {
    * single block exists. An unscoped port selector finds the toolbar.
    */
   portElement(blockId: string, portId: string): Locator {
-    return this.canvas.locator(
-      `[data-block-id="${blockId}"] [data-port-id="${portId}"] circle`,
-    );
+    return this.canvas.locator(`[data-block-id="${blockId}"] [data-port-id="${portId}"] circle`);
   }
 
   /**
@@ -278,12 +274,20 @@ export class SchematicPage {
    * Insert by searching, the way anything outside the eight toolbar
    * shortcuts has to be reached.
    *
-   * Quick Insert is a *double* chord — `Ctrl+Shift+.` twice. Pressed once it
-   * opens the command palette instead, which is a different dialog with a
-   * different placeholder, and a test that does that waits forever for a
-   * search box that is never going to appear.
+   * Two things about Quick Insert that a test has to know, because getting
+   * either wrong looks like the component simply does not exist:
+   *
+   * 1. It is a *double* chord — `Ctrl+Shift+.` twice. Pressed once it opens
+   *    the command palette, a different dialog with a different
+   *    placeholder, and a test that does that waits forever for a search
+   *    box that is never coming.
+   * 2. A component with several fidelity variants does not insert on Enter.
+   *    Enter expands a variant list, whose entries are buttons that must be
+   *    clicked — the list has no keyboard handling of its own. So "resistor"
+   *    plus Enter adds nothing at all, which is indistinguishable from a
+   *    failed search unless you know to look for the picker.
    */
-  async insertByName(query: string): Promise<BlockHandle> {
+  async insertByName(query: string, options: { variant?: string } = {}): Promise<BlockHandle> {
     const before = await this.blockCount();
     await this.focusCanvas();
     await this.probe.press(["Control+Shift+.", "Control+Shift+."]);
@@ -294,11 +298,93 @@ export class SchematicPage {
     await this.page.waitForTimeout(250);
     await this.probe.press("Enter");
 
+    await this.chooseVariantIfOffered(options.variant ?? query);
     await this.waitForBlockCount(before + 1, `inserting "${query}" via Quick Insert`);
     return await this.lastBlock();
   }
 
+  /**
+   * Click through the variant picker, if Enter raised one.
+   *
+   * Prefers the variant whose type is exactly what was asked for; falls
+   * back to the first, which is what someone would do when they do not
+   * care which fidelity they get.
+   */
+  private async chooseVariantIfOffered(wanted: string): Promise<void> {
+    const picker = this.page.locator(".quick-insert__variants");
+    try {
+      await picker.waitFor({ state: "visible", timeout: 600 });
+    } catch {
+      return; // single-variant component: already inserted
+    }
+
+    const exact = picker.locator("button", {
+      has: this.page.locator(`.quick-insert__item-meta:text-is("${wanted}")`),
+    });
+    const target = (await exact.count()) > 0 ? exact.first() : picker.locator("button").first();
+    await this.probe.click(target);
+  }
+
+  /**
+   * Insert exactly this component type, and say so plainly if the search
+   * found something else.
+   *
+   * Searching by name and taking whatever comes back is how a test ends up
+   * quietly exercising the wrong component — `passive.resistor` and
+   * `physical_electrical.passive.resistor` are different blocks with
+   * different ports and both match "resistor".
+   */
+  async insertType(type: string): Promise<BlockHandle> {
+    const block = await this.insertByName(type, { variant: type });
+    if (block.type !== type) {
+      throw new Error(
+        `asked Quick Insert for "${type}" and it inserted "${block.type}".\n\n` +
+          this.probe.trace.format(),
+      );
+    }
+    return block;
+  }
+
   // ── acting on the canvas ────────────────────────────────────────────────
+
+  /**
+   * A point at a fractional position inside the canvas.
+   *
+   * Scenarios should say "put the source at the left, a third of the way
+   * down" rather than "move it 340 px left of wherever it landed" —
+   * relative offsets walk blocks off the edge, where their terminals have
+   * no screen position and every later drag aims at nothing.
+   */
+  async canvasPoint(fx: number, fy: number): Promise<{ x: number; y: number }> {
+    const box = await this.canvas.boundingBox();
+    if (!box) throw new Error("the canvas is not visible");
+    // Inset, so a block centred here still has its terminals on screen.
+    const inset = 90;
+    const left = box.x + inset;
+    const top = box.y + inset;
+    const width = Math.max(1, box.width - inset * 2);
+    const height = Math.max(1, box.height - inset * 2);
+    return { x: left + width * fx, y: top + height * fy };
+  }
+
+  /** Drag a block so its centre lands at a fractional canvas position. */
+  async place(ref: BlockRef, fx: number, fy: number): Promise<void> {
+    await this.moveBlockTo(ref, await this.canvasPoint(fx, fy));
+  }
+
+  /**
+   * Insert a component and put it somewhere on the canvas, in one step.
+   *
+   * The common shape of every scenario, and the one that keeps blocks from
+   * piling up where the inserter happens to drop them — consecutive
+   * inserts land close enough that one block's terminal can sit exactly on
+   * another's, and a drag starting there is ambiguous about which it took.
+   */
+  async add(type: string, fx: number, fy: number): Promise<BlockHandle> {
+    const block = await this.insertType(type);
+    await this.place(block, fx, fy);
+    return block;
+  }
 
   /** Click empty canvas, so keyboard shortcuts reach it. */
   async focusCanvas(): Promise<void> {
@@ -373,6 +459,48 @@ export class SchematicPage {
     }
   }
 
+  /**
+   * Empty the sheet, by selecting everything and deleting it.
+   *
+   * Through the UI rather than by reloading: a matrix test that reloads
+   * between every pair spends most of its time booting, and select-all +
+   * delete is an interaction worth exercising anyway.
+   */
+  async clearSheet(): Promise<void> {
+    if ((await this.blockCount()) === 0) return;
+    await this.selectAll();
+    await this.deleteSelection();
+    await this.page.waitForFunction(
+      () => {
+        const win = globalThis as { __gensim_serialize?: () => string };
+        const text = win.__gensim_serialize?.();
+        if (!text) return false;
+        return (JSON.parse(text) as { model: { blocks: unknown[] } }).model.blocks.length === 0;
+      },
+      undefined,
+      { timeout: 5_000 },
+    );
+  }
+
+  /**
+   * Insert two components and separate them, so their terminals are not on
+   * top of each other.
+   *
+   * Needed because consecutive inserts land close enough that one block's
+   * terminal can sit exactly on another's, and a drag that starts there is
+   * ambiguous about which it grabbed.
+   */
+  async insertPairApart(
+    first: string,
+    second: string,
+    gap = { x: 320, y: 200 },
+  ): Promise<[BlockHandle, BlockHandle]> {
+    const a = await this.insertType(first);
+    const b = await this.insertType(second);
+    await this.moveBlockBy(b, gap.x, gap.y);
+    return [a, b];
+  }
+
   async selectAll(): Promise<void> {
     await this.focusCanvas();
     await this.probe.press("Control+A");
@@ -408,7 +536,9 @@ export class SchematicPage {
           const win = globalThis as { __gensim_serialize?: () => string };
           const text = win.__gensim_serialize?.();
           if (!text) return false;
-          return (JSON.parse(text) as { model: { blocks: unknown[] } }).model.blocks.length === want;
+          return (
+            (JSON.parse(text) as { model: { blocks: unknown[] } }).model.blocks.length === want
+          );
         },
         expected,
         { timeout: 8_000 },
