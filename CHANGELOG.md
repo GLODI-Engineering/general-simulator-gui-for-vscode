@@ -1,5 +1,54 @@
 # Changelog
 
+## 2026-11-06 — Decimation that keeps the transient (0.3.1)
+
+### Fixed
+
+- **The chart kept one signal's peaks and lost the rest.** The reduction
+  chose its min/max indices from the *first* signal on an axes and reused
+  them for every other series, so peak preservation depended on the order
+  signals were added: a switch node plotted first kept its overshoot,
+  plotted second it did not, and nothing on screen said so. Replaced with a
+  shared-grid min/max envelope — the time axis is bucketed so every signal
+  keeps one grid, and within each bucket every signal contributes its own
+  minimum and maximum. Verified on 400,000 samples of a 100 kHz switch node
+  with a single-sample 96 V overshoot: reduced to ~2,700 points, the
+  transient is still on the chart.
+- **Zooming in never recovered detail.** The data was decimated once over
+  its full extent and zoom only rescaled it, so one percent of a 250,000
+  sample run left 200 points stretched across the plot. The visible window
+  is now reduced instead, which costs less rather than more — the work
+  follows what is on screen. Zoom far enough and the window is handed over
+  exact.
+- The point budget comes from the plot's width — two per pixel, the most a
+  min/max reduction can distinguish — rather than a flat 20,000. On a
+  measured run that is 2,728 points instead of 20,000: a 7x cut in what has
+  to be stroked on every frame, which is what a constrained machine feels.
+
+### New
+
+- **`crates/waveform-store`** — the reduction as one Rust implementation,
+  compiled natively for a server and to WebAssembly for the viewer, so both
+  answer "this window of these signals, in at most this many points" the
+  same way. Measured on an 11-signal, 25,000-sample result: parses in
+  19 ms, full extent in 1.1 ms, a 2% window exact in 0.3 ms. Scales
+  linearly to 100 M samples (763 MB per signal) at 102 ms for the full
+  extent and 1.2 ms per zoom.
+- `tests/properties.rs` establishes what survives a reduction: max, min and
+  peak-to-peak exactly; every sample inside the drawn band, guaranteed; the
+  mean within 0.03% while buckets stay finer than the waveform's period,
+  and structurally wrong once they span many. Hence the rule it pins down —
+  **a measurement is computed on the samples, never on the reduction the
+  chart is drawn from.**
+
+### Format
+
+- `.gsim_sim_result` v2 separates metadata from samples: `data.kind` is
+  `inline` (self-contained, as before) or `hdf5` (pointing at the file
+  holding the samples and the LOD pyramid). v1 documents still open.
+
+---
+
 ## 2026-11-06 — Results you can keep, and a viewer you can read (0.3.0)
 
 ### Waveform viewer
