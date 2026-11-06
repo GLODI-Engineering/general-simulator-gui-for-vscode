@@ -167,7 +167,15 @@ export function SymbolLabel({
       // floor and still ran outside its own triangle and over the wires.
       // Past that point the text is clipped instead, which loses a character
       // but never damages the drawing.
-      const fits = Math.floor(maxWidth / (GLYPH_ADVANCE * fontSize));
+      // The epsilon is not a fudge. `fontSize` was just divided so that
+      // `GLYPH_ADVANCE * fontSize * length` lands exactly on `maxWidth`, and
+      // recomputing the quotient from it returns the length it started from
+      // only up to rounding: for a 4-character string at `md` the result is
+      // 3.9999999999999996, which floors to 3. Text that fits by
+      // construction was then truncated -- a gain of sqrt(2) drew as "1.…".
+      // The tolerance is one part in a million of a character, far below any
+      // real fit decision and far above the rounding.
+      const fits = Math.floor(maxWidth / (GLYPH_ADVANCE * fontSize) + 1e-6);
       if (content.length > fits) {
         content = fits > 1 ? `${content.slice(0, fits - 1)}…` : "…";
       }
