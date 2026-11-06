@@ -133,6 +133,26 @@ function portExitSideForWireEndpoint(
 const SAME_NET_WEIGHT = 0.35;
 
 /**
+ * How far a wire must stay from a terminal belonging to a different net.
+ *
+ * Rails land on the grid, but a port's stub tip does not: tips fall where the
+ * symbol's geometry puts them, at 381 or 421 rather than 380 or 420. So a
+ * perfectly legal rail could be drawn *one unit* from another net's terminal.
+ * One unit is the same pixel at every zoom, and when that terminal carries a
+ * junction dot -- as a node shared by two wires does -- the dot lands on top
+ * of the passing wire and reads as a connection to it. That is how a snubber
+ * came to look short-circuited across a switch while the netlist had it
+ * wired correctly: the drain run passed at y=380 and the source node sat at
+ * y=381.
+ *
+ * Near-misses are worse than either touching or clearing, because only a
+ * near-miss is ambiguous. Foreign terminals therefore become small obstacles,
+ * so a route either keeps a readable distance or crosses somewhere else
+ * entirely.
+ */
+const FOREIGN_NODE_CLEARANCE = 8;
+
+/**
  * How many grid steps out from a port an approach point may be placed.
  *
  * One step is the natural choice and is tried first. More exist because the
@@ -270,6 +290,22 @@ export function rerouteWiresForBlocks(model: ModelGraph, touchedBlockIds: Set<st
   // Runs already taken. Wires this pass is not touching keep their drawn path,
   // so a rerouted wire avoids them; each wire this pass routes is added as it
   // goes, so a bundle fans out instead of stacking on one line.
+  // Every terminal that carries a wire, with the net it belongs to. Used to
+  // keep a wire a readable distance from terminals that are not its own.
+  const nodePoints: Array<{ at: [number, number]; net: number | undefined }> = [];
+  {
+    const seen = new Set<string>();
+    for (const wire of model.wires) {
+      for (const end of [wire.from, wire.to]) {
+        const key = `${end.block}\u0000${end.port}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const at = portCenterForWireEndpoint(model, end);
+        if (at) nodePoints.push({ at, net: netById.get(wire.id) });
+      }
+    }
+  }
+
   const occupied: RouteSegment[] = [];
   for (const wire of model.wires) {
     const fromMoved = touchedBlockIds.has(wire.from.block);
@@ -294,7 +330,18 @@ export function rerouteWiresForBlocks(model: ModelGraph, touchedBlockIds: Set<st
       return wire;
     }
 
-    const wireObstacles = getObstacles(obstacles, from[0], from[1], to[0], to[1]);
+    const net = netById.get(wire.id);
+    const wireObstacles = [
+      ...getObstacles(obstacles, from[0], from[1], to[0], to[1]),
+      ...nodePoints
+        .filter((node) => node.net !== net)
+        .map((node) => ({
+          x: node.at[0] - FOREIGN_NODE_CLEARANCE,
+          y: node.at[1] - FOREIGN_NODE_CLEARANCE,
+          w: FOREIGN_NODE_CLEARANCE * 2,
+          h: FOREIGN_NODE_CLEARANCE * 2,
+        })),
+    ];
     let points: Array<[number, number]> = [from, ...wire.waypoints, to].map(([x, y]) => [
       Math.round(x),
       Math.round(y),
@@ -302,7 +349,6 @@ export function rerouteWiresForBlocks(model: ModelGraph, touchedBlockIds: Set<st
 
     const fromDir = portExitDirForWireEndpoint(model, wire.from);
     const toDir = portExitDirForWireEndpoint(model, wire.to);
-    const net = netById.get(wire.id);
 
     // A wire with no waypoints of its own has never been routed, so route it
     // whole rather than patching its ends. Routing runs between *approach*
