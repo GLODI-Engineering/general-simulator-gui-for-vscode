@@ -28,6 +28,21 @@
  * component along, formed by a bend instead, was dotted. One wire ending on a
  * pin is an ordinary two-conductor termination and stays undotted; `Port.tsx`
  * already draws the terminal there.
+ *
+ * **Geometry alone is not enough, and getting this wrong inverts the meaning
+ * of the symbol.** All of the above was decided from coordinates only, so two
+ * wires carrying entirely unrelated signals got a dot wherever they happened
+ * to touch — and a dot does not say "these lines touch", it says "these
+ * conductors are one node". On a sheet where a control signal crosses another
+ * control signal, that is a drawing which asserts a connection the circuit
+ * does not have. It is the same failure class as a silently-wrong netlist,
+ * except the reader is the one misled.
+ *
+ * So every test below is now applied *within one electrical net* and never
+ * across two. Two wires are the same net when they share an endpoint — the
+ * same `(block, port)`, which is how fan-out from one driver is drawn — or
+ * when they carry the same explicit `net` name. Crossings between different
+ * nets are left bare, which is exactly what a bare crossing means.
  */
 
 import type { Wire } from "../../model/types";
@@ -72,7 +87,75 @@ function liesInsideSegment(p: Point, a: Point, b: Point): boolean {
   return false;
 }
 
+/**
+ * Groups wires into electrical nets.
+ *
+ * Union-find over two relations, both of which really do join conductors:
+ * sharing an endpoint `(block, port)` — one driver fanned out to several
+ * consumers is drawn as several wires leaving one port — and carrying the
+ * same explicit `net` name, which is how a named net joins wires that never
+ * touch on the sheet.
+ *
+ * Sharing a *block* is deliberately not one of them: a resistor's two pins are
+ * not the same node, and treating them as one would put a dot at every
+ * crossing over a two-terminal part.
+ */
+function netOf(wires: Wire[]): number[] {
+  const parent = wires.map((_, i) => i);
+  const find = (start: number): number => {
+    let i = start;
+    while ((parent[i] as number) !== i) {
+      const grand = parent[parent[i] as number] as number;
+      parent[i] = grand;
+      i = grand;
+    }
+    return i;
+  };
+  const union = (a: number, b: number) => {
+    const ra = find(a);
+    const rb = find(b);
+    if (ra !== rb) parent[rb] = ra;
+  };
+
+  const byPort = new Map<string, number>();
+  const byName = new Map<string, number>();
+  wires.forEach((wire, i) => {
+    for (const end of [wire.from, wire.to]) {
+      const key = `${end.block}\u0000${end.port}`;
+      const seen = byPort.get(key);
+      if (seen === undefined) byPort.set(key, i);
+      else union(seen, i);
+    }
+    if (wire.net) {
+      const seen = byName.get(wire.net);
+      if (seen === undefined) byName.set(wire.net, i);
+      else union(seen, i);
+    }
+  });
+  return wires.map((_, i) => find(i));
+}
+
 export function computeJunctions(wires: Wire[], endpointsFor?: EndpointResolver): Junction[] {
+  const nets = netOf(wires);
+  const groups = new Map<number, Wire[]>();
+  wires.forEach((wire, i) => {
+    const id = nets[i] as number;
+    const bucket = groups.get(id);
+    if (bucket) bucket.push(wire);
+    else groups.set(id, [wire]);
+  });
+
+  const all = new Map<string, Junction>();
+  for (const group of groups.values()) {
+    for (const junction of junctionsWithinNet(group, endpointsFor)) {
+      all.set(`${junction.x},${junction.y}`, junction);
+    }
+  }
+  return [...all.values()];
+}
+
+/** The geometric tests, applied to the wires of a single net. */
+function junctionsWithinNet(wires: Wire[], endpointsFor?: EndpointResolver): Junction[] {
   const lines = wires.map((wire) => polyline(wire, endpointsFor));
 
   const counts = new Map<string, { x: number; y: number; n: number; ends: number }>();
