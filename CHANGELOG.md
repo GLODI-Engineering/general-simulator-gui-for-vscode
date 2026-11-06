@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-11-06 — The viewer follows VS Code's theme (0.3.2)
+
+### Fixed
+
+- **A white chart inside a dark editor.** A webview is a separate document
+  and inherits none of the workbench's styling, so nothing told the viewer
+  which theme was active — it drew light regardless, a bright rectangle in
+  the middle of a dark window. VS Code marks the webview body with
+  `vscode-light` / `vscode-dark` / `vscode-high-contrast` and rewrites that
+  class when the theme changes without a reload, so the viewer now observes
+  it: right at boot, and on every switch afterwards. High contrast counts
+  as dark, except its light variant, which carries both classes and would
+  otherwise have read as dark.
+
+---
+
 ## 2026-11-06 — Decimation that keeps the transient (0.3.1)
 
 ### Fixed

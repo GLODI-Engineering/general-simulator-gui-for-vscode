@@ -12,6 +12,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 
 import { getWebviewInit, onHostMessage, postToHost } from "../ipc/vscode-host";
+import { followVsCodeTheme } from "../ipc/vscode-theme";
 import { GsimSimResultError, parseGsimSimResult } from "../results/document";
 import { applyResult } from "../results/load";
 import { ErrorBoundary } from "../shell/ErrorBoundary";
@@ -44,6 +45,7 @@ function load(text: string, root: HTMLElement, render: () => void): void {
 }
 
 function boot(): void {
+  followVsCodeTheme();
   const root = document.getElementById("root");
   if (!root) throw new Error("#root element missing");
 
