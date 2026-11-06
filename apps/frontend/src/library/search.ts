@@ -76,9 +76,17 @@ export function searchCatalog(
         textScore = Math.max(...haystacks.map((value) => fuzzyScore(value, normalizedQuery)));
       }
 
+      // Recency ranks things you might have meant. It has no business
+      // ranking things you have already named: without this guard, an
+      // exact *alias* match on a recently used block (100 + 40) outranks an
+      // exact *name* match on the block you actually typed (120). That is
+      // how asking for "passive.switch.voltage" inserted the ideal switch,
+      // but only after the ideal switch had been used once — so it was
+      // invisible to any test that did one insert at a time.
+      const exact = textScore >= EXACT_ALIAS_SCORE;
       return {
         entry,
-        score: textScore < 0 ? -1 : textScore + recentBonus,
+        score: textScore < 0 ? -1 : exact ? textScore : textScore + recentBonus,
       };
     })
     .filter((result) => result.score >= 0)
