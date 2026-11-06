@@ -298,8 +298,7 @@ export function buildSeries(
 }
 
 /**
- * FE-159: hard cap on how many points the *initial full-extent* paint is
- * allowed to process. A single TRAN signal can return 300k+ points (observed
+ * FE-159: hard cap on how many points one *view* is allowed to process. A single TRAN signal can return 300k+ points (observed
  * in a real run); uPlot's constructor draws every point of every series
  * synchronously on first mount, and with several such signals sharing an
  * axes this froze the tab. Zoomed-in views still render full-resolution
@@ -363,10 +362,63 @@ export function decimateMinMax(
   return { time: _applyIndices(time, indices), values: _applyIndices(values, indices) };
 }
 
-/** Assemble the AlignedData array for uPlot from refs + cache. */
+/**
+ * The index range of `time` covering `[from, to]`, inclusive of one sample
+ * beyond each edge so a trace is drawn to the border rather than stopping
+ * short of it.
+ *
+ * Binary search, because this runs for every signal on every refine and the
+ * arrays are hundreds of thousands of samples long.
+ */
+export function windowIndices(time: Float64Array, from: number, to: number): [number, number] {
+  const n = time.length;
+  if (n === 0) return [0, -1];
+
+  const lowerBound = (target: number): number => {
+    let lo = 0;
+    let hi = n;
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1;
+      if ((time[mid] as number) < target) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo;
+  };
+
+  const start = Math.max(0, lowerBound(from) - 1);
+  let end = lowerBound(to);
+  if (end >= n) end = n - 1;
+  if (end < start) end = start;
+  return [start, end];
+}
+
+/**
+ * Assemble the AlignedData array for uPlot from refs + cache, optionally
+ * restricted to the visible window.
+ *
+ * ## Why the window matters
+ *
+ * Without it, a signal is decimated once over its whole extent and that
+ * single reduced array is all uPlot ever has. Zooming only rescales it — so
+ * on a 250,000-sample run reduced to 20,000, zooming into one percent of the
+ * span leaves 200 points stretched across the plot. The code claimed the
+ * opposite ("zoomed-in views still render full-resolution data for the
+ * visible window"); nothing rebuilt the data on zoom, so it never did.
+ *
+ * Decimating the *window* fixes that and costs less, not more: the work is
+ * proportional to what is on screen. Zoom in far enough and the window holds
+ * fewer samples than the budget, at which point the raw slice is handed over
+ * untouched and the view is exact.
+ *
+ * This is also the shape a server-side slice has (see `lod.py`, which takes
+ * a window and a point budget), so the two sources can differ in where the
+ * samples come from and nowhere else.
+ */
 export function buildAlignedData(
   refs: SignalRef[],
   cache: Map<string, WaveformSignal>,
+  window?: [number, number],
+  maxPoints: number = MAX_RENDER_POINTS,
 ): uPlot.AlignedData {
   if (refs.length === 0) return [new Float64Array(0)];
 
@@ -384,19 +436,27 @@ export function buildAlignedData(
   }
   if (!timeArray) return [new Float64Array(0)];
 
-  // Cap the initial full-extent paint (see MAX_RENDER_POINTS) using a shared
-  // index set computed from the reference signal, reapplied to every series
-  // on the axes so they stay index-aligned to the same decimated time axis.
-  const indices =
-    timeArray.length > MAX_RENDER_POINTS && refValues
-      ? _decimateIndices(refValues, MAX_RENDER_POINTS)
-      : null;
+  const [winStart, winEnd] = window
+    ? windowIndices(timeArray, window[0], window[1])
+    : [0, timeArray.length - 1];
+  const windowed = winStart > 0 || winEnd < timeArray.length - 1;
+  const slice = (values: Float64Array): Float64Array =>
+    windowed ? values.subarray(winStart, winEnd + 1) : values;
 
-  const data: uPlot.AlignedData = [indices ? _applyIndices(timeArray, indices) : timeArray];
+  const timeSlice = slice(timeArray);
+  const refSlice = refValues ? slice(refValues) : null;
+
+  // One shared index set, computed from the reference signal and reapplied
+  // to every series, so they stay index-aligned to the same decimated time
+  // axis.
+  const indices =
+    timeSlice.length > maxPoints && refSlice ? _decimateIndices(refSlice, maxPoints) : null;
+
+  const data: uPlot.AlignedData = [indices ? _applyIndices(timeSlice, indices) : timeSlice];
   for (const ref of refs) {
     const key = `${ref.simId}::${ref.signalName}`;
     const sig = cache.get(key);
-    const values = sig ? sig.values : new Float64Array(timeArray.length);
+    const values = sig ? slice(sig.values) : new Float64Array(timeSlice.length);
     const sampled = indices ? _applyIndices(values, indices) : values;
     // Display gain is applied *after* decimation, not before. The two are
     // equivalent — scaling by a positive constant cannot change which

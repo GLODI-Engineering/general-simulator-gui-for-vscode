@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import uPlot from "uplot";
 import "uplot/dist/uPlot.min.css";
 
@@ -8,6 +8,7 @@ import { AxesLegend } from "./AxesLegend";
 import { ExportDialog, type ExportSubject } from "./ExportDialog";
 import { MeasurementsBar } from "./MeasurementsBar";
 import {
+  MAX_RENDER_POINTS,
   buildAlignedData,
   buildAxes,
   buildScales,
@@ -56,6 +57,28 @@ function _groupColor(index: number): string {
 const MIN_CHART_WIDTH = 240;
 const MIN_CHART_HEIGHT = 120;
 
+/**
+ * How long the view has to hold still before the data is re-decimated for it.
+ *
+ * Re-decimating on every frame of a wheel zoom would cost O(window) per
+ * frame across every trace, which on a long run is tens of milliseconds and
+ * the end of 60 fps. Rescaling the data already in hand is free and looks
+ * right immediately; the sharper version lands once the gesture stops. Same
+ * bargain a map makes with its tiles.
+ */
+const REFINE_DELAY_MS = 140;
+
+/**
+ * Points per view, derived from the plot's width.
+ *
+ * Two per pixel is the most a min/max decimation can show: one for the top
+ * of each column, one for the bottom. Beyond that the extra samples land on
+ * pixels that are already painted.
+ */
+function budgetFor(plotWidth: number): number {
+  return Math.min(MAX_RENDER_POINTS, Math.max(1000, Math.round(plotWidth * 2)));
+}
+
 // Stable fallback so `refs` doesn't become a fresh [] reference on every
 // render while axesEntry is undefined (see the useMemo below).
 const _EMPTY_REFS: SignalRef[] = [];
@@ -69,6 +92,19 @@ export interface AxesProps {
   onZoomChange?: (xMin: number, xMax: number, yMin: number, yMax: number) => void;
   /** Optional Bode stability margins; triggers annotation overlays when present. */
   bodeMargins?: BodeMargins;
+}
+
+/**
+ * Live charts by axes id, for the render and stress harnesses. Kept out of
+ * React state deliberately: nothing in the app reads it, so it must not be
+ * able to cause a render.
+ */
+const _charts = new Map<string, uPlot>();
+
+function _registerChart(axesId: string, chart: uPlot | null): void {
+  if (chart) _charts.set(axesId, chart);
+  else _charts.delete(axesId);
+  (globalThis as { __gensim_charts?: Map<string, uPlot> }).__gensim_charts = _charts;
 }
 
 export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesProps) {
@@ -142,6 +178,10 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
   // `setScale` hook below) and whenever the cursor values themselves change
   // (the dedicated effect further down) — px position depends on both.
   const [cursorLines, setCursorLines] = useState<AnnotationSpec[]>([]);
+  // The window the chart is currently showing, and the timer that will
+  // re-decimate for it once the view stops moving.
+  const viewRef = useRef<[number, number] | null>(null);
+  const refineTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Memoized so effects keyed on `refs`/`spines` only re-fire when the
   // underlying signal list or cache actually changes, not on every render
@@ -193,6 +233,42 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
     }
   }
 
+  /**
+   * Re-decimate for whatever window is on screen now.
+   *
+   * `setData(…, false)` keeps the viewer's current zoom instead of
+   * autoscaling back out — the window is the reason this ran.
+   */
+  const refineForView = useCallback(() => {
+    const u = uplotRef.current;
+    if (!u) return;
+    const { refs: liveRefs, signalCache: liveCache } = latestRef.current;
+    u.setData(
+      buildAlignedData(
+        liveRefs,
+        liveCache,
+        viewRef.current ?? undefined,
+        budgetFor(sizeRef.current.width),
+      ),
+      false,
+    );
+  }, []);
+
+  const scheduleRefine = useCallback(() => {
+    if (refineTimerRef.current) clearTimeout(refineTimerRef.current);
+    refineTimerRef.current = setTimeout(() => {
+      refineTimerRef.current = null;
+      refineForView();
+    }, REFINE_DELAY_MS);
+  }, [refineForView]);
+
+  useEffect(
+    () => () => {
+      if (refineTimerRef.current) clearTimeout(refineTimerRef.current);
+    },
+    [],
+  );
+
   // Keep `measured` in step with the cell the chart sits in. ResizeObserver
   // rather than a window resize listener: the panel is resized by dragging
   // VS Code's own splitters and by maximising an axes, neither of which
@@ -228,6 +304,8 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
     const u = uplotRef.current;
     if (!u) return;
     u.setSize({ width: plotWidth, height: plotHeight });
+    // A wider plot can show more points, so the budget changed with it.
+    scheduleRefine();
     const firstYKey = spinesRef.current[0]?.scaleKey ?? "y";
     setCursorLines(_buildCursorLines(axesEntryRef.current, u, firstYKey));
     if (bodeMargins && isBodeAxes(latestRef.current.refs, latestRef.current.signalCache)) {
@@ -235,12 +313,17 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
       setAnnotationLines(result.lines);
       setMarginBadge(result.badge);
     }
-  }, [plotWidth, plotHeight, bodeMargins, magSpineKey]);
+  }, [plotWidth, plotHeight, bodeMargins, magSpineKey, scheduleRefine]);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const data = buildAlignedData(refs, signalCache);
+    const data = buildAlignedData(
+      refs,
+      signalCache,
+      viewRef.current ?? undefined,
+      budgetFor(sizeRef.current.width),
+    );
     const hasData = data[0] instanceof Float64Array && data[0].length > 0;
 
     if (!hasData) {
@@ -327,6 +410,10 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
             // FE-165: cursor line pixel positions depend on the current
             // scale, so they need recomputing on every zoom/pan too.
             setCursorLines(_buildCursorLines(axesEntryRef.current, u, firstYKey));
+
+            // And re-decimate for the new window, once it stops moving.
+            viewRef.current = [xMin, xMax];
+            scheduleRefine();
           },
         ],
         ready: [
@@ -375,6 +462,10 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
 
     uplotRef.current = new uPlot(opts, data, containerRef.current);
     spinesRef.current = spines;
+    // Harness door, same role as `__gensim_canvasFitView` on the schematic
+    // side: scripts/stress-waveform.mjs reads how many points are actually
+    // on screen, which is the one thing a screenshot cannot tell you.
+    _registerChart(axesId, uplotRef.current);
 
     // Reapply any zoom already recorded for this axes (e.g. surviving a
     // spine-set change that forced the reinit above) instead of dropping
@@ -400,6 +491,7 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
         uplotRef.current = null;
         spinesRef.current = [];
       }
+      _registerChart(axesId, null);
     };
   }, [
     refs,
