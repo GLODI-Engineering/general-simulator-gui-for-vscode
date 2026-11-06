@@ -271,7 +271,53 @@ function historyCase() {
   };
 }
 
-const CASES = { buck: buckCase, bode: bodeCase, dense: denseCase, history: historyCase };
+/**
+ * A long switching run with a single-sample overshoot on the *second*
+ * trace. The reduction this replaced chose its extrema from the first
+ * signal and reused those indices, so this spike was invisible — the chart
+ * showed a clean 48 V square and the device-destroying transient was not
+ * on it.
+ */
+function spikeCase() {
+  const n = 400_000;
+  const dt = 1e-8;
+  const x = new Array(n);
+  const gate = new Array(n);
+  const vsw = new Array(n);
+  for (let k = 0; k < n; k += 1) {
+    const t = k * dt;
+    const phase = (t * 100e3) % 1;
+    x[k] = t;
+    gate[k] = phase < 0.25 ? 12 : 0;
+    vsw[k] = phase < 0.25 ? 48 : -0.7;
+  }
+  // One sample, deliberately off any bucket boundary.
+  vsw[Math.floor(n * 0.62) + 1237] = 96;
+
+  return {
+    simId: "spike",
+    signals: [
+      { name: "V(gate)", unit: "V", quantity: "voltage", x, y: gate },
+      { name: "V(sw)", unit: "V", quantity: "voltage", x, y: vsw },
+    ],
+    figures: [
+      {
+        name: "Switch node",
+        rows: 1,
+        cols: 1,
+        axes: [{ row: 0, col: 0, signals: ["V(gate)", "V(sw)"] }],
+      },
+    ],
+  };
+}
+
+const CASES = {
+  buck: buckCase,
+  bode: bodeCase,
+  dense: denseCase,
+  history: historyCase,
+  spike: spikeCase,
+};
 
 async function startPreview() {
   const child = spawn(

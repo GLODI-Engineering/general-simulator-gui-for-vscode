@@ -413,6 +413,93 @@ describe("window-aware decimation", () => {
   });
 });
 
+describe("the envelope keeps every signal's peaks, whatever its order", () => {
+  /**
+   * The defect this replaced: min/max indices were chosen from the *first*
+   * signal on the axes and reused for all of them, so one trace kept its
+   * peaks and the rest were sampled wherever that one happened to be
+   * extreme. A switch node plotted first kept its overshoot; plotted
+   * second it did not. Peak preservation must not depend on insertion
+   * order — in power electronics the overshoot is the thing that destroys
+   * the device.
+   */
+  function withSpike(n: number, at: number, peak: number): Float64Array {
+    const values = new Float64Array(n).fill(48);
+    // Math.floor, not the bare expression: writing to a fractional index on
+    // a typed array is a silent no-op, so `values[n / 3 + 731] = 88` plants
+    // nothing at all and the test passes for the wrong reason.
+    values[Math.floor(at)] = peak;
+    return values;
+  }
+
+  function cacheOf(entries: Array<[string, Float64Array]>, time: Float64Array) {
+    return new Map(
+      entries.map(([name, values]) => [
+        `s::${name}`,
+        {
+          simId: "s",
+          name,
+          analysis: "tran",
+          quantity: "voltage",
+          unit: "V",
+          domain: "time",
+          time,
+          values,
+        } as WaveformSignal,
+      ]),
+    );
+  }
+
+  const N = 50_000;
+  // Offsets chosen off any bucket boundary: an exact 3n/4 lands on one for
+  // any round n and would be kept by accident.
+  const time = Float64Array.from({ length: N }, (_, i) => i * 1e-8);
+  const a = withSpike(N, (N * 3) / 4 + 1237, 96);
+  const b = withSpike(N, N / 3 + 731, 88);
+  // Guard the fixture itself: a spike that was never planted would make
+  // every assertion below vacuous.
+  expect(Math.max(...a)).toBe(96);
+  expect(Math.max(...b)).toBe(88);
+
+  const refA: SignalRef = { simId: "s", signalName: "a", color: "#000" };
+  const refB: SignalRef = { simId: "s", signalName: "b", color: "#111" };
+  const cache = cacheOf(
+    [
+      ["a", a],
+      ["b", b],
+    ],
+    time,
+  );
+
+  function peaks(refs: SignalRef[]) {
+    const data = buildAlignedData(refs, cache, undefined, 2000);
+    return refs.map((_, i) => Math.max(...(data[i + 1] as Float64Array)));
+  }
+
+  it("keeps both peaks with a plotted first", () => {
+    expect(peaks([refA, refB])).toEqual([96, 88]);
+  });
+
+  it("keeps both peaks with b plotted first", () => {
+    expect(peaks([refB, refA])).toEqual([88, 96]);
+  });
+
+  it("draws nothing outside the band it shows", () => {
+    // The precise form of "the reduced trace resembles the real one".
+    const data = buildAlignedData([refA], cache, undefined, 2000);
+    const drawn = data[1] as Float64Array;
+    expect(Math.max(...drawn)).toBe(96);
+    expect(Math.min(...drawn)).toBe(48);
+  });
+
+  it("agrees with the Rust crate on the shared grid", () => {
+    // Both signals land on one x vector, which is what uPlot draws against.
+    const data = buildAlignedData([refA, refB], cache, undefined, 2000);
+    expect((data[1] as Float64Array).length).toBe((data[0] as Float64Array).length);
+    expect((data[2] as Float64Array).length).toBe((data[0] as Float64Array).length);
+  });
+});
+
 describe("overlayPx", () => {
   /**
    * The cursor and Bode-annotation overlays are absolutely positioned divs,
