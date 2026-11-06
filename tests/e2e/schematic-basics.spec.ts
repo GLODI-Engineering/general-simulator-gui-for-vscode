@@ -6,8 +6,8 @@
  * create one.
  */
 
-import { expect, test } from "./fixtures/build";
 import { SchematicPage } from "./actions/schematic";
+import { expect, test } from "./fixtures/build";
 
 test.describe("placing and moving", () => {
   test("a toolbar click puts a component on the sheet", async ({ appPage }) => {
@@ -53,10 +53,7 @@ test.describe("wiring", () => {
     // Apart, so their terminals are not on top of each other.
     await sheet.moveBlockBy(capacitor, 260, 160);
 
-    const wire = await sheet.wire(
-      { block: resistor, port: "n" },
-      { block: capacitor, port: "p" },
-    );
+    const wire = await sheet.wire({ block: resistor, port: "n" }, { block: capacitor, port: "p" });
 
     expect(wire.from.block).toBe(resistor.id);
     expect(wire.to.block).toBe(capacitor.id);

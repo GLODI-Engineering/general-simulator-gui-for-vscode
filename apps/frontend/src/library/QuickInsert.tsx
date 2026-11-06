@@ -170,6 +170,14 @@ export function QuickInsert({ position, onInsert, onClose }: QuickInsertProps) {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [variantPicker, setVariantPicker] = useState<DisplayEntry | null>(null);
+  /**
+   * Which variant the keyboard is on.
+   *
+   * The picker used to be mouse-only: Enter raised it and then nothing on
+   * the keyboard could move through it or choose from it, so anyone
+   * inserting by keyboard reached a dialog they could only escape from.
+   */
+  const [variantIndex, setVariantIndex] = useState(0);
   const catalog = useLibraryStore((state) => Object.values(state.catalog));
   const recent = useLibraryStore((state) => state.recentlyUsed);
 
@@ -198,7 +206,22 @@ export function QuickInsert({ position, onInsert, onClose }: QuickInsertProps) {
       return;
     }
     if (collapsed.variants.length > 1) {
+      // If the query names one of them outright, there is nothing left to
+      // choose. Someone who typed "physical_electrical.passive.resistor" in
+      // full has already picked, and making them confirm it is a step that
+      // exists only because the family happens to have siblings.
+      const typed = query.trim().toLowerCase();
+      const named = collapsed.variants.find(
+        (variant) => variant.name.toLowerCase() === typed || variant.label.toLowerCase() === typed,
+      );
+      if (named) {
+        onInsert?.(named);
+        insertCatalogBlock(named);
+        onClose();
+        return;
+      }
       setVariantPicker(collapsed);
+      setVariantIndex(0);
       return;
     }
     const chosen = collapsed.variants[0] ?? collapsed.entry;
@@ -238,16 +261,35 @@ export function QuickInsert({ position, onInsert, onClose }: QuickInsertProps) {
           }
           if (event.key === "ArrowDown") {
             event.preventDefault();
+            if (variantPicker) {
+              setVariantIndex((current) =>
+                Math.min(current + 1, Math.max(variantPicker.variants.length - 1, 0)),
+              );
+              return;
+            }
             setSelectedIndex((current) => Math.min(current + 1, Math.max(results.length - 1, 0)));
             return;
           }
           if (event.key === "ArrowUp") {
             event.preventDefault();
+            if (variantPicker) {
+              setVariantIndex((current) => Math.max(current - 1, 0));
+              return;
+            }
             setSelectedIndex((current) => Math.max(current - 1, 0));
             return;
           }
           if (event.key === "Enter") {
             event.preventDefault();
+            if (variantPicker) {
+              const chosen = variantPicker.variants[variantIndex];
+              if (chosen) {
+                onInsert?.(chosen);
+                insertCatalogBlock(chosen);
+                onClose();
+              }
+              return;
+            }
             const selected = results[selectedIndex]?.entry;
             if (!selected) {
               return;
@@ -313,11 +355,17 @@ export function QuickInsert({ position, onInsert, onClose }: QuickInsertProps) {
               className="quick-insert__results"
               aria-label={`${variantPicker.entry.label} variants`}
             >
-              {variantPicker.variants.map((variant) => (
+              {variantPicker.variants.map((variant, index) => (
                 <li key={variant.name}>
                   <button
                     type="button"
-                    className="quick-insert__item"
+                    aria-selected={index === variantIndex}
+                    className={
+                      index === variantIndex
+                        ? "quick-insert__item is-selected"
+                        : "quick-insert__item"
+                    }
+                    onMouseEnter={() => setVariantIndex(index)}
                     onClick={() => {
                       onInsert?.(variant);
                       insertCatalogBlock(variant);
