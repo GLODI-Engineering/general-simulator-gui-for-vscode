@@ -19,6 +19,7 @@ import { onHostMessage, postToHost } from "../ipc/vscode-host";
 import { ErrorBoundary } from "../shell/ErrorBoundary";
 import { useIpcStore } from "../store";
 import { WaveformTab } from "../waveform/WaveformTab";
+import { installWaveformRenderHook } from "../waveform/render-hook";
 import { installTestHooks } from "./test-hooks";
 
 import "../styles/app.css";
@@ -41,6 +42,7 @@ function boot(): void {
   });
 
   installTestHooks();
+  installWaveformRenderHook();
 
   const root = document.getElementById("root");
   if (!root) throw new Error("#root element missing");

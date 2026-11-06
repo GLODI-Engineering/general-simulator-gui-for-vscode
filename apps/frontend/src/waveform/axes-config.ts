@@ -1,5 +1,6 @@
 import type uPlot from "uplot";
 
+import { CHART_THEME_FALLBACK, type ChartTheme, formatLogTicks, formatTicks } from "./theme";
 import type { SignalRef, WaveformSignal } from "./types";
 
 export interface SpineSpec {
@@ -86,31 +87,54 @@ export function buildSpines(refs: SignalRef[], cache: Map<string, WaveformSignal
 }
 
 /**
- * Adaptively formats time-axis tick labels in ns/µs/ms/s depending on the
- * magnitude of the values currently in view, instead of always rendering
- * raw seconds (which rounds sub-microsecond ticks down to "0").
+ * Time-axis tick labels in ns/µs/ms/s, chosen from the magnitude currently
+ * in view so sub-microsecond ticks do not all round down to "0".
+ *
+ * Delegates to the shared `formatTicks`, which additionally gives every
+ * label on one axis the *same* number of decimals. The hand-rolled version
+ * this replaced chose precision per value, so an evenly spaced axis read
+ * "5.00ms 10.0ms 15.0ms" — three precisions for three identical steps.
  */
 export function formatTimeTicks(splits: number[]): string[] {
-  const maxAbs = Math.max(...splits.map((v) => Math.abs(v)), 0);
-  let scale = 1;
-  let suffix = "s";
-  if (maxAbs !== 0) {
-    if (maxAbs < 1e-6) {
-      scale = 1e-9;
-      suffix = "ns";
-    } else if (maxAbs < 1e-3) {
-      scale = 1e-6;
-      suffix = "µs";
-    } else if (maxAbs < 1) {
-      scale = 1e-3;
-      suffix = "ms";
-    }
-  }
-  return splits.map((v) => {
-    const scaled = v / scale;
-    const digits = Math.abs(scaled) < 10 ? 2 : Math.abs(scaled) < 100 ? 1 : 0;
-    return `${scaled.toFixed(digits)}${suffix}`;
-  });
+  return formatTicks(splits, "s");
+}
+
+/** Human axis name for a spine: "Voltage (V)" rather than a bare rotated "V". */
+export function spineLabel(spine: SpineSpec): string {
+  const QUANTITY_NAMES: Record<string, string> = {
+    voltage: "Voltage",
+    current: "Current",
+    power: "Power",
+    energy: "Energy",
+    resistance: "Resistance",
+    capacitance: "Capacitance",
+    inductance: "Inductance",
+    temperature: "Temperature",
+    frequency: "Frequency",
+    angle: "Angle",
+    torque: "Torque",
+    speed: "Speed",
+    force: "Force",
+    flow: "Flow",
+    pressure: "Pressure",
+    dB: "Magnitude",
+    deg: "Phase",
+  };
+  const name = QUANTITY_NAMES[spine.quantity] ?? _titleCase(spine.quantity);
+  return spine.unit ? `${name} (${spine.unit})` : name;
+}
+
+function _titleCase(raw: string): string {
+  const spaced = raw.replace(/[_-]+/g, " ").trim();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+/**
+ * dB and degrees are already the unit, and neither takes an SI prefix: a
+ * 0.5 dB tick must read "0.5", never "500m".
+ */
+function _spineTakesPrefix(spine: SpineSpec): boolean {
+  return spine.quantity !== "dB" && spine.quantity !== "deg";
 }
 
 /** Build uPlot scales config from spine specs. `logX` applies uPlot's log10 x-distribution. */
@@ -127,21 +151,117 @@ export function buildScales(spines: SpineSpec[], logX = false): Record<string, u
   return scales;
 }
 
-/** Build uPlot axes config from spine specs. */
-export function buildAxes(spines: SpineSpec[], domain: XAxisDomain = "time"): uPlot.Axis[] {
-  const x: uPlot.Axis = { scale: "x", label: xAxisLabel(domain) };
+/**
+ * Build uPlot axes config from spine specs.
+ *
+ * uPlot paints its axes into the canvas, so every colour and font has to be
+ * handed to it explicitly — it cannot inherit the CSS the surrounding legend
+ * and header use. `theme` is where they come from (see theme.ts); the
+ * defaults keep callers that do not care (unit tests) working.
+ *
+ * The weights below are deliberate and in one order: the data is the
+ * darkest thing on the chart, the border and ticks are lighter, and the grid
+ * is lightest of all. Left to its defaults uPlot draws a grid at the same
+ * weight as a trace, which is how a plot ends up reading as graph paper
+ * with a signal somewhere on it.
+ */
+/** Width reserved for one y-axis' ticks, in CSS pixels. */
+export const Y_AXIS_SIZE = 56;
+/** Width reserved for one y-axis' rotated name, in CSS pixels. */
+export const Y_LABEL_SIZE = 20;
+
+export function buildAxes(
+  spines: SpineSpec[],
+  domain: XAxisDomain = "time",
+  theme: ChartTheme = CHART_THEME_FALLBACK,
+): uPlot.Axis[] {
+  const common = {
+    space: 44,
+    font: theme.font,
+    labelFont: theme.labelFont,
+    stroke: theme.tickText,
+    labelSize: Y_LABEL_SIZE,
+    labelGap: 2,
+    gap: 6,
+    ticks: { show: true, stroke: theme.tick, width: 1, size: 4 },
+    grid: { show: true, stroke: theme.grid, width: 1 },
+    border: { show: true, stroke: theme.border, width: 1 },
+  } satisfies Partial<uPlot.Axis>;
+
+  const x: uPlot.Axis = {
+    ...common,
+    scale: "x",
+    label: xAxisLabel(domain),
+    size: 46,
+    // Minimum pixels between ticks. uPlot's defaults pack a wide axis with
+    // more labels than anyone reads; these give each one room to be read.
+    space: 72,
+  };
   if (domain === "time") {
     x.values = (_self, splits) => formatTimeTicks(splits as number[]);
+  } else if (domain === "frequency") {
+    // Decade ticks each carry their own prefix — see formatLogTicks.
+    x.values = (_self, splits) => formatLogTicks(splits as number[], "Hz");
   }
+
   if (spines.length === 0) {
-    return [x, { scale: "y" }];
+    return [x, { ...common, scale: "y", size: Y_AXIS_SIZE }];
   }
+
   const yAxes: uPlot.Axis[] = spines.map((spine) => ({
+    ...common,
     scale: spine.scaleKey,
-    label: spine.unit,
+    // The unit lives in the axis name ("Voltage (V)"), so the ticks carry
+    // only the SI prefix: "0  5m  10m" under "(V)" reads as millivolts
+    // without repeating "V" eleven times down the side of the plot.
+    label: spineLabel(spine),
     side: spine.side,
+    size: Y_AXIS_SIZE,
+    values: _spineTakesPrefix(spine)
+      ? (_self: uPlot, splits: number[]) => formatTicks(splits)
+      : undefined,
   }));
+  // Reserve the right-hand gutter even when nothing is drawn in it.
+  //
+  // Stacked time plots are read by running your eye down a moment in time
+  // through all of them, and that only works if their plot areas start and
+  // end at the same x. They did not: an axes with one quantity has a left
+  // axis only, an axes with two also has a right axis, so the first was
+  // wider than the second by the width of an axis and the two time bases
+  // were visibly offset. A spacer axis with no ticks, grid, label or values
+  // costs the same width and draws nothing.
+  if (!yAxes.some((axis) => axis.side === 1)) {
+    yAxes.push({
+      scale: (spines[0] as SpineSpec).scaleKey,
+      side: 1,
+      // Ticks *and* name: a real y-axis reserves both, so the spacer has to
+      // match the sum or the stack is still off by the width of a name.
+      size: Y_AXIS_SIZE + Y_LABEL_SIZE,
+      show: true,
+      ticks: { show: false },
+      grid: { show: false },
+      border: { show: false },
+      values: () => [],
+    });
+  }
+
   return [x, ...yAxes];
+}
+
+/** Trace stroke width, in CSS pixels. */
+export const SERIES_WIDTH = 1.6;
+
+/**
+ * Show per-sample markers only once the samples are far enough apart to be
+ * individually meaningful — roughly one every 10 px of plot width.
+ */
+function _pointsWorthShowing(u: uPlot, seriesIdx: number): boolean {
+  const scale = u.series[seriesIdx]?.scale;
+  if (!scale) return false;
+  const idx = u.series[0]?.idxs;
+  if (!idx) return false;
+  const visible = idx[1] - idx[0] + 1;
+  return visible > 1 && u.bbox.width / devicePixelRatio / visible >= 10;
 }
 
 /** Build uPlot series config for all signal refs. */
@@ -160,6 +280,14 @@ export function buildSeries(
       label: ref.signalName,
       stroke: ref.color,
       scale: spine?.scaleKey ?? "y",
+      // 1.6px: heavy enough to stay solid where a switching waveform packs
+      // many edges into few pixels, light enough that eight traces on one
+      // axes do not merge into a block of colour.
+      width: SERIES_WIDTH,
+      // A point marker per sample is meaningless at simulation densities —
+      // uPlot shows them automatically once zoomed past roughly one sample
+      // per 10px, which is exactly where they start to carry information.
+      points: { show: (u, seriesIdx) => _pointsWorthShowing(u, seriesIdx) },
     });
   }
   return series;
@@ -372,4 +500,29 @@ export function valueExtents(
 export function spinesChanged(prev: SpineSpec[], next: SpineSpec[]): boolean {
   if (prev.length !== next.length) return true;
   return prev.some((p, i) => p.quantity !== next[i]?.quantity);
+}
+
+/**
+ * Position, in CSS pixels from the chart's top-left corner, for an overlay
+ * element that marks `value` on `scaleKey`.
+ *
+ * Neither form of `uPlot.valToPos` answers this on its own, which is the
+ * trap this helper exists to close:
+ *
+ *   valToPos(v, k, true)   device pixels, measured from the chart corner
+ *   valToPos(v, k, false)  CSS pixels, measured from the *plot area* corner
+ *
+ * The cursor and annotation overlays are absolutely positioned divs inside
+ * the chart, so they need CSS pixels from the chart corner — which is
+ * neither. Using `true` (what the code did) put every line at dpr times its
+ * correct distance, so on a retina display or at VS Code zoom > 100% they
+ * landed outside the plot entirely; using `false` instead drops the axis
+ * gutter and shifts every line left by the width of the y-axis.
+ *
+ * `u.over` is the plot area as a CSS-positioned element, so its offsets are
+ * exactly the missing gutter, in the right units, at any pixel ratio.
+ */
+export function overlayPx(u: uPlot, value: number, scaleKey: string, axis: "x" | "y"): number {
+  const inPlot = u.valToPos(value, scaleKey, false);
+  return axis === "x" ? u.over.offsetLeft + inPlot : u.over.offsetTop + inPlot;
 }

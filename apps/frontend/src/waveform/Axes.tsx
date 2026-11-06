@@ -15,12 +15,14 @@ import {
   dataExtents,
   isBodeAxes,
   makePanAwareMousedown,
+  overlayPx,
   spinesChanged,
   xAxisDomain,
 } from "./axes-config";
 import type { SpineSpec } from "./axes-config";
 import { buildBodeAnnotations } from "./bode-annotations";
 import type { AnnotationSpec, BodeMargins, MarginBadgeSpec } from "./bode-annotations";
+import { readChartTheme } from "./theme";
 import type { SignalRef, WaveformSignal } from "./types";
 
 export type { BodeMargins };
@@ -43,20 +45,30 @@ function _groupColor(index: number): string {
   return _GROUP_COLORS[index % _GROUP_COLORS.length] ?? "#3b82f6";
 }
 
+/**
+ * Floors for the measured size. A chart narrower or shorter than this has no
+ * room left for its own axes after uPlot subtracts them, and uPlot throws
+ * rather than drawing a negative-width plot area.
+ */
+const MIN_CHART_WIDTH = 240;
+const MIN_CHART_HEIGHT = 120;
+
 // Stable fallback so `refs` doesn't become a fresh [] reference on every
 // render while axesEntry is undefined (see the useMemo below).
 const _EMPTY_REFS: SignalRef[] = [];
 
 export interface AxesProps {
   axesId: string;
+  /** Fixed chart width. Omit (the normal case) to fill the grid cell. */
   width?: number;
+  /** Fixed chart height. Omit (the normal case) to fill the grid cell. */
   height?: number;
   onZoomChange?: (xMin: number, xMax: number, yMin: number, yMax: number) => void;
   /** Optional Bode stability margins; triggers annotation overlays when present. */
   bodeMargins?: BodeMargins;
 }
 
-export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMargins }: AxesProps) {
+export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesProps) {
   const axesEntry = useWaveformStore((s) => s.axes.get(axesId));
   const signalCache = useWaveformStore((s) => s.signalCache);
   const couplingGroups = useWaveformStore((s) => s.couplingGroups);
@@ -73,6 +85,24 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
 
   const containerRef = useRef<HTMLDivElement>(null);
   const uplotRef = useRef<uPlot | null>(null);
+  // The plot's real size on screen. uPlot needs explicit pixel dimensions —
+  // it cannot be told to fill its parent — so something has to measure the
+  // parent and tell it. Nothing did: every chart was built at the component's
+  // default 800x300 regardless of the panel it sat in, which on a maximised
+  // VS Code panel left roughly two thirds of the surface empty grey, and on a
+  // narrow one clipped the plot.
+  const [measured, setMeasured] = useState<{ width: number; height: number }>({
+    width: width ?? MIN_CHART_WIDTH,
+    height: height ?? MIN_CHART_HEIGHT,
+  });
+  const plotWidth = width ?? measured.width;
+  const plotHeight = height ?? measured.height;
+  // Read by the construction path below, which must not list the size in its
+  // deps: a resize is handled by uPlot's own setSize (see the effect further
+  // down), not by destroying and rebuilding the chart on every pixel of a
+  // splitter drag.
+  const sizeRef = useRef({ width: plotWidth, height: plotHeight });
+  sizeRef.current = { width: plotWidth, height: plotHeight };
   const spinesRef = useRef<SpineSpec[]>([]);
   const dragOverRef = useRef(false);
   // Last zoom bounds this component pushed into uPlot — lets the sync effect
@@ -145,6 +175,50 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
     }
   }
 
+  // Keep `measured` in step with the cell the chart sits in. ResizeObserver
+  // rather than a window resize listener: the panel is resized by dragging
+  // VS Code's own splitters and by maximising an axes, neither of which
+  // changes the window size.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver((entries) => {
+      const box = entries[0]?.contentRect;
+      if (!box) return;
+      const next = {
+        width: Math.max(MIN_CHART_WIDTH, Math.round(box.width)),
+        height: Math.max(MIN_CHART_HEIGHT, Math.round(box.height)),
+      };
+      setMeasured((prev) =>
+        prev.width === next.width && prev.height === next.height ? prev : next,
+      );
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Resize in place. Rebuilding the chart would also work, but it throws away
+  // the zoom, the cursors and the decimation cache on every frame of a
+  // splitter drag.
+  //
+  // The overlays have to be recomputed here too. They are positioned in
+  // pixels, and uPlot's setSize does not fire `setScale` — so without this,
+  // a chart that mounted at its minimum size and then grew to fill the panel
+  // kept drawing its cursors at the positions they had when it was 240px
+  // wide, bunched against the left edge.
+  useEffect(() => {
+    const u = uplotRef.current;
+    if (!u) return;
+    u.setSize({ width: plotWidth, height: plotHeight });
+    const firstYKey = spinesRef.current[0]?.scaleKey ?? "y";
+    setCursorLines(_buildCursorLines(axesEntryRef.current, u, firstYKey));
+    if (bodeMargins && isBodeAxes(latestRef.current.refs, latestRef.current.signalCache)) {
+      const result = buildBodeAnnotations(bodeMargins, u, magSpineKey);
+      setAnnotationLines(result.lines);
+      setMarginBadge(result.badge);
+    }
+  }, [plotWidth, plotHeight, bodeMargins, magSpineKey]);
+
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -192,11 +266,11 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
 
     const series = buildSeries(refs, signalCache, spines);
     const scales = buildScales(spines, xDomain === "frequency");
-    const axes = buildAxes(spines, xDomain);
+    const axes = buildAxes(spines, xDomain, readChartTheme(containerRef.current ?? undefined));
 
     const opts: uPlot.Options = {
-      width,
-      height,
+      width: sizeRef.current.width,
+      height: sizeRef.current.height,
       scales,
       axes,
       series,
@@ -314,8 +388,6 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
     signalCache,
     spines,
     needsReinit,
-    width,
-    height,
     onZoomChange,
     axesId,
     propagateZoom,
@@ -498,7 +570,6 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
       <div
         className="axes-container"
         data-axes-id={axesId}
-        style={{ position: "relative" }}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
@@ -507,40 +578,21 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
         <div
           className="axes-header"
           draggable
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "2px 6px",
-            background: "#ffffff",
-            borderBottom: "1px solid #e2e8f0",
-            cursor: "grab",
-            userSelect: "none",
-            minHeight: "24px",
-          }}
           onContextMenu={handleHeaderContextMenu}
           onDragStart={handleDragStart}
         >
-          <span
-            className="axes-header__id"
-            style={{ color: "#64748b", fontSize: "0.7rem", fontFamily: "monospace" }}
-          >
-            {axesId.slice(0, 8)}
-          </span>
+          {/* The axes' own title is the signals it carries, which the legend
+              below already spells out — so the header shows the thing the
+              legend cannot: which coupling group this axes zooms with. It
+              used to show eight characters of the axes' UUID, which named
+              nothing the user had ever seen or chosen. */}
+          <span className="axes-header__grip" aria-hidden="true" />
           {couplingGroup && (
             <span
               className="axes-header__group-badge"
               aria-label={`Coupling group: ${couplingGroup.name}`}
-              style={{
-                background: groupColor,
-                color: "#fff",
-                borderRadius: "3px",
-                padding: "1px 6px",
-                fontSize: "0.7rem",
-                fontWeight: 600,
-                lineHeight: "1.4",
-              }}
             >
+              <span className="axes-header__group-dot" style={{ background: groupColor }} />
               {couplingGroup.name}
             </span>
           )}
@@ -550,68 +602,33 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
             aria-label={isMaximized ? "Restore axes" : "Maximize axes"}
             title={isMaximized ? "Restore axes" : "Maximize axes to fill figure"}
             onClick={handleMaximizeToggle}
-            style={{
-              background: "none",
-              border: "1px solid #cbd5e1",
-              borderRadius: "3px",
-              color: "#64748b",
-              cursor: "pointer",
-              fontSize: "0.7rem",
-              lineHeight: 1.2,
-              marginLeft: "auto",
-              padding: "1px 5px",
-            }}
           >
             {isMaximized ? "⤡" : "⤢"}
           </button>
         </div>
 
         {signalCount > 10 && (
-          <div
-            className="axes-signal-warning"
-            role="alert"
-            style={{
-              background: "#fef3c7",
-              borderBottom: "1px solid #f59e0b",
-              color: "#92400e",
-              fontSize: "0.75rem",
-              padding: "2px 8px",
-            }}
-          >
+          <div className="axes-signal-warning" role="alert">
             {signalCount} signals on one axes — consider splitting across multiple axes.
           </div>
         )}
         <AxesLegend axesId={axesId} />
-        <div ref={containerRef} style={{ position: "relative", background: "#ffffff" }}>
+        <div ref={containerRef} className="axes-plot">
           {/* Bode annotation lines rendered as absolutely-positioned overlays. */}
           {annotationLines.map((line) =>
             line.kind === "vline" ? (
               <div
                 key={`vline-${line.value}`}
-                className="bode-annotation-vline"
+                className="axes-overlay-line axes-overlay-line--v axes-overlay-line--bode"
                 aria-label={line.label}
-                style={{
-                  borderLeft: "1px dashed #ef4444",
-                  bottom: 0,
-                  left: line.px,
-                  pointerEvents: "none",
-                  position: "absolute",
-                  top: 0,
-                }}
+                style={{ left: line.px }}
               />
             ) : (
               <div
                 key={`hline-${line.value}`}
-                className="bode-annotation-hline"
+                className="axes-overlay-line axes-overlay-line--h axes-overlay-line--bode"
                 aria-label={line.label}
-                style={{
-                  borderTop: "1px dashed #6366f1",
-                  left: 0,
-                  pointerEvents: "none",
-                  position: "absolute",
-                  right: 0,
-                  top: line.px,
-                }}
+                style={{ top: line.px }}
               />
             ),
           )}
@@ -620,58 +637,20 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
             line.kind === "vline" ? (
               <div
                 key={`cursor-vline-${line.label}`}
-                className="cursor-line cursor-line--vertical"
+                className="axes-overlay-line axes-overlay-line--v axes-cursor axes-cursor--x"
                 aria-label={`Cursor ${line.label}`}
-                style={{
-                  borderLeft: "1px dashed #14b8a6",
-                  bottom: 0,
-                  left: line.px,
-                  pointerEvents: "none",
-                  position: "absolute",
-                  top: 0,
-                }}
+                style={{ left: line.px }}
               >
-                <span
-                  style={{
-                    background: "#14b8a6",
-                    color: "#0f172a",
-                    fontSize: "0.65rem",
-                    fontWeight: 600,
-                    padding: "0 3px",
-                    position: "absolute",
-                    top: 0,
-                  }}
-                >
-                  {line.label}
-                </span>
+                <span className="axes-cursor__tag">{line.label}</span>
               </div>
             ) : (
               <div
                 key={`cursor-hline-${line.label}`}
-                className="cursor-line cursor-line--horizontal"
+                className="axes-overlay-line axes-overlay-line--h axes-cursor axes-cursor--y"
                 aria-label={`Cursor ${line.label}`}
-                style={{
-                  borderTop: "1px dashed #f59e0b",
-                  left: 0,
-                  pointerEvents: "none",
-                  position: "absolute",
-                  right: 0,
-                  top: line.px,
-                }}
+                style={{ top: line.px }}
               >
-                <span
-                  style={{
-                    background: "#f59e0b",
-                    color: "#0f172a",
-                    fontSize: "0.65rem",
-                    fontWeight: 600,
-                    padding: "0 3px",
-                    position: "absolute",
-                    right: 0,
-                  }}
-                >
-                  {line.label}
-                </span>
+                <span className="axes-cursor__tag">{line.label}</span>
               </div>
             ),
           )}
@@ -679,19 +658,7 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
           {marginBadge && (
             <div
               className="bode-margin-badge"
-              style={{
-                background: "rgba(0,0,0,0.72)",
-                borderRadius: "4px",
-                color: "#f0f0f0",
-                fontSize: "0.7rem",
-                left: marginBadge.pxLeft,
-                lineHeight: "1.5",
-                padding: "4px 6px",
-                pointerEvents: "none",
-                position: "absolute",
-                top: marginBadge.pxTop,
-                whiteSpace: "nowrap",
-              }}
+              style={{ left: marginBadge.pxLeft, top: marginBadge.pxTop }}
             >
               <div>GM: {marginBadge.gainMarginDb.toFixed(1)} dB</div>
               <div>PM: {marginBadge.phaseMarginDeg.toFixed(1)}°</div>
@@ -712,7 +679,19 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
   );
 }
 
-/** FE-165: build the (up to) 4 cursor overlay lines for the current uPlot scale. */
+/**
+ * FE-165: build the (up to) 4 cursor overlay lines for the current uPlot scale.
+ *
+
+ * `false`, not `true`: uPlot's third argument asks for *canvas* pixels, which
+ * are CSS pixels multiplied by the device pixel ratio. These positions are
+ * written straight into `style.left` / `style.top` on overlay divs, which are
+ * laid out in CSS pixels — so on any HiDPI display (every retina laptop, and
+ * VS Code at a zoom level above 100%) every cursor and annotation line was
+ * drawn at twice its distance from the origin, landing outside the plot.
+ * At dpr 1 the two agree, which is why this survived.
+ */
+
 function _buildCursorLines(
   entry: { cursorA?: number; cursorB?: number; cursorAH?: number; cursorBH?: number } | undefined,
   u: uPlot,
@@ -723,7 +702,7 @@ function _buildCursorLines(
   if (entry.cursorA !== undefined) {
     lines.push({
       kind: "vline",
-      px: u.valToPos(entry.cursorA, "x", true),
+      px: overlayPx(u, entry.cursorA, "x", "x"),
       scaleKey: "x",
       value: entry.cursorA,
       label: "A",
@@ -732,7 +711,7 @@ function _buildCursorLines(
   if (entry.cursorB !== undefined) {
     lines.push({
       kind: "vline",
-      px: u.valToPos(entry.cursorB, "x", true),
+      px: overlayPx(u, entry.cursorB, "x", "x"),
       scaleKey: "x",
       value: entry.cursorB,
       label: "B",
@@ -741,7 +720,7 @@ function _buildCursorLines(
   if (entry.cursorAH !== undefined) {
     lines.push({
       kind: "hline",
-      px: u.valToPos(entry.cursorAH, yScaleKey, true),
+      px: overlayPx(u, entry.cursorAH, yScaleKey, "y"),
       scaleKey: yScaleKey,
       value: entry.cursorAH,
       label: "A",
@@ -750,7 +729,7 @@ function _buildCursorLines(
   if (entry.cursorBH !== undefined) {
     lines.push({
       kind: "hline",
-      px: u.valToPos(entry.cursorBH, yScaleKey, true),
+      px: overlayPx(u, entry.cursorBH, yScaleKey, "y"),
       scaleKey: yScaleKey,
       value: entry.cursorBH,
       label: "B",
