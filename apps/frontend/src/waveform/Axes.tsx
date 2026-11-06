@@ -5,7 +5,7 @@ import "uplot/dist/uPlot.min.css";
 import { useToastStore } from "../store/toast";
 import { useWaveformStore } from "../store/waveform";
 import { AxesLegend } from "./AxesLegend";
-import { ExportDialog } from "./ExportDialog";
+import { ExportDialog, type ExportSubject } from "./ExportDialog";
 import {
   buildAlignedData,
   buildAxes,
@@ -22,6 +22,7 @@ import {
 import type { SpineSpec } from "./axes-config";
 import { buildBodeAnnotations } from "./bode-annotations";
 import type { AnnotationSpec, BodeMargins, MarginBadgeSpec } from "./bode-annotations";
+import { axesExportSubject } from "./export-subjects";
 import { readChartTheme } from "./theme";
 import type { SignalRef, WaveformSignal } from "./types";
 
@@ -130,7 +131,7 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
 
   const [annotationLines, setAnnotationLines] = useState<AnnotationSpec[]>([]);
   const [marginBadge, setMarginBadge] = useState<MarginBadgeSpec | null>(null);
-  const [exportCanvas, setExportCanvas] = useState<HTMLCanvasElement | null>(null);
+  const [exportSubject, setExportSubject] = useState<ExportSubject | null>(null);
   // FE-165: pixel positions for the visible cursor lines (A/B vertical,
   // AH/BH horizontal). Recomputed whenever the chart's scale changes (the
   // `setScale` hook below) and whenever the cursor values themselves change
@@ -551,9 +552,8 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
   // ---------------------------------------------------------------------------
   function handleHeaderContextMenu(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
-    const canvas = containerRef.current?.querySelector<HTMLCanvasElement>("canvas");
-    if (!canvas) return;
-    setExportCanvas(canvas);
+    if (!containerRef.current) return;
+    setExportSubject(axesExportSubject(axesId, containerRef.current, () => latestRef.current));
   }
 
   // ---------------------------------------------------------------------------
@@ -668,12 +668,8 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
         </div>
       </div>
 
-      {exportCanvas && (
-        <ExportDialog
-          canvas={exportCanvas}
-          defaultFilename={`axes-${axesId}`}
-          onClose={() => setExportCanvas(null)}
-        />
+      {exportSubject && (
+        <ExportDialog subject={exportSubject} onClose={() => setExportSubject(null)} />
       )}
     </>
   );

@@ -7,6 +7,7 @@
  *    from `apps/desktop/src-tauri/src/main.rs`),
  * 2. the Block Library `WebviewView` in the Activity Bar container, and
  * 3. the `*.gsim_sch` Custom Editor Provider hosting the schematic canvas,
+ *    and the read-only `*.gsim_sim_result` one hosting the waveform viewer,
  *
  * plus the `General Simulator: Show Waveforms` panel command.
  */
@@ -15,6 +16,7 @@ import * as vscode from "vscode";
 import { GsimHost } from "./host";
 import { LIBRARY_VIEW_ID, LibraryViewProvider } from "./libraryView";
 import { mirrorToConsole } from "./log";
+import { RESULTS_VIEW_TYPE, ResultsEditorProvider } from "./resultsEditor";
 import { SCHEMATIC_VIEW_TYPE, SchematicEditorProvider } from "./schematicEditor";
 import { symbolWatchPattern } from "./symbolLibrary";
 import { type GsimTestApi, createTestApi } from "./test-api";
@@ -54,6 +56,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<GsimTe
     vscode.window.registerCustomEditorProvider(SCHEMATIC_VIEW_TYPE, schematicProvider, {
       // The canvas holds a lot of live state; rebuilding it on every tab
       // switch would be visibly slow.
+      webviewOptions: { retainContextWhenHidden: true },
+      supportsMultipleEditorsPerDocument: false,
+    }),
+  );
+
+  const resultsProvider = new ResultsEditorProvider(context.extensionUri, host);
+  context.subscriptions.push(resultsProvider);
+  context.subscriptions.push(
+    vscode.window.registerCustomEditorProvider(RESULTS_VIEW_TYPE, resultsProvider, {
+      // A result holds every sample of every signal; re-decoding and
+      // re-plotting them on each tab switch is visibly slow.
       webviewOptions: { retainContextWhenHidden: true },
       supportsMultipleEditorsPerDocument: false,
     }),

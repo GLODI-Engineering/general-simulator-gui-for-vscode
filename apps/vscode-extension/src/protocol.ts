@@ -8,7 +8,7 @@
  * both copies in sync.
  */
 
-export type WebviewRole = "schematic" | "library" | "waveform";
+export type WebviewRole = "schematic" | "library" | "waveform" | "results";
 
 export interface KernelConfig {
   port: number;
