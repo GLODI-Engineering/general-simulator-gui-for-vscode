@@ -47,6 +47,16 @@
           }
         ],
         "priority": "default"
+      },
+      {
+        "viewType": "generalSimulator.simResult",
+        "displayName": "General Simulator Simulation Result",
+        "selector": [
+          {
+            "filenamePattern": "*.gsim_sim_result"
+          }
+        ],
+        "priority": "default"
       }
     ],
     "commands": [
@@ -119,6 +129,13 @@
           "default": true,
           "description": "Start the kernel sidecar automatically when the extension activates."
         }
+      }
+    },
+    "configurationDefaults": {
+      "files.associations": {
+        "*.gsim_sch": "json",
+        "*.gsim_sym": "json",
+        "*.gsim_sim_result": "json"
       }
     }
   },

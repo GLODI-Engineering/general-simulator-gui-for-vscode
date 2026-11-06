@@ -18,8 +18,9 @@
 import { useState } from "react";
 
 import { useWaveformStore } from "../store/waveform";
-import { ExportDialog } from "./ExportDialog";
+import { ExportDialog, type ExportSubject } from "./ExportDialog";
 import { dataExtents, valueExtents } from "./axes-config";
+import { axesExportSubject, figureExportSubject } from "./export-subjects";
 
 export interface WaveformToolbarProps {
   /** The axes whose zoom/cursor state this toolbar controls. */
@@ -39,7 +40,7 @@ export function WaveformToolbar({ axesId }: WaveformToolbarProps) {
   const setAxesPanMode = useWaveformStore((s) => s.setAxesPanMode);
   const clearAxes = useWaveformStore((s) => s.clearAxes);
 
-  const [exportCanvas, setExportCanvas] = useState<HTMLCanvasElement | null>(null);
+  const [exportSubject, setExportSubject] = useState<ExportSubject | null>(null);
 
   if (!axesEntry) return null;
 
@@ -155,13 +156,34 @@ export function WaveformToolbar({ axesId }: WaveformToolbarProps) {
   // -------------------------------------------------------------------------
   // Export Figure — find the uPlot canvas for this axes and open ExportDialog.
   // -------------------------------------------------------------------------
-  function handleExportFigure() {
+  /**
+   * Export this axes on its own.
+   *
+   * The button used to say "Export Figure" and export one axes' canvas,
+   * which is two different things wearing one label. The figure-wide export
+   * lives on the figure's own tab bar, where a figure-wide action belongs.
+   */
+  function handleExportAxes() {
     const container = document.querySelector<HTMLElement>(
       `.axes-container[data-axes-id="${axesId}"]`,
     );
-    const canvas = container?.querySelector<HTMLCanvasElement>("canvas");
-    if (!canvas) return;
-    setExportCanvas(canvas);
+    const plot = container?.querySelector<HTMLElement>(".axes-plot");
+    if (!plot) return;
+    const state = useWaveformStore.getState();
+    setExportSubject(
+      axesExportSubject(axesId, plot, () => ({
+        refs: state.axes.get(axesId)?.signals ?? [],
+        signalCache: useWaveformStore.getState().signalCache,
+      })),
+    );
+  }
+
+  function handleExportFigure() {
+    const figureId = useWaveformStore.getState().axes.get(axesId)?.figureId;
+    if (!figureId) return;
+    const grid = document.querySelector<HTMLElement>(".figure-grid");
+    if (!grid) return;
+    setExportSubject(figureExportSubject(figureId, grid));
   }
 
   // -------------------------------------------------------------------------
@@ -354,20 +376,26 @@ export function WaveformToolbar({ axesId }: WaveformToolbarProps) {
         <button
           type="button"
           style={btnBase}
-          title="Export Figure"
-          aria-label="Export Figure"
-          onClick={handleExportFigure}
+          title="Export this axes as an image, CSV or result file"
+          aria-label="Export axes"
+          onClick={handleExportAxes}
         >
           Export
         </button>
+
+        <button
+          type="button"
+          style={btnBase}
+          title="Export every axes in this figure, as one image or one table"
+          aria-label="Export figure"
+          onClick={handleExportFigure}
+        >
+          Export figure
+        </button>
       </div>
 
-      {exportCanvas && (
-        <ExportDialog
-          canvas={exportCanvas}
-          defaultFilename={`axes-${axesId}`}
-          onClose={() => setExportCanvas(null)}
-        />
+      {exportSubject && (
+        <ExportDialog subject={exportSubject} onClose={() => setExportSubject(null)} />
       )}
     </>
   );

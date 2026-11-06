@@ -8,8 +8,26 @@
 // Types
 // ---------------------------------------------------------------------------
 
+/**
+ * Everything a plot can be exported as.
+ *
+ * The image formats answer "show me"; the data formats answer "let me check
+ * it". See export-data.ts for why both have to be here.
+ */
+export type ExportFormat = "png" | "jpeg" | "svg" | "pdf" | "csv" | "gsim_sim_result";
+
+/** True when the format carries numbers rather than pixels. */
+export function isDataFormat(format: ExportFormat): boolean {
+  return format === "csv" || format === "gsim_sim_result";
+}
+
+/** The file extension to save a given format under. */
+export function extensionFor(format: ExportFormat): string {
+  return format === "jpeg" ? "jpg" : format;
+}
+
 export interface ExportOptions {
-  format: "png" | "jpeg" | "svg" | "pdf";
+  format: ExportFormat;
   /** Output DPI, clamped to [72, 600]. */
   dpi: number;
   /** Override canvas render width (pixels). Defaults to canvas.width. */
@@ -238,6 +256,40 @@ export async function exportAxes(canvas: HTMLCanvasElement, opts: ExportOptions)
   ].join("\n");
 
   return new Blob([svgString], { type: "image/svg+xml" });
+}
+
+/**
+ * Stack several axes canvases into one image, in the order given.
+ *
+ * Exporting a whole figure as one picture is the common case — a figure is
+ * a page of a report — and a zip of separate PNGs is not that. Each canvas
+ * keeps its own width; the result is as wide as the widest, so a narrower
+ * axes is left-aligned rather than stretched.
+ */
+export function stackCanvases(canvases: HTMLCanvasElement[], gap = 0): HTMLCanvasElement {
+  if (canvases.length === 0) throw new Error("Nothing to export: this figure has no plots.");
+  const width = Math.max(...canvases.map((c) => c.width));
+  const height =
+    canvases.reduce((sum, c) => sum + c.height, 0) + gap * Math.max(0, canvases.length - 1);
+
+  const out = document.createElement("canvas");
+  out.width = width;
+  out.height = height;
+  const ctx = out.getContext("2d");
+  if (!ctx) throw new Error("Could not obtain 2D context for the stacked export canvas");
+
+  let y = 0;
+  for (const canvas of canvases) {
+    ctx.drawImage(canvas, 0, y);
+    y += canvas.height + gap;
+  }
+  return out;
+}
+
+/** Wrap already-serialized text as a downloadable Blob. */
+export function dataBlob(text: string, format: ExportFormat): Blob {
+  const mime = format === "csv" ? "text/csv;charset=utf-8" : "application/json;charset=utf-8";
+  return new Blob([text], { type: mime });
 }
 
 /**
