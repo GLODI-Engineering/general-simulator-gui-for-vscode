@@ -1,221 +1,240 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+/**
+ * The measurement strip above a plot.
+ *
+ * ## What it replaces
+ *
+ * There was a `MeasurementsBar` before this one, and a full library of
+ * measurement functions behind it — RMS, mean, min, max, peak-to-peak,
+ * frequency, period, rise and fall time, duty cycle. None of it was
+ * reachable: the component was never mounted anywhere in the app, so every
+ * one of those measurements existed, was tested, and could not be used.
+ *
+ * The old shape was also one measurement at a time, for one signal at a
+ * time, chosen from a dropdown. That is not how a plot is read. Reading a
+ * converter waveform means wanting the mean *and* the ripple *and* the
+ * switching frequency, for every trace on the axes, at a glance — and then
+ * occasionally reaching for something unusual.
+ *
+ * So: a few measurements are shown as columns, every trace gets a row, and
+ * the rest of the library is one menu away. Which few is per axes, because
+ * what matters on a gate drive (duty cycle, rise time) is not what matters
+ * on an output rail (mean, ripple).
+ *
+ * ## Two things it is careful about
+ *
+ * **It measures the signal, not the picture.** Display gain scales what is
+ * drawn (see GainControl); it must not scale what is reported, or a plot
+ * could make a 2 A current read as 20 A. These values come from the cached
+ * samples, untouched.
+ *
+ * **Full range or between the cursors.** A measurement over the whole run
+ * is usually the wrong one — the RMS of a waveform that includes its own
+ * start-up transient is not the RMS of the steady state. Placing cursors A
+ * and B and switching to "A–B" is how that is asked for.
+ */
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useWaveformStore } from "../store/waveform";
-import { MEASUREMENT_LABELS, type MeasurementKey, type MeasurementResult } from "./measurements";
-import type { WorkerRequest } from "./measurements.worker";
+import { MEASUREMENT_LABELS, type MeasurementKey } from "./measurements";
+import { type MeasurementTable, measure } from "./measurements-client";
+import { formatValue } from "./theme";
+import type { WaveformSignal } from "./types";
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
+/**
+ * What a converter waveform is read for, before anyone asks for anything
+ * unusual: the DC level, the AC content, and the ripple.
+ */
+export const DEFAULT_MEASUREMENTS: MeasurementKey[] = ["mean", "rms", "peakToPeak"];
 
-type RangeMode = "full" | "cursor";
+const ALL_MEASUREMENTS = Object.keys(MEASUREMENT_LABELS) as MeasurementKey[];
 
-interface MeasurementsBarProps {
-  /** The ID of the focused axes whose signals are available for measurement. */
+/** Measurements that answer in seconds, hertz or a ratio, not the signal's unit. */
+const OWN_UNIT: Partial<Record<MeasurementKey, string>> = {
+  frequency: "Hz",
+  period: "s",
+  riseTime: "s",
+  fallTime: "s",
+  dutyCycle: "%",
+};
+
+export interface MeasurementsBarProps {
   axesId: string;
 }
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-const MEASUREMENT_KEYS = Object.keys(MEASUREMENT_LABELS) as MeasurementKey[];
-
-function _formatValue(result: MeasurementResult): string {
-  if (Number.isNaN(result.value)) return "N/A";
-  const unit = result.unit ? ` ${result.unit}` : "";
-  // Show up to 6 significant figures.
-  return `${Number(result.value.toPrecision(6))}${unit}`;
-}
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 
 export function MeasurementsBar({ axesId }: MeasurementsBarProps) {
   const axes = useWaveformStore((s) => s.axes.get(axesId));
   const signalCache = useWaveformStore((s) => s.signalCache);
+  const setAxesMeasurements = useWaveformStore((s) => s.setAxesMeasurements);
 
-  const signals = axes?.signals ?? [];
-  const [selectedSignalKey, setSelectedSignalKey] = useState<string>(
-    signals.length > 0 ? `${signals[0]?.simId ?? ""}::${signals[0]?.signalName ?? ""}` : "",
-  );
-  const [measurementKey, setMeasurementKey] = useState<MeasurementKey>("rms");
-  const [rangeMode, setRangeMode] = useState<RangeMode>("full");
-  const [result, setResult] = useState<MeasurementResult | null>(null);
-  const [computing, setComputing] = useState(false);
+  const [useCursors, setUseCursors] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [table, setTable] = useState<MeasurementTable>({});
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const requestRef = useRef(0);
 
-  // Keep track of current worker so we can terminate stale ones.
-  const workerRef = useRef<Worker | null>(null);
+  const measurements = axes?.measurements ?? DEFAULT_MEASUREMENTS;
 
-  // Determine cursor positions from the focused axes.
+  const signals = useMemo((): WaveformSignal[] => {
+    const out: WaveformSignal[] = [];
+    for (const ref of axes?.signals ?? []) {
+      const signal = signalCache.get(`${ref.simId}::${ref.signalName}`);
+      if (signal) out.push(signal);
+    }
+    return out;
+  }, [axes?.signals, signalCache]);
+
   const cursorA = axes?.cursorA;
   const cursorB = axes?.cursorB;
-  const bothCursors = cursorA !== undefined && cursorB !== undefined;
+  const haveCursors = cursorA !== undefined && cursorB !== undefined;
+  const window: [number, number] | undefined =
+    useCursors && haveCursors
+      ? [Math.min(cursorA, cursorB), Math.max(cursorA, cursorB)]
+      : undefined;
 
-  // Effective window: cursor range when mode=cursor and both cursors placed, otherwise full.
-  const tStart = rangeMode === "cursor" && bothCursors ? Math.min(cursorA, cursorB) : undefined;
-  const tEnd = rangeMode === "cursor" && bothCursors ? Math.max(cursorA, cursorB) : undefined;
-  const usingFallback = rangeMode === "cursor" && !bothCursors;
-
-  // If the signals list changes and the selected key is no longer valid, reset.
   useEffect(() => {
-    const keys = signals.map((s) => `${s.simId}::${s.signalName}`);
-    if (keys.length > 0 && (selectedSignalKey === "" || !keys.includes(selectedSignalKey))) {
-      const first = signals[0];
-      setSelectedSignalKey(first ? `${first.simId}::${first.signalName}` : "");
-    }
-  }, [signals, selectedSignalKey]);
-
-  // Run the measurement in a worker whenever inputs change.
-  const runMeasurement = useCallback(() => {
-    if (selectedSignalKey === "") {
-      setResult(null);
-      return;
-    }
-
-    const signal = signalCache.get(selectedSignalKey);
-    if (!signal) {
-      setResult(null);
-      return;
-    }
-
-    // Terminate any previous worker.
-    if (workerRef.current) {
-      workerRef.current.terminate();
-    }
-
-    setComputing(true);
-
-    const worker = new Worker(new URL("./measurements.worker.ts", import.meta.url), {
-      type: "module",
+    // A reply that lands after the window has changed again would overwrite
+    // a newer answer with an older one, so each request claims a sequence
+    // number and only the latest is allowed to win.
+    const ticket = ++requestRef.current;
+    let cancelled = false;
+    void measure({ signals, measurements, ...(window ? { window } : {}) }).then((result) => {
+      if (cancelled || ticket !== requestRef.current) return;
+      setTable(result);
     });
-    workerRef.current = worker;
-
-    const request: WorkerRequest = {
-      time: signal.time,
-      values: signal.values,
-      key: measurementKey,
-      tStart,
-      tEnd,
-    };
-
-    worker.onmessage = (event: MessageEvent<MeasurementResult>) => {
-      setResult(event.data);
-      setComputing(false);
-      worker.terminate();
-      if (workerRef.current === worker) {
-        workerRef.current = null;
-      }
-    };
-
-    worker.onerror = () => {
-      setResult({ value: Number.NaN, unit: "" });
-      setComputing(false);
-      worker.terminate();
-      if (workerRef.current === worker) {
-        workerRef.current = null;
-      }
-    };
-
-    worker.postMessage(request);
-  }, [selectedSignalKey, measurementKey, signalCache, tStart, tEnd]);
-
-  // Re-run whenever inputs change.
-  useEffect(() => {
-    runMeasurement();
     return () => {
-      if (workerRef.current) {
-        workerRef.current.terminate();
-        workerRef.current = null;
-      }
+      cancelled = true;
     };
-  }, [runMeasurement]);
+  }, [signals, measurements, window?.[0], window?.[1]]);
 
-  const outputText = computing ? "…" : result !== null ? _formatValue(result) : "—";
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onPointerDown(event: PointerEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) setMenuOpen(false);
+    }
+    globalThis.addEventListener("pointerdown", onPointerDown);
+    return () => globalThis.removeEventListener("pointerdown", onPointerDown);
+  }, [menuOpen]);
+
+  if (signals.length === 0) return null;
+
+  function toggleMeasurement(key: MeasurementKey) {
+    const next = measurements.includes(key)
+      ? measurements.filter((m) => m !== key)
+      : [...measurements, key];
+    setAxesMeasurements(axesId, next);
+  }
+
+  function cellText(signal: WaveformSignal, key: MeasurementKey): string {
+    const result = table[`${signal.simId}::${signal.name}`]?.[key];
+    if (!result) return "…";
+    const unit = OWN_UNIT[key] ?? signal.unit;
+    if (key === "dutyCycle") {
+      return Number.isNaN(result.value) ? "—" : `${(result.value * 100).toPrecision(3)} %`;
+    }
+    return formatValue(result.value, unit);
+  }
 
   return (
-    <section className="measurements-bar" aria-label="Measurements">
-      {/* Signal selector */}
-      <label className="measurements-bar__label" htmlFor={`mbar-signal-${axesId}`}>
-        Signal
-      </label>
-      <select
-        id={`mbar-signal-${axesId}`}
-        className="measurements-bar__select"
-        value={selectedSignalKey}
-        onChange={(e) => setSelectedSignalKey(e.target.value)}
-        aria-label="Select signal"
-        disabled={signals.length === 0}
-      >
-        {signals.length === 0 ? (
-          <option value="">No signals</option>
-        ) : (
-          signals.map((s) => {
-            const key = `${s.simId}::${s.signalName}`;
-            return (
-              <option key={key} value={key}>
-                {s.signalName}
-              </option>
-            );
-          })
-        )}
-      </select>
-
-      {/* Measurement type selector */}
-      <label className="measurements-bar__label" htmlFor={`mbar-type-${axesId}`}>
-        Measurement
-      </label>
-      <select
-        id={`mbar-type-${axesId}`}
-        className="measurements-bar__select"
-        value={measurementKey}
-        onChange={(e) => setMeasurementKey(e.target.value as MeasurementKey)}
-        aria-label="Select measurement type"
-      >
-        {MEASUREMENT_KEYS.map((key) => (
-          <option key={key} value={key}>
-            {MEASUREMENT_LABELS[key]}
-          </option>
-        ))}
-      </select>
-
-      {/* Range mode toggle */}
-      <button
-        type="button"
-        className={`measurements-bar__range-btn${rangeMode === "cursor" ? " measurements-bar__range-btn--active" : ""}`}
-        onClick={() => setRangeMode((prev) => (prev === "full" ? "cursor" : "full"))}
-        aria-pressed={rangeMode === "cursor"}
-        title={
-          usingFallback
-            ? "Place both cursors to use cursor window — using full range"
-            : rangeMode === "cursor"
-              ? "Cursor window active"
-              : "Switch to cursor window mode"
-        }
-      >
-        {rangeMode === "full" ? "Full range" : "Cursor window"}
-        {usingFallback && (
-          <span
-            className="measurements-bar__fallback-indicator"
-            title="Place both cursors to activate cursor window"
-            aria-label="Place both cursors"
+    <div className="measurements-bar">
+      <div className="measurements-bar__controls">
+        {/* The plot is the subject; the numbers are an annotation on it. An
+            axes carrying eight traces would otherwise hand three quarters of
+            its height to a table. */}
+        <button
+          type="button"
+          className="measurements-bar__collapse"
+          aria-expanded={!collapsed}
+          title={collapsed ? "Show measurements" : "Hide measurements"}
+          aria-label={collapsed ? "Show measurements" : "Hide measurements"}
+          onClick={() => setCollapsed((value) => !value)}
+        >
+          {collapsed ? "▸" : "▾"}
+        </button>
+        <div className="measurements-bar__window" role="group" aria-label="Measurement window">
+          <button
+            type="button"
+            className={!useCursors ? "is-active" : ""}
+            onClick={() => setUseCursors(false)}
+            title="Measure over the whole run"
           >
-            {" "}
-            ⚠
-          </span>
-        )}
-      </button>
+            Full
+          </button>
+          <button
+            type="button"
+            className={useCursors ? "is-active" : ""}
+            disabled={!haveCursors}
+            onClick={() => setUseCursors(true)}
+            title={
+              haveCursors
+                ? "Measure between cursors A and B"
+                : "Place cursors A and B to measure a window"
+            }
+          >
+            A–B
+          </button>
+        </div>
 
-      {/* Output field */}
-      <output
-        className="measurements-bar__output"
-        aria-label="Measurement result"
-        aria-live="polite"
-      >
-        {outputText}
-      </output>
-    </section>
+        <div className="measurements-bar__menu-anchor" ref={menuRef}>
+          <button
+            type="button"
+            className="measurements-bar__add"
+            aria-expanded={menuOpen}
+            aria-haspopup="menu"
+            title="Choose which measurements this axes shows"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            Measurements ▾
+          </button>
+          {menuOpen && (
+            <div className="measurements-bar__menu" role="menu">
+              {ALL_MEASUREMENTS.map((key) => (
+                <label key={key} className="measurements-bar__menu-item">
+                  <input
+                    type="checkbox"
+                    checked={measurements.includes(key)}
+                    onChange={() => toggleMeasurement(key)}
+                  />
+                  {MEASUREMENT_LABELS[key]}
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {collapsed ? (
+        <p className="measurements-bar__collapsed-note">
+          {signals.length} {signals.length === 1 ? "signal" : "signals"} ·{" "}
+          {measurements.map((key) => MEASUREMENT_LABELS[key]).join(", ")}
+        </p>
+      ) : (
+        <div className="measurements-bar__scroll">
+          <table className="measurements-bar__table">
+            <thead>
+              <tr>
+                <th scope="col">Signal</th>
+                {measurements.map((key) => (
+                  <th key={key} scope="col">
+                    {MEASUREMENT_LABELS[key]}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {signals.map((signal) => (
+                <tr key={`${signal.simId}::${signal.name}`}>
+                  <th scope="row">{signal.name}</th>
+                  {measurements.map((key) => (
+                    <td key={key}>{cellText(signal, key)}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }
 

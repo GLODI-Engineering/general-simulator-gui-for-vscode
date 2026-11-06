@@ -1,3 +1,5 @@
+import type { MeasurementKey } from "./measurements";
+
 export interface Figure {
   id: string;
   name: string;
@@ -14,6 +16,17 @@ export interface SignalRef {
   simId: string;
   signalName: string;
   color: string;
+  /**
+   * Display-only multiplier, 1 when unset.
+   *
+   * A current of 2 A and a voltage of 48 V on one pair of axes leaves the
+   * current as a flat line against the voltage's scale. Scoping practice is
+   * to scale the small trace until its *shape* is visible next to the large
+   * one — so this multiplies what is drawn, and nothing else. Measurements,
+   * cursors and every export read the signal's real values; the legend says
+   * "×10" so the plot never quietly claims the current is 20 A.
+   */
+  gain?: number;
 }
 
 export type AxesMode = "time" | "bode" | "xy";
@@ -40,6 +53,14 @@ export interface Axes {
   cursorBH?: number;
   /** When true the pointer changes to a hand and drag pans the plot. */
   panMode?: boolean;
+  /**
+   * Which measurements the bar above this axes shows, in order.
+   *
+   * Per axes rather than global: the measurements worth watching on a gate
+   * drive (duty cycle, rise time) are not the ones worth watching on an
+   * output rail (mean, ripple).
+   */
+  measurements?: MeasurementKey[];
 }
 
 export interface CouplingGroup {

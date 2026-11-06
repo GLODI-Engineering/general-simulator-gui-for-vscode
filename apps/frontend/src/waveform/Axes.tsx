@@ -6,6 +6,7 @@ import { useToastStore } from "../store/toast";
 import { useWaveformStore } from "../store/waveform";
 import { AxesLegend } from "./AxesLegend";
 import { ExportDialog, type ExportSubject } from "./ExportDialog";
+import { MeasurementsBar } from "./MeasurementsBar";
 import {
   buildAlignedData,
   buildAxes,
@@ -82,6 +83,8 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
     axesEntry ? s.figures.get(axesEntry.figureId)?.maximizedAxesId : undefined,
   );
   const setMaximizedAxes = useWaveformStore((s) => s.setMaximizedAxes);
+  const setActiveAxes = useWaveformStore((s) => s.setActiveAxes);
+  const isTarget = useWaveformStore((s) => s.activeAxesId === axesId);
   const pushToast = useToastStore((s) => s.pushToast);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -568,8 +571,11 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
   return (
     <>
       <div
-        className="axes-container"
+        className={`axes-container${isTarget ? " axes-container--target" : ""}`}
         data-axes-id={axesId}
+        // Clicking an axes points the signal browser's checkboxes at it, so
+        // "tick a signal to plot it here" needs no extra step.
+        onPointerDownCapture={() => setActiveAxes(axesId)}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
@@ -613,6 +619,7 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
           </div>
         )}
         <AxesLegend axesId={axesId} />
+        <MeasurementsBar axesId={axesId} />
         <div ref={containerRef} className="axes-plot">
           {/* Bode annotation lines rendered as absolutely-positioned overlays. */}
           {annotationLines.map((line) =>

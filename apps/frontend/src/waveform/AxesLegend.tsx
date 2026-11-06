@@ -1,5 +1,8 @@
+import { useState } from "react";
+
 import { useWaveformStore } from "../store/waveform";
 import { ColorSwatch } from "./ColorSwatch";
+import { GainControl } from "./GainControl";
 
 export interface AxesLegendProps {
   axesId: string;
@@ -20,7 +23,9 @@ export function AxesLegend({ axesId }: AxesLegendProps) {
   const axesEntry = useWaveformStore((s) => s.axes.get(axesId));
   const signalCache = useWaveformStore((s) => s.signalCache);
   const setSignalColor = useWaveformStore((s) => s.setSignalColor);
+  const setSignalGain = useWaveformStore((s) => s.setSignalGain);
   const removeSignalFromAxes = useWaveformStore((s) => s.removeSignalFromAxes);
+  const [editingGain, setEditingGain] = useState<string | null>(null);
 
   const signals = axesEntry?.signals ?? [];
 
@@ -46,6 +51,21 @@ export function AxesLegend({ axesId }: AxesLegendProps) {
             />
             <span className="axes-legend__name">{sig.signalName}</span>
             {unit && <span className="axes-legend__unit">{unit}</span>}
+            {/* The gain chip is always rendered once a gain is set, and only
+                on hover otherwise. A scaled trace must never be able to pass
+                for an unscaled one, so "×10" is not something the user can
+                lose by moving the mouse away. */}
+            <GainControl
+              gain={sig.gain}
+              signalName={sig.signalName}
+              editing={editingGain === key}
+              onEdit={() => setEditingGain(key)}
+              onCommit={(value) => {
+                setSignalGain(axesId, sig.simId, sig.signalName, value);
+                setEditingGain(null);
+              }}
+              onCancel={() => setEditingGain(null)}
+            />
             <button
               type="button"
               className="axes-legend__remove"

@@ -2922,3 +2922,290 @@ textarea:focus-visible {
   line-height: 1.5;
   white-space: pre-wrap;
 }
+
+/* ── Per-trace display gain ───────────────────────────────────────────── */
+
+.axes-legend__gain {
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: none;
+  padding: 0 3px;
+  color: var(--wave-text-muted);
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.axes-legend__row:hover .axes-legend__gain,
+.axes-legend__gain:focus-visible {
+  opacity: 1;
+}
+
+/* A scaled trace says so permanently. Hiding "×10" behind a hover would let
+   a plot quietly misreport a measured value by a factor of ten. */
+.axes-legend__gain--set {
+  opacity: 1 !important;
+  border-color: var(--wave-tick);
+  background: var(--wave-hover);
+  color: var(--wave-text);
+  font-weight: 600;
+}
+
+.axes-legend__gain-input {
+  width: 6ch;
+  border: 1px solid var(--wave-accent);
+  border-radius: 3px;
+  background: var(--wave-surface);
+  padding: 0 3px;
+  color: var(--wave-text);
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Signal browser ───────────────────────────────────────────────────── */
+
+.signal-browser__target {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-bottom: 1px solid var(--wave-border);
+  background: var(--wave-surface);
+  padding: 6px 8px;
+}
+
+.signal-browser__target label {
+  color: var(--wave-text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.signal-browser__target select {
+  width: 100%;
+  border: 1px solid var(--wave-border);
+  border-radius: 4px;
+  background: var(--wave-surface);
+  padding: 3px 5px;
+  color: var(--wave-text);
+  font-size: 0.74rem;
+}
+
+.signal-browser__check {
+  accent-color: var(--wave-accent);
+  cursor: pointer;
+  margin: 0 2px 0 0;
+  flex-shrink: 0;
+}
+
+.signal-browser__check:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.signal-browser__signal-item {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 8px;
+}
+
+.signal-browser__signal-item:hover {
+  background: var(--wave-hover);
+}
+
+.signal-browser__quantity {
+  margin-left: auto;
+  color: var(--wave-text-muted);
+  font-size: 0.66rem;
+  white-space: nowrap;
+}
+
+/* The axes the signal browser's checkboxes act on. Deliberately quiet — a
+   border tint, not a glow: it marks a target, it is not a selection. */
+.axes-container--target {
+  border-color: var(--wave-accent);
+}
+
+/* ── Measurements bar ─────────────────────────────────────────────────── */
+
+.measurements-bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border-bottom: 1px solid var(--wave-border);
+  background: var(--wave-surface);
+  padding: 4px 8px 5px;
+  overflow-x: auto;
+}
+
+.measurements-bar__controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+
+.measurements-bar__window {
+  display: inline-flex;
+  border: 1px solid var(--wave-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.measurements-bar__window button {
+  border: none;
+  background: var(--wave-surface);
+  padding: 1px 8px;
+  color: var(--wave-text-muted);
+  font-size: 0.68rem;
+  line-height: 1.6;
+  cursor: pointer;
+}
+
+.measurements-bar__window button + button {
+  border-left: 1px solid var(--wave-border);
+}
+
+.measurements-bar__window button.is-active {
+  background: var(--wave-accent);
+  color: var(--wave-accent-fg);
+  font-weight: 600;
+}
+
+.measurements-bar__window button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.measurements-bar__menu-anchor {
+  position: relative;
+}
+
+.measurements-bar__add {
+  border: 1px solid var(--wave-border);
+  border-radius: 4px;
+  background: var(--wave-surface);
+  padding: 1px 8px;
+  color: var(--wave-text-muted);
+  font-size: 0.68rem;
+  line-height: 1.6;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.measurements-bar__add:hover {
+  background: var(--wave-hover);
+  color: var(--wave-text);
+}
+
+.measurements-bar__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+  border: 1px solid var(--wave-border);
+  border-radius: 6px;
+  background: var(--wave-surface);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+  padding: 4px;
+}
+
+.measurements-bar__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 3px;
+  padding: 3px 6px;
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+
+.measurements-bar__menu-item:hover {
+  background: var(--wave-hover);
+}
+
+.measurements-bar__menu-item input {
+  accent-color: var(--wave-accent);
+  cursor: pointer;
+}
+
+/* Capped, with its own scroll. The plot is the subject; an axes carrying
+   eight traces must not hand three quarters of its height to a table. */
+.measurements-bar__scroll {
+  max-height: 62px;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.measurements-bar__collapse {
+  border: 1px solid var(--wave-border);
+  border-radius: 4px;
+  background: var(--wave-surface);
+  padding: 1px 5px;
+  color: var(--wave-text-muted);
+  font-size: 0.6rem;
+  line-height: 1.7;
+  cursor: pointer;
+}
+
+.measurements-bar__collapse:hover {
+  background: var(--wave-hover);
+  color: var(--wave-text);
+}
+
+.measurements-bar__collapsed-note {
+  margin: 2px 0 0;
+  color: var(--wave-text-muted);
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+/* Tabular numerals and right alignment: a column of measurements is read by
+   comparing magnitudes down it, which proportional digits make harder than
+   it needs to be. */
+.measurements-bar__table {
+  border-collapse: collapse;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.measurements-bar__table th,
+.measurements-bar__table td {
+  padding: 0 12px 0 0;
+  line-height: 1.5;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* The header stays put while the rows scroll under it, so a value five
+   rows down is still identifiable. */
+.measurements-bar__table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--wave-surface);
+  color: var(--wave-text-muted);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.measurements-bar__table tbody th {
+  color: var(--wave-text);
+  font-weight: 500;
+  text-align: left;
+  padding-right: 14px;
+}
+
+.measurements-bar__table td {
+  color: var(--wave-text);
+}
