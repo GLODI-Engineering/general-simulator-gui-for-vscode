@@ -100,7 +100,7 @@ function liesInsideSegment(p: Point, a: Point, b: Point): boolean {
  * not the same node, and treating them as one would put a dot at every
  * crossing over a two-terminal part.
  */
-function netOf(wires: Wire[]): number[] {
+export function netOf(wires: Wire[]): number[] {
   const parent = wires.map((_, i) => i);
   const find = (start: number): number => {
     let i = start;

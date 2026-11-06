@@ -1,6 +1,21 @@
 /**
  * FE-98: Orthogonal auto-router with obstacle avoidance.
  *
+ * It also avoids lying on top of wires that are already routed. Obstacles stop
+ * a wire running *through* a component; `occupied` stops two wires being drawn
+ * as one stroke. The distinction that matters is parallel-and-collinear, not
+ * "wires meet":
+ *
+ * - a vertical segment crossing a horizontal one is an ordinary crossing and is
+ *   fine; schematics are full of them, and a bare crossing already means "not
+ *   connected" by the junction rules;
+ * - two parallel segments sharing a line and overlapping along it is not fine,
+ *   because the two wires become one stroke and no reader can separate them.
+ *
+ * Overlap between wires of the *same net* is left alone: that is one conductor
+ * drawn as a trunk with branches, and pushing those apart would make one node
+ * look like two.
+ *
  * Pure, DOM-free. Ported from the reference editor `schematic_editor.html`
  * (routeOrtho / detour / routeBlocked / segCrossesBox / simplifyPts).
  *
@@ -12,6 +27,55 @@
 import type { ObstacleBox } from "./obstacles";
 
 export const GRID = 20;
+
+/** An axis-aligned run already taken by another wire. */
+export interface RouteSegment {
+  axis: "h" | "v";
+  at: number;
+  lo: number;
+  hi: number;
+  /** Wires sharing a net may overlap freely; only cross-net overlap counts. */
+  net?: string | number;
+}
+
+/** Two parallel runs count as the same line within this distance. */
+const COLLINEAR_TOLERANCE = 1.5;
+/** How far aside an alternative rail is tried, and how many to try. */
+const LANES = 6;
+
+/** The axis-aligned runs of a polyline. Zero-length runs are dropped. */
+export function pointsToSegments(pts: Point[], net?: string | number): RouteSegment[] {
+  const segs: RouteSegment[] = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i];
+    const b = pts[i + 1];
+    if (!a || !b) continue;
+    if (a[1] === b[1]) {
+      segs.push({ axis: "h", at: a[1], lo: Math.min(a[0], b[0]), hi: Math.max(a[0], b[0]), net });
+    } else if (a[0] === b[0]) {
+      segs.push({ axis: "v", at: a[0], lo: Math.min(a[1], b[1]), hi: Math.max(a[1], b[1]), net });
+    }
+  }
+  return segs.filter((s) => s.hi - s.lo > 0);
+}
+
+/** Total length this route shares, collinearly, with runs of a different net. */
+export function routeOverlap(
+  pts: Point[],
+  occupied: RouteSegment[],
+  net?: string | number,
+): number {
+  let total = 0;
+  for (const seg of pointsToSegments(pts, net)) {
+    for (const other of occupied) {
+      if (seg.axis !== other.axis) continue;
+      if (Math.abs(seg.at - other.at) > COLLINEAR_TOLERANCE) continue;
+      if (net !== undefined && other.net !== undefined && other.net === net) continue;
+      total += Math.max(0, Math.min(seg.hi, other.hi) - Math.max(seg.lo, other.lo));
+    }
+  }
+  return total;
+}
 
 export type Point = [number, number];
 export type Direction = "h" | "v" | null;
@@ -212,7 +276,10 @@ export function routeOrtho(
   prevDir: Direction,
   obs: ObstacleBox[],
   nextDir: Direction = null,
+  opts: { occupied?: RouteSegment[]; net?: string | number } = {},
 ): Point[] {
+  const occupied = opts.occupied ?? [];
+  const net = opts.net;
   if (x1 === x2 || y1 === y2) {
     const r: Point[] = [
       [x1, y1],
@@ -266,14 +333,51 @@ export function routeOrtho(
   } else {
     cands = [vFirst, hFirst];
   }
-  for (const c of cands) {
-    if (!routeBlocked(c, obs)) {
-      return simplifyPts(c);
+  // With nothing occupied this reduces exactly to "first candidate that is not
+  // blocked", which is what it did before: an unblocked first candidate scores
+  // zero and nothing can beat it. The extra rails only come into play when the
+  // obvious lane is already taken by another wire.
+  if (occupied.length > 0) {
+    for (let k = 1; k <= LANES; k++) {
+      for (const sign of [1, -1]) {
+        const ox = mx + sign * k * GRID;
+        const oy = my + sign * k * GRID;
+        cands.push([
+          [x1, y1],
+          [ox, y1],
+          [ox, y2],
+          [x2, y2],
+        ]);
+        cands.push([
+          [x1, y1],
+          [x1, oy],
+          [x2, oy],
+          [x2, y2],
+        ]);
+      }
     }
   }
-  const fallback = cands[0] ?? [
-    [x1, y1],
-    [x2, y2],
-  ];
-  return detour(x1, y1, x2, y2, obs) ?? fallback;
+
+  let best: Point[] | null = null;
+  let bestScore = Number.POSITIVE_INFINITY;
+  for (const c of cands) {
+    // A blocked route is always worse than any amount of overlap: running
+    // through a component is unreadable, running alongside another wire is
+    // merely ugly.
+    const score = (routeBlocked(c, obs) ? 1e6 : 0) + routeOverlap(c, occupied, net);
+    if (score < bestScore) {
+      bestScore = score;
+      best = c;
+      if (score === 0) break;
+    }
+  }
+  if (best && bestScore < 1e6) {
+    return simplifyPts(best);
+  }
+  const fallback = best ??
+    cands[0] ?? [
+      [x1, y1],
+      [x2, y2],
+    ];
+  return detour(x1, y1, x2, y2, obs) ?? simplifyPts(fallback);
 }
