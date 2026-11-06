@@ -103,6 +103,24 @@ describe("an exact match wins", () => {
     expect(results[0]?.entry.name).toBe("routing.ground");
   });
 
+  it("is not displaced by a recently used block that lists it as an alias", () => {
+    /*
+     * The real case, and one that only appears in a sequence: searching for
+     * "passive.switch.voltage" inserted "passive.switch.ideal" — whose
+     * metadata lists the voltage switch's type name among its aliases —
+     * but only after the ideal switch had been inserted once. An exact
+     * alias match plus the recency bonus (100 + 40) outran an exact name
+     * match (120).
+     */
+    const ideal = entry("passive.switch.ideal", "Ideal Switch", ["passive.switch.voltage"]);
+    const voltage = entry("passive.switch.voltage", "Voltage-Controlled Switch");
+
+    const results = searchCatalog([ideal, voltage], "passive.switch.voltage", [
+      "passive.switch.ideal",
+    ]);
+    expect(results[0]?.entry.name).toBe("passive.switch.voltage");
+  });
+
   it("still prefers a name match to a label match", () => {
     const byLabel = entry("other.thing", "control.gain");
     const byName = entry("control.gain", "Gain");

@@ -22,6 +22,7 @@
 
 import type { Locator, Page } from "@playwright/test";
 import { Probe, type Target } from "gs-ui-probe";
+import { paramLabel } from "./catalog";
 
 export interface BlockInfo {
   id: string;
@@ -177,6 +178,27 @@ export class SchematicPage {
     return `${blockId.split("-")[0]}:${portId}`;
   }
 
+  /**
+   * The blocks the canvas is currently showing.
+   *
+   * Not the same question as `blocks()`. `__gensim_serialize()` returns the
+   * whole saved document, which is the *root* sheet — step inside a
+   * subsystem and it still reports the root's contents, because that is
+   * what Save writes. What is on screen is the only way to ask "did
+   * entering actually take me somewhere".
+   */
+  async visibleBlocks(): Promise<Array<{ id: string; type: string }>> {
+    return await this.page.evaluate(() => {
+      const canvas = document.querySelector(".react-flow");
+      if (!canvas) return [];
+      return [...canvas.querySelectorAll("[data-block-id]")].flatMap((el) => {
+        const id = el.getAttribute("data-block-id");
+        const type = el.getAttribute("data-block-type");
+        return id && type ? [{ id, type }] : [];
+      });
+    });
+  }
+
   /** Every port currently on the canvas, with its terminal position. */
   async ports(): Promise<PortInfo[]> {
     return await this.page.evaluate(() => {
@@ -198,6 +220,31 @@ export class SchematicPage {
         ];
       });
     });
+  }
+
+  /**
+   * The ports a block actually drew.
+   *
+   * Not the same as what the catalog declares: `control.sum` and
+   * `control.product` list only their output, and generate `in0`, `in1`, …
+   * from a parameter. A scenario that hard-codes those names is guessing.
+   */
+  async portsOf(ref: BlockRef): Promise<PortInfo[]> {
+    const id = idOf(ref);
+    return (await this.ports()).filter((p) => p.blockId === id);
+  }
+
+  /** The nth input port a block drew, in the order it drew them. */
+  async inputPort(ref: BlockRef, index = 0): Promise<string> {
+    const inputs = (await this.portsOf(ref)).filter((p) => p.direction === "in");
+    const port = inputs[index];
+    if (!port) {
+      throw new Error(
+        `block ${idOf(ref)} has ${inputs.length} input ports, no index ${index}. ` +
+          `It drew: ${(await this.portsOf(ref)).map((p) => p.portId).join(", ")}`,
+      );
+    }
+    return port.portId;
   }
 
   // ── reading the document ────────────────────────────────────────────────
@@ -501,6 +548,96 @@ export class SchematicPage {
     return [a, b];
   }
 
+  // ── the property inspector ──────────────────────────────────────────────
+
+  get inspector(): Locator {
+    return this.page.locator(".inspector-slot, [data-testid='inspector']").first();
+  }
+
+  /** Make sure the inspector is showing. */
+  async openInspector(): Promise<void> {
+    if (await this.inspector.isVisible().catch(() => false)) return;
+    await this.probe.press("Control+Shift+I");
+    await this.inspector.waitFor({ state: "visible", timeout: 5_000 });
+  }
+
+  /**
+   * Hide the inspector again.
+   *
+   * It occupies a fixed-width rail, so leaving it open narrows the canvas —
+   * and a block placed near the right edge before it opened can end up
+   * outside the visible area, where its terminals have no screen position
+   * and every drag aimed at them hits nothing.
+   */
+  async closeInspector(): Promise<void> {
+    if (!(await this.inspector.isVisible().catch(() => false))) return;
+    await this.probe.press("Control+Shift+I");
+    await this.page.waitForTimeout(300);
+  }
+
+  /** The parameter fields the inspector is showing, by their visible label. */
+  async shownParams(): Promise<Record<string, string>> {
+    return await this.page.evaluate(() => {
+      const out: Record<string, string> = {};
+      for (const field of document.querySelectorAll(".inspector-field")) {
+        const label = field.querySelector("span")?.textContent?.trim();
+        const input = field.querySelector<HTMLInputElement | HTMLSelectElement>(
+          "input, select",
+        );
+        if (label) out[label] = input?.value ?? "";
+      }
+      return out;
+    });
+  }
+
+  /**
+   * Set a parameter on a block, through the inspector.
+   *
+   * Takes the parameter's *name*, and finds the field by the label the UI
+   * shows for it — they are not the same: `k` reads "Gain" and `n_inputs`
+   * reads "Input count", so looking for a field called "k" finds nothing
+   * and reports that the parameter does not exist.
+   *
+   * Committing matters too: these editors write back on blur or Enter, so
+   * filling a box and moving on changes nothing.
+   */
+  async setParam(ref: BlockRef, name: string, value: string | number): Promise<void> {
+    const block = await this.blockState(ref);
+    const label = paramLabel(block.type, name);
+
+    await this.selectBlock(ref);
+    await this.openInspector();
+
+    const field = this.page.locator(".inspector-field", {
+      has: this.page.locator(`span:text-is("${label}")`),
+    });
+    try {
+      await field.first().waitFor({ state: "visible", timeout: 5_000 });
+    } catch {
+      const shown = Object.keys(await this.shownParams()).join(", ");
+      throw new Error(
+        `the inspector shows no field "${label}" (parameter "${name}") for ${block.type}. ` +
+          `It shows: ${shown || "(none)"}`,
+      );
+    }
+
+    const control = field.first().locator("input, select").first();
+    const tag = await control.evaluate((el) => el.tagName.toLowerCase());
+    if (tag === "select") {
+      await control.selectOption(String(value));
+    } else {
+      await control.click();
+      await control.fill(String(value));
+      await this.probe.press("Enter");
+    }
+    await this.page.waitForTimeout(300);
+  }
+
+  /** A parameter as the saved document records it. */
+  async paramOf(ref: BlockRef, name: string): Promise<unknown> {
+    return (await this.blockState(ref)).params?.[name];
+  }
+
   async selectAll(): Promise<void> {
     await this.focusCanvas();
     await this.probe.press("Control+A");
@@ -518,8 +655,74 @@ export class SchematicPage {
     await this.probe.press("Control+Shift+Z");
   }
 
-  async rotateSelection(): Promise<void> {
-    await this.probe.press("Control+R");
+  async rotateSelection(direction: "cw" | "ccw" = "cw"): Promise<void> {
+    await this.probe.press(direction === "cw" ? "Control+R" : "Control+Shift+R");
+  }
+
+  /** Flip the selection horizontally. */
+  async flipSelection(): Promise<void> {
+    await this.probe.press("Control+I");
+  }
+
+  /**
+   * Group the selection into a subsystem.
+   *
+   * Needs at least two blocks selected; the handler returns without doing
+   * anything for fewer, so a test that groups one block sees no error and
+   * no subsystem.
+   */
+  async groupSelection(): Promise<BlockHandle> {
+    const before = new Set((await this.blocks()).map((b) => b.id));
+    await this.probe.press("Control+G");
+    await this.page.waitForTimeout(400);
+    const added = (await this.blocks()).filter((b) => !before.has(b.id));
+    const subsystem = added[0];
+    if (!subsystem) {
+      throw new Error(`Ctrl+G added no subsystem.\n\n${this.probe.trace.format()}`);
+    }
+    return new BlockHandle(this, subsystem.id, subsystem.type);
+  }
+
+  /** Step into the selected subsystem. */
+  async enterSubsystem(): Promise<void> {
+    await this.probe.press("Enter");
+    await this.page.waitForTimeout(400);
+  }
+
+  /** Step back out, the way the breadcrumb does. */
+  async leaveSubsystem(): Promise<void> {
+    await this.probe.press("Control+[");
+    await this.page.waitForTimeout(400);
+  }
+
+  /** Where the canvas says we are, from the breadcrumb. */
+  async breadcrumb(): Promise<string[]> {
+    return await this.page.evaluate(() =>
+      [...document.querySelectorAll(".breadcrumb button, .breadcrumb__item")]
+        .map((el) => (el.textContent ?? "").trim())
+        .filter(Boolean),
+    );
+  }
+
+  async copy(): Promise<void> {
+    await this.probe.press("Control+C");
+  }
+
+  async paste(): Promise<void> {
+    await this.probe.press("Control+V");
+  }
+
+  /** Click a block to select it. */
+  async selectBlock(ref: BlockRef): Promise<void> {
+    await this.probe.click(this.canvas.locator(`[data-block-id="${idOf(ref)}"]`));
+  }
+
+  /** The block as the document records it — position, rotation, mirror, params. */
+  async blockState(ref: BlockRef): Promise<BlockInfo> {
+    const id = idOf(ref);
+    const found = (await this.blocks()).find((b) => b.id === id);
+    if (!found) throw new Error(`block ${id} is no longer on the sheet`);
+    return found;
   }
 
   /** Rubber-band select everything between two points. */

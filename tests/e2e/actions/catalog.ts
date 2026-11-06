@@ -27,6 +27,14 @@ export interface PortSpec {
   label?: string;
 }
 
+export interface ParamSpec {
+  name: string;
+  /** What the inspector shows. Not the same as `name`: `k` reads "Gain". */
+  label: string;
+  type: string;
+  default?: unknown;
+}
+
 export interface ComponentSpec {
   type: string;
   label: string;
@@ -34,6 +42,7 @@ export interface ComponentSpec {
   domain: string;
   category?: string;
   ports: PortSpec[];
+  params: ParamSpec[];
 }
 
 interface RawPort {
@@ -42,8 +51,16 @@ interface RawPort {
   label?: string;
 }
 
+interface RawParam {
+  name: string;
+  label?: string;
+  type?: string;
+  default?: unknown;
+}
+
 interface RawMetadata {
   name: string;
+  params?: RawParam[];
   label?: string;
   paradigm?: string;
   domain?: string;
@@ -80,6 +97,12 @@ export function allComponents(): ComponentSpec[] {
       domain: metadata.domain ?? "unknown",
       ...(metadata.category ? { category: metadata.category } : {}),
       ports,
+      params: (metadata.params ?? []).map((param) => ({
+        name: param.name,
+        label: param.label ?? param.name,
+        type: param.type ?? "string",
+        ...(param.default === undefined ? {} : { default: param.default }),
+      })),
     };
   });
   return cached;
@@ -144,4 +167,22 @@ export function representativeFor(
 /** Components whose ports span more than one domain — the bridges. */
 export function bridgingComponents(): ComponentSpec[] {
   return allComponents().filter((c) => new Set(c.ports.map((p) => p.domain)).size > 1);
+}
+
+/**
+ * What the inspector calls a parameter.
+ *
+ * The UI shows labels, not names — `k` reads "Gain", `n_inputs` reads
+ * "Input count" — so a test that looks for a field called "k" finds
+ * nothing and reports that the parameter does not exist.
+ */
+export function paramLabel(type: string, name: string): string {
+  const param = componentByType(type).params.find((p) => p.name === name);
+  if (!param) {
+    const available = componentByType(type).params.map((p) => p.name).join(", ");
+    throw new Error(
+      `"${type}" has no parameter "${name}". It has: ${available || "(none)"}`,
+    );
+  }
+  return param.label;
 }
