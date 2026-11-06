@@ -16,6 +16,7 @@ import ReactDOM from "react-dom/client";
 
 import { initKernelFromVsCode } from "../ipc/transport";
 import { onHostMessage, postToHost } from "../ipc/vscode-host";
+import { followVsCodeTheme } from "../ipc/vscode-theme";
 import { ErrorBoundary } from "../shell/ErrorBoundary";
 import { useIpcStore } from "../store";
 import { WaveformTab } from "../waveform/WaveformTab";
@@ -25,6 +26,7 @@ import { installTestHooks } from "./test-hooks";
 import "../styles/app.css";
 
 function boot(): void {
+  followVsCodeTheme();
   initKernelFromVsCode();
 
   onHostMessage((message) => {

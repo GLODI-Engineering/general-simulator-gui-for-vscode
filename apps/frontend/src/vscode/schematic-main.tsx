@@ -17,11 +17,12 @@ import { deserialize } from "../file/deserializer";
 import { serialize } from "../file/serializer";
 import { initKernelFromVsCode } from "../ipc/transport";
 import { getWebviewInit, onHostMessage, postToHost } from "../ipc/vscode-host";
+import { followVsCodeTheme } from "../ipc/vscode-theme";
 import { loadCatalogFromManifest } from "../library/catalog";
-import { mergeUserSymbols } from "../symbol-editor/save";
 import { insertCatalogBlock } from "../library/insert";
 import { ErrorBoundary } from "../shell/ErrorBoundary";
 import { useGraphStore, useIpcStore, useLibraryStore } from "../store";
+import { mergeUserSymbols } from "../symbol-editor/save";
 import { installTestHooks } from "./test-hooks";
 
 /** Tracks the text last synced with the host so we do not echo host writes back. */
@@ -88,6 +89,7 @@ function installDocumentBridge(): () => void {
 }
 
 function boot(): void {
+  followVsCodeTheme();
   initKernelFromVsCode();
   installCrossWebviewDnd();
 
