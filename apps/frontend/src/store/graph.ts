@@ -118,6 +118,20 @@ function portExitSideForWireEndpoint(
   );
 }
 
+/**
+ * What a wire pays for running along another wire of its *own* net, per unit,
+ * relative to running along a wire of a different net.
+ *
+ * Sharing a run within a net is electrically a trunk with branches, and the
+ * junction dot it produces is a real node. But a branch that peels off halfway
+ * along another branch puts that dot in the middle of a plain run, where it
+ * reads as a crossing that has been wrongly connected. A small cost makes the
+ * branches leave from the port instead, so the dot lands on the port where a
+ * reader expects it. It stays well under 1 so that separating two different
+ * nets always takes priority over tidying one.
+ */
+const SAME_NET_WEIGHT = 0.35;
+
 /** One grid step further out along the port's own facing. */
 function approachPoint(
   point: [number, number],
@@ -298,7 +312,7 @@ export function rerouteWiresForBlocks(model: ModelGraph, touchedBlockIds: Set<st
         fromDir ?? inferRouteDir(from, wire),
         wireObstacles,
         toDir,
-        { occupied, net },
+        { occupied, net, sameNetWeight: SAME_NET_WEIGHT },
       );
       const whole = simplifyPts([from, ...middle, to]);
       if (isOrthogonal(whole)) {
@@ -323,7 +337,7 @@ export function rerouteWiresForBlocks(model: ModelGraph, touchedBlockIds: Set<st
         fromDir ?? inferRouteDir(from, wire),
         wireObstacles,
         toDir,
-        { occupied, net },
+        { occupied, net, sameNetWeight: SAME_NET_WEIGHT },
       );
     } else if (routeOverlap(points, occupied, net) > 0 || routeBlocked(points, wireObstacles)) {
       // `rerouteEndSegment` already produced a legal *orthogonal* path, so the
@@ -340,12 +354,13 @@ export function rerouteWiresForBlocks(model: ModelGraph, touchedBlockIds: Set<st
         fromDir ?? inferRouteDir(from, wire),
         wireObstacles,
         toDir,
-        { occupied, net },
+        { occupied, net, sameNetWeight: SAME_NET_WEIGHT },
       );
       // Score both the same way the router does: a wire through a component is
       // worse than any amount of running alongside another wire.
       const cost = (pts: Array<[number, number]>) =>
-        (routeBlocked(pts, wireObstacles) ? 1e6 : 0) + routeOverlap(pts, occupied, net);
+        (routeBlocked(pts, wireObstacles) ? 1e6 : 0) +
+        routeOverlap(pts, occupied, net, SAME_NET_WEIGHT);
       if (isOrthogonal(alternative) && cost(alternative) < cost(points)) {
         points = alternative;
       }

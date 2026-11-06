@@ -27,6 +27,7 @@ import { type FlowBlockData, deriveFlowEdges, deriveFlowNodes } from "./derive-f
 import { resolveDroppedBlock, screenToModelCoords, setActiveDragBlock } from "./dnd";
 import { schematicBounds } from "./fit-bounds";
 import WireEdge from "./edges/WireEdge";
+import { computeHops } from "./edges/hops";
 import { type Junction, computeJunctions } from "./edges/junctions";
 import { applySegDrag } from "./edges/segment-drag";
 import { GridLayer } from "./grid/GridLayer";
@@ -141,7 +142,9 @@ function modelToRouterComponents(
     // model-space coordinates ports/wires already use, or every obstacle box here is
     // undersized by 1.6x and this interactive router "avoids" a box smaller than what
     // is actually drawn.
-    const [rawW, rawH] = metadata ? resolveBlockBbox(metadata, block.params) : [60 / SYMBOL_SCALE, 40 / SYMBOL_SCALE];
+    const [rawW, rawH] = metadata
+      ? resolveBlockBbox(metadata, block.params)
+      : [60 / SYMBOL_SCALE, 40 / SYMBOL_SCALE];
     const w = rawW * SYMBOL_SCALE;
     const h = rawH * SYMBOL_SCALE;
     const ports = metadata
@@ -841,7 +844,6 @@ function CanvasSurface() {
     setFlowNodes((previous) => applyNodeChanges(changes, previous));
   };
 
-  const edges = useMemo(() => deriveFlowEdges(wires), [wires]);
   // Endpoints are port lead tips; without them a three-way node formed by
   // wires that *end* at the same port is invisible to junction detection.
   const junctions = useMemo(() => {
@@ -853,12 +855,15 @@ function CanvasSurface() {
         tips.set(`${block.id}:${port.id}`, [port.stubTip.x, port.stubTip.y]);
       }
     }
-    return computeJunctions(wires, (wire) => {
+    const resolve = (wire: (typeof wires)[number]) => {
       const from = tips.get(`${wire.from.block}:${wire.from.port}`);
       const to = tips.get(`${wire.to.block}:${wire.to.port}`);
-      return from && to ? [from, to] : null;
-    });
+      return from && to ? ([from, to] as [[number, number], [number, number]]) : null;
+    };
+    return { dots: computeJunctions(wires, resolve), hops: computeHops(wires, resolve) };
   }, [wires, blocks, catalog]);
+
+  const edges = useMemo(() => deriveFlowEdges(wires, junctions.hops), [wires, junctions.hops]);
 
   const applySelection = (updater: (selection: Set<string>) => Set<string>) => {
     setSelection(updater(new Set(selection)));
@@ -1060,7 +1065,7 @@ function CanvasSurface() {
         pan={pan}
         zoom={zoom}
       />
-      <JunctionOverlay junctions={junctions} pan={pan} zoom={zoom} />
+      <JunctionOverlay junctions={junctions.dots} pan={pan} zoom={zoom} />
       <ProbeOverlay
         probes={probes}
         selectedProbeIds={selectedProbeIds}

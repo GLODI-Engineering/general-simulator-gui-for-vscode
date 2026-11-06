@@ -63,19 +63,33 @@ export function pointsToSegments(pts: Point[], net?: string | number): RouteSegm
   return segs.filter((s) => s.hi - s.lo > 0);
 }
 
-/** Total length this route shares, collinearly, with runs of a different net. */
+/**
+ * Length this route shares, collinearly, with runs already drawn.
+ *
+ * Overlap with a *different* net counts in full: the two wires become one
+ * stroke. Overlap within the same net counts at `sameNetWeight`, which is zero
+ * by default. It is not zero in practice, because a branch that runs along
+ * another branch of its own net and peels off halfway puts a junction dot in
+ * the middle of a plain run, where a reader cannot tell it from a crossing.
+ * The node is real, so the dot is not wrong -- it is just in a place that has
+ * to be puzzled out. Giving same-net sharing a smaller, non-zero cost makes
+ * branches leave from the port itself, which puts the dot where a reader
+ * already expects one, without ever outweighing a genuine cross-net overlap.
+ */
 export function routeOverlap(
   pts: Point[],
   occupied: RouteSegment[],
   net?: string | number,
+  sameNetWeight = 0,
 ): number {
   let total = 0;
   for (const seg of pointsToSegments(pts, net)) {
     for (const other of occupied) {
       if (seg.axis !== other.axis) continue;
       if (Math.abs(seg.at - other.at) > COLLINEAR_TOLERANCE) continue;
-      if (net !== undefined && other.net !== undefined && other.net === net) continue;
-      total += Math.max(0, Math.min(seg.hi, other.hi) - Math.max(seg.lo, other.lo));
+      const shared = Math.max(0, Math.min(seg.hi, other.hi) - Math.max(seg.lo, other.lo));
+      const sameNet = net !== undefined && other.net !== undefined && other.net === net;
+      total += sameNet ? shared * sameNetWeight : shared;
     }
   }
   return total;
@@ -280,10 +294,11 @@ export function routeOrtho(
   prevDir: Direction,
   obs: ObstacleBox[],
   nextDir: Direction = null,
-  opts: { occupied?: RouteSegment[]; net?: string | number } = {},
+  opts: { occupied?: RouteSegment[]; net?: string | number; sameNetWeight?: number } = {},
 ): Point[] {
   const occupied = opts.occupied ?? [];
   const net = opts.net;
+  const sameNetWeight = opts.sameNetWeight ?? 0;
   if (x1 === x2 || y1 === y2) {
     const r: Point[] = [
       [x1, y1],
@@ -434,7 +449,9 @@ export function routeOrtho(
       (prevDir && endAxis(c, "first") !== prevDir ? PENALTY_FACING : 0) +
       (nextDir && endAxis(c, "last") !== nextDir ? PENALTY_FACING : 0);
     const score =
-      (routeBlocked(c, obs) ? PENALTY_BLOCKED : 0) + facing + routeOverlap(c, occupied, net);
+      (routeBlocked(c, obs) ? PENALTY_BLOCKED : 0) +
+      facing +
+      routeOverlap(c, occupied, net, sameNetWeight);
     if (score < bestScore) {
       bestScore = score;
       best = c;

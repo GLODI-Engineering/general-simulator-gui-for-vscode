@@ -96,7 +96,9 @@ export function deriveFlowNodes(blocks: Block[]): Array<Node<FlowBlockData>> {
     const baseBbox: [number, number] =
       block.type === "routing.junction"
         ? [1, 1]
-        : (metadata ? resolveBlockBbox(metadata, block.params) : [96, 48]);
+        : metadata
+          ? resolveBlockBbox(metadata, block.params)
+          : [96, 48];
     const bbox: [number, number] =
       block.rotation === 90 || block.rotation === 270 ? [baseBbox[1], baseBbox[0]] : baseBbox;
     return {
@@ -120,7 +122,10 @@ export function deriveFlowNodes(blocks: Block[]): Array<Node<FlowBlockData>> {
   });
 }
 
-export function deriveFlowEdges(wires: Wire[]): Edge[] {
+export function deriveFlowEdges(
+  wires: Wire[],
+  hops?: Map<string, Array<{ at: [number, number] }>>,
+): Edge[] {
   return wires.map((wire) => ({
     id: wire.id,
     source: wire.from.block,
@@ -131,7 +136,7 @@ export function deriveFlowEdges(wires: Wire[]): Edge[] {
     animated: false,
     selectable: true,
     deletable: false,
-    data: { wire },
+    data: { wire, hops: hops?.get(wire.id) ?? [] },
     label: wire.pinned ? "pinned" : undefined,
   }));
 }
