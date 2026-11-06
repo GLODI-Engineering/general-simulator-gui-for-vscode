@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-11-06 — Rows have a floor (0.3.3)
+
+### Fixed
+
+- **Three axes in a short editor were squashed to nothing.** Each row took
+  an equal share of whatever height was going, so three panes got about
+  70 px each and, after the header, legend and measurement strip, the chart
+  itself was a sliver. Rows now have a minimum height and the figure
+  scrolls past it — two readable plots you scroll between beat three
+  unreadable ones.
+
+---
+
 ## 2026-11-06 — The viewer follows VS Code's theme (0.3.2)
 
 ### Fixed
