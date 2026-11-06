@@ -11,10 +11,27 @@ import { WEB_BASE_URL } from "./tests/e2e/fixtures/build";
 
 const baseURL = WEB_BASE_URL;
 
+/**
+ * Playwright ships no bundled Chromium for every distribution — on Ubuntu
+ * 26.04 `playwright install chromium` refuses outright. Setting
+ * PLAYWRIGHT_BROWSER_CHANNEL=chrome runs the suite against the browser
+ * already on the machine instead.
+ *
+ * Opt-in via the environment rather than a default, so CI keeps using the
+ * pinned bundled build: a suite that silently runs against whatever Chrome
+ * a developer happens to have is a suite whose failures nobody can
+ * reproduce.
+ */
+const channel = process.env.PLAYWRIGHT_BROWSER_CHANNEL;
+
 function project(name: string, browser: keyof typeof devices, grepInvert?: RegExp) {
   return {
     name,
-    use: { ...devices[browser], baseURL },
+    use: {
+      ...devices[browser],
+      baseURL,
+      ...(channel && name === "chromium" ? { channel } : {}),
+    },
     grepInvert,
   };
 }

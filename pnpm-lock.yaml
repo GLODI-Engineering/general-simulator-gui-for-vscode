@@ -20,6 +20,9 @@ importers:
       ajv-formats:
         specifier: ^3.0.1
         version: 3.0.1(ajv@8.20.0)
+      gs-ui-probe:
+        specifier: link:../gs-ui-probe
+        version: link:../gs-ui-probe
 
   apps/frontend:
     dependencies:
