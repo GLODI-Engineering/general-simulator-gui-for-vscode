@@ -40,8 +40,18 @@ export interface RouteSegment {
 
 /** Two parallel runs count as the same line within this distance. */
 const COLLINEAR_TOLERANCE = 1.5;
-/** How far aside an alternative rail is tried, and how many to try. */
-const LANES = 6;
+/**
+ * How many alternative rails to try, in grid steps either side.
+ *
+ * Wide rather than narrow on purpose. Blocks that feed the same destination
+ * are usually in a column, so their outputs share an x and every wire leaving
+ * them wants the same rail; the nearby lanes are then taken by the very wires
+ * being separated, or blocked by the column itself. A search that gives up
+ * after a few steps finds nothing and the wires stack. The candidates are
+ * cheap to score, and a lane is only taken when it beats what is already
+ * there.
+ */
+const LANES = 16;
 /** A route that runs through a component body. Unreadable; always last. */
 const PENALTY_BLOCKED = 1e6;
 /** A route that leaves or meets a port along the wrong axis. */
@@ -403,10 +413,19 @@ export function routeOrtho(
   // zero and nothing can beat it. The extra rails only come into play when the
   // obvious lane is already taken by another wire.
   if (occupied.length > 0) {
+    // The step scales with the gap being crossed, instead of always being one
+    // grid square. A fixed step searches a few dozen units either side of the
+    // mid-rail, which is nothing when the two ends are a couple of thousand
+    // apart: every lane it tries is inside the same congested strip as the
+    // rail it is trying to leave, so it finds nothing and the wires stack.
+    // Scaling makes the search cover the whole corridor, and `snap` keeps
+    // every lane on the grid.
+    const laneX = Math.max(GRID, snap(Math.abs(x2 - x1) / LANES));
+    const laneY = Math.max(GRID, snap(Math.abs(y2 - y1) / LANES));
     for (let k = 1; k <= LANES; k++) {
       for (const sign of [1, -1]) {
-        const ox = mx + sign * k * GRID;
-        const oy = my + sign * k * GRID;
+        const ox = mx + sign * k * laneX;
+        const oy = my + sign * k * laneY;
         cands.push([
           [x1, y1],
           [ox, y1],
