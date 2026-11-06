@@ -4,6 +4,7 @@ import type { Wire } from "../../model/types";
 import { useUiStore } from "../../store";
 import { useWireColorStore } from "../../store/wire-colors";
 import { mutateActiveModelFromStore } from "../model-mutation";
+import { HOP_RADIUS } from "./hops";
 import { type Junction, computeJunctions } from "./junctions";
 import { REJECT_COLOR, isCausalDomain, wireColorForDomain } from "./wire-color";
 import {
@@ -12,6 +13,7 @@ import {
   isOrthogonalPolyline,
   snapNearOrthogonal,
   wireSvgPath,
+  wireSvgPathWithHops,
 } from "./wire-path";
 
 export const WIRE_STROKE = 2.4 * 1.6; // ≈ 3.84 px at zoom 1
@@ -72,10 +74,13 @@ export function WireEdge({
   const showReject = !orthogonal && hasWaypoints;
   const source = points[0];
   const target = points[points.length - 1];
+  // Hops come from the canvas, which is the only place that knows where every
+  // other wire runs. A wire drawn on its own simply has none.
+  const hops = (data as { hops?: Array<{ at: [number, number] }> } | undefined)?.hops ?? [];
   const path =
     !orthogonal && !hasWaypoints && source && target
       ? autoOrthogonalPath(source, target)
-      : wireSvgPath(snappedPoints);
+      : wireSvgPathWithHops(snappedPoints, hops, HOP_RADIUS);
 
   const pinned = wire?.pinned === true;
 

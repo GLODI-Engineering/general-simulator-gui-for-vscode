@@ -57,7 +57,7 @@ export type Point = [number, number];
 /** Resolves a wire's two endpoint vertices (its port lead tips). */
 export type EndpointResolver = (wire: Wire) => [Point, Point] | null;
 
-function polyline(wire: Wire, endpointsFor?: EndpointResolver): Point[] {
+export function polyline(wire: Wire, endpointsFor?: EndpointResolver): Point[] {
   const middle: Point[] = wire.waypoints.map(([x, y]) => [x, y]);
   const ends = endpointsFor?.(wire);
   if (!ends) {
