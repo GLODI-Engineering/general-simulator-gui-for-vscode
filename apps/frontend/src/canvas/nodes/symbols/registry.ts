@@ -32,6 +32,7 @@ import productDrawing from "./product";
 import quantizerDrawing from "./quantizer";
 import rateLimiterDrawing from "./rateLimiter";
 import resistorDrawing from "./resistor";
+import { inportDrawing, outportDrawing } from "./boundaryPort";
 import { fromDrawing, gotoDrawing } from "./routingTag";
 import saturationDrawing from "./saturation";
 import signDrawing from "./sign";
@@ -103,6 +104,8 @@ export const SYMBOL_DRAWINGS: Record<string, SymbolDrawing> = {
   // wire across it. Both were blank rectangles, which defeats the point:
   // the value of a tag is reading where the signal goes without following
   // a line, and a tag you cannot read is not a tag.
+  "hierarchy.inport": inportDrawing,
+  "hierarchy.outport": outportDrawing,
   "routing.goto": gotoDrawing,
   "routing.from": fromDrawing,
 

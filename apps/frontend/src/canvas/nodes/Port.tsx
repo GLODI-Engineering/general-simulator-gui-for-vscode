@@ -1,5 +1,6 @@
 import type { PortKind } from "../../model/types";
 import { WIRE_STROKE } from "../edges/WireEdge";
+import { isCausalDomain, wireColorForDomain } from "../edges/wire-color";
 import { STUB_LEN } from "./port-hit-test";
 
 // Lead length comes from port-hit-test.ts, which also decides where the wire
@@ -14,27 +15,112 @@ const STUB_SW = WIRE_STROKE;
 // drawn there; the circle exists only so clicks/wire-drops near the tip land on the port).
 const TERMINAL_R = 8;
 
+/**
+ * A port is drawn in the colour of the wire that attaches to it.
+ *
+ * This used to be its own switch, and it had the exact bug `wire-color.ts` was
+ * written to fix: `signal` was `#111827` and `physical-electrical` `#0a0a0a` —
+ * two blacks nobody can tell apart, on the one canvas that hosts both
+ * paradigms at once. Deriving the colour from the wire table instead means a
+ * port and its wire cannot drift apart, and fixing a domain's colour fixes it
+ * in both places.
+ */
 function domainColor(kind: PortKind): string {
-  switch (kind.domain) {
-    case "signal":
-    case "signal-bus":
-    case "physical-signal":
-      return "#111827";
-    case "physical-electrical":
-      return "#0a0a0a";
-    case "physical-thermal":
-      return "#ea580c";
-    case "physical-translational":
-    case "physical-rotational":
-      return "#475569";
-    case "function-call":
-      return "#15803d";
-    case "mixed":
-    case "reserved.physical-fluid":
-    case "reserved.physical-hydraulic":
-    case "reserved.physical-magnetic":
-      return "#334155";
+  return wireColorForDomain(kind.domain);
+}
+
+/** Radius of the open circle marking an acausal (physical) terminal. */
+const TERMINAL_CIRCLE_R = 3.5;
+/** Half-width of the arrowhead marking a causal (signal) port. */
+const SIGNAL_ARROW_HALF_W = 3.5;
+/** Length of that arrowhead along the lead. */
+const SIGNAL_ARROW_LEN = 7;
+
+/**
+ * The terminal marker, by causality — FE-87.
+ *
+ * Colour alone was never enough: it fails for a colour-blind reader, it fails
+ * in a printed or greyscale sheet, and it failed outright here while the two
+ * domains shared a black. The *shape* carries the same information
+ * independently, so the two paradigms stay distinguishable with the colour
+ * thrown away entirely.
+ *
+ * Which shape is not arbitrary. It is the same causal/acausal split the
+ * document model already rests on and that `isCausalDomain` already decides
+ * for wire arrows:
+ *
+ * - **Causal (signal, signal-bus, function-call, physical-signal)** — a solid
+ *   arrowhead, pointing the way the value travels: inward on an input, outward
+ *   on an output.
+ * - **Acausal (physical-electrical, thermal, rotational, …)** — an open
+ *   circle, the IEC 60617 terminal. No arrow, because an electrical node has a
+ *   voltage across it and a current through it solved together: there is no
+ *   "from" end, and an arrow would assert a causality the equations do not
+ *   have.
+ *
+ * The circle is deliberately *open*. A filled dot is already taken: it is the
+ * junction mark on a wire, and a filled dot at a terminal would read as "these
+ * nets are joined here".
+ *
+ * **The two markers sit at opposite ends of the lead, on purpose.** The signal
+ * arrowhead is at the *block boundary*, the acausal circle at the *tip* where a
+ * wire lands. Drawing the arrowhead at the tip was the first thing tried and it
+ * looked wrong immediately: a signal wire already carries its own arrow near
+ * its end, so every connected signal port showed two arrowheads a few pixels
+ * apart. At the boundary the arrowhead reads as part of the block — this is an
+ * input, that is an output — and the wire keeps the one arrow that says which
+ * way the value is travelling along it. An acausal wire carries no arrow at
+ * all, so its terminal has the tip to itself.
+ */
+function TerminalMarker({
+  kind,
+  direction,
+  tipX,
+  tipY,
+  dx,
+  dy,
+  color,
+}: {
+  kind: PortKind;
+  direction: "in" | "out" | "inout";
+  tipX: number;
+  tipY: number;
+  dx: number;
+  dy: number;
+  color: string;
+}) {
+  if (!isCausalDomain(kind.domain)) {
+    return (
+      <circle
+        data-port-marker="acausal"
+        cx={tipX}
+        cy={tipY}
+        r={TERMINAL_CIRCLE_R}
+        fill="#ffffff"
+        stroke={color}
+        strokeWidth={1.5}
+      />
+    );
   }
+  // An input's value arrives travelling *towards* the block, which is the
+  // opposite of the direction its own lead points away in.
+  const sign = direction === "in" ? -1 : 1;
+  const ax = dx * sign;
+  const ay = dy * sign;
+  // Perpendicular, for the two base corners.
+  const px = -ay;
+  const py = ax;
+  // Anchored at the block boundary (the port origin), not the tip.
+  const baseX = -ax * SIGNAL_ARROW_LEN * 0.5;
+  const baseY = -ay * SIGNAL_ARROW_LEN * 0.5;
+  const noseX = baseX + ax * SIGNAL_ARROW_LEN;
+  const noseY = baseY + ay * SIGNAL_ARROW_LEN;
+  const points = [
+    `${noseX},${noseY}`,
+    `${baseX + px * SIGNAL_ARROW_HALF_W},${baseY + py * SIGNAL_ARROW_HALF_W}`,
+    `${baseX - px * SIGNAL_ARROW_HALF_W},${baseY - py * SIGNAL_ARROW_HALF_W}`,
+  ].join(" ");
+  return <polygon data-port-marker="causal" points={points} fill={color} />;
 }
 
 /**
@@ -150,8 +236,16 @@ export function Port({
       />
       {decorate && (
         <>
-          {/* Small origin dot to mark the component boundary contact point */}
-          <circle cx={0} cy={0} r={2} fill={color} />
+          {/* The domain marker sits at the tip, where the wire actually lands. */}
+          <TerminalMarker
+            kind={kind}
+            direction={direction}
+            tipX={tipX}
+            tipY={tipY}
+            dx={dx}
+            dy={dy}
+            color={color}
+          />
           {label ? (
             <text {...portLabelAnchor(side)} fontSize={11} fill="#374151">
               {label}

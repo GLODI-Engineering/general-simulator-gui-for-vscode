@@ -161,6 +161,99 @@ describe("visual states", () => {
     expect(primitives.some((p) => p.type === "text" && p.text === "OPAMP")).toBe(true);
   });
 
+  /**
+   * The case that was actually broken. `previewPrimitives` collected only
+   * `wire.waypoints`, and a straight port-to-port wire carries an empty array —
+   * which is most wires in a real def. Every one of them contributed nothing,
+   * so the preview was a scatter of unconnected grey boxes. The existing test
+   * above never caught it because its single fixture wire happens to have
+   * waypoints.
+   */
+  const straightWired = makeDef(["a", "b"], {
+    blocks: [
+      {
+        id: "sub",
+        type: "spice-subckt.boundary",
+        paradigm: "spice-subckt",
+        domain: "mixed",
+        fidelity: "ideal",
+        position: [0, 0],
+        rotation: 0,
+        mirror: "none",
+        params: {},
+        ic: {},
+      },
+      {
+        id: "R1",
+        type: "physical-electrical.resistor",
+        paradigm: "physical-network",
+        domain: "physical-electrical",
+        fidelity: "ideal",
+        position: [120, 0],
+        rotation: 0,
+        mirror: "none",
+        params: {},
+        ic: {},
+      },
+      {
+        id: "R2",
+        type: "physical-electrical.resistor",
+        paradigm: "physical-network",
+        domain: "physical-electrical",
+        fidelity: "ideal",
+        position: [240, 0],
+        rotation: 0,
+        mirror: "none",
+        params: {},
+        ic: {},
+      },
+    ],
+    wires: [
+      {
+        id: "w1",
+        from: { block: "R1", port: "p2" },
+        to: { block: "R2", port: "p1" },
+        waypoints: [],
+        pinned: false,
+        net: null,
+        kind: "physical-electrical",
+      },
+      {
+        id: "w2",
+        from: { block: "sub", port: "a" },
+        to: { block: "R1", port: "p1" },
+        waypoints: [],
+        pinned: false,
+        net: null,
+        kind: "physical-electrical",
+      },
+    ],
+  });
+
+  it("draws a wire that has no waypoints at all", () => {
+    const metadata = synthesizeSubcktMetadata(straightWired, EMPTY_CATALOG);
+    // Preview wires carry the preview ink colour; the body outline is also a
+    // polyline but is drawn uncoloured, so it is not one of these.
+    const polylines = (metadata.symbol.primitives ?? []).filter(
+      (p) => p.type === "polyline" && "color" in p && p.color !== undefined,
+    );
+    // One per wire. Previously: zero, because neither wire had a waypoint.
+    expect(polylines).toHaveLength(2);
+    for (const line of polylines) {
+      const pts = (line as { pts: Array<[number, number]> }).pts;
+      expect(pts.length).toBeGreaterThanOrEqual(2);
+      // A real path, not a zero-length stub collapsed onto one point.
+      expect(pts[0]).not.toEqual(pts[pts.length - 1]);
+    }
+  });
+
+  it("does not draw the boundary pseudo-block as a component", () => {
+    const metadata = synthesizeSubcktMetadata(straightWired, EMPTY_CATALOG);
+    const rects = (metadata.symbol.primitives ?? []).filter((p) => p.type === "rect");
+    // R1 and R2 only — the boundary is the def's own edge, not a part in it.
+    expect(rects).toHaveLength(2);
+  });
+
   it("state 2a: a def with no structured content is a plain 'subcircuit' + name box", () => {
     const metadata = synthesizeSubcktMetadata(makeDef(["a", "b"]));
     const texts = (metadata.symbol.primitives ?? [])
@@ -214,5 +307,64 @@ describe("resolveBlockMetadata", () => {
   it("returns null for an unknown ordinary block type", () => {
     const block = { ...makeInstance("x"), paradigm: "physical-network" as const, type: "pe.zzz" };
     expect(resolveBlockMetadata(block, {}, [])).toBeNull();
+  });
+});
+
+/**
+ * A real def mixes paradigms: `sw_leg` is `(d, s, ctrl_freq, ctrl_phase,
+ * ctrl_duty)` — two power terminals and three control inputs. The old
+ * half-and-half-by-declaration-order split put `d, s, ctrl_freq` on the left
+ * face and `ctrl_phase, ctrl_duty` on the right, interleaving power and
+ * control on both sides, so every control wire had to loop around the power
+ * path to reach the block.
+ */
+describe("a mixed-paradigm boundary is split by paradigm, not by declaration order", () => {
+  const mixed: StructuredSubcktDef = {
+    id: "sw_leg",
+    name: "sw_leg",
+    ports: [
+      { id: "d", kind: "physical-electrical" },
+      { id: "s", kind: "physical-electrical" },
+      { id: "ctrl_freq", kind: "signal" },
+      { id: "ctrl_phase", kind: "signal" },
+      { id: "ctrl_duty", kind: "signal" },
+    ],
+    body: "",
+  };
+
+  const sideOf = (portId: string) => {
+    const m = synthesizeSubcktMetadata(mixed);
+    const all = [...m.ports.inputs, ...m.ports.outputs];
+    return all.find((p) => p.id === portId)?.side;
+  };
+
+  it("keeps power on the left and right faces", () => {
+    expect(sideOf("d")).toBe("left");
+    expect(sideOf("s")).toBe("right");
+  });
+
+  it("puts every control port on the bottom face", () => {
+    for (const id of ["ctrl_freq", "ctrl_phase", "ctrl_duty"]) {
+      expect(sideOf(id), id).toBe("bottom");
+    }
+  });
+
+  it("loses no port in the split", () => {
+    const m = synthesizeSubcktMetadata(mixed);
+    const ids = [...m.ports.inputs, ...m.ports.outputs].map((p) => p.id).sort();
+    expect(ids).toEqual(["ctrl_duty", "ctrl_freq", "ctrl_phase", "d", "s"]);
+  });
+
+  it("widens the body so the bottom ports are not crowded", () => {
+    const m = synthesizeSubcktMetadata(mixed);
+    const [w] = m.symbol.bbox;
+    const offsets = [...m.ports.inputs, ...m.ports.outputs]
+      .filter((p) => p.side === "bottom")
+      .map((p) => p.offset ?? 0)
+      .sort((a, b) => a - b);
+    expect(offsets[0]).toBeGreaterThan(0);
+    expect(offsets[offsets.length - 1]).toBeLessThan(w);
+    // Real separation between neighbours, not three ports stacked at the middle.
+    expect(offsets[1] - offsets[0]).toBeGreaterThanOrEqual(20);
   });
 });

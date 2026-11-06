@@ -30,7 +30,7 @@ params:
     description: Port kind domain exposed to the parent.
 
 symbol:
-  bbox: [60, 40]
+  bbox: [110, 40]
   shape: rect
   text: "In"
 
