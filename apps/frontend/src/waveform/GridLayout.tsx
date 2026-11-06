@@ -7,6 +7,13 @@ interface GridLayoutProps {
   cols: number;
 }
 
+/**
+ * The shortest a row may be before the figure scrolls instead of shrinking
+ * it further. Leaves roughly 150 px of chart under the header, legend and
+ * measurement strip.
+ */
+const MIN_ROW = 260;
+
 export function GridLayout({ figureId, rows, cols }: GridLayoutProps) {
   const axes = useWaveformStore((s) => s.axes);
   const figureEntry = useWaveformStore((s) => s.figures.get(figureId));
@@ -73,13 +80,21 @@ export function GridLayout({ figureId, rows, cols }: GridLayoutProps) {
       className="figure-grid"
       style={{
         display: "grid",
-        gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+        // A floor on row height, and a scrollbar rather than squashing.
+        //
+        // With `minmax(0, 1fr)` three axes in a short editor each got about
+        // 70 px, and after the header, legend and measurement strip the
+        // chart itself was a sliver — three unreadable plots instead of two
+        // readable ones you scroll between. MIN_ROW is the height below
+        // which a plot stops being worth drawing.
+        gridTemplateRows: `repeat(${rows}, minmax(${MIN_ROW}px, 1fr))`,
         gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
         flex: 1,
         gap: "6px",
         padding: "6px",
         minHeight: 0,
-        overflow: "hidden",
+        overflowX: "hidden",
+        overflowY: "auto",
       }}
     >
       {Array.from({ length: rows * cols }, (_, i) => {

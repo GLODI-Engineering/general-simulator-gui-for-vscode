@@ -144,3 +144,24 @@ describe("FE-167 GridLayout maximize/restore", () => {
     expect(container.querySelector('[data-axes-id="ax-2"]')).not.toBeNull();
   });
 });
+
+describe("a row has a floor, and the figure scrolls past it", () => {
+  it("never shrinks a row below the height a plot needs", () => {
+    // Three axes in a short editor each got about 70 px, and after the
+    // header, legend and measurement strip the chart was a sliver. Three
+    // unreadable plots is worse than two readable ones you scroll between.
+    useWaveformStore.setState({
+      figures: new Map(),
+      axes: new Map(),
+      couplingGroups: new Map(),
+      signalCache: new Map(),
+      streamingSignals: new Set(),
+      activeAxesId: null,
+    });
+    const figureId = useWaveformStore.getState().createFigure("F", 3, 1);
+    const { container } = render(<GridLayout figureId={figureId} rows={3} cols={1} />);
+    const grid = container.querySelector(".figure-grid") as HTMLElement;
+    expect(grid.style.gridTemplateRows).toMatch(/minmax\(\d{3}px, 1fr\)/);
+    expect(grid.style.overflowY).toBe("auto");
+  });
+});
