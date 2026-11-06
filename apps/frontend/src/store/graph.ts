@@ -132,12 +132,25 @@ function portExitSideForWireEndpoint(
  */
 const SAME_NET_WEIGHT = 0.35;
 
-/** One grid step further out along the port's own facing. */
+/**
+ * How many grid steps out from a port an approach point may be placed.
+ *
+ * One step is the natural choice and is tried first. More exist because the
+ * step decides which rail the wire runs along to reach the port, and blocks
+ * that feed a common destination usually sit in a column: every one of their
+ * ports then shares an x, so every wire wants the same rail and they stack.
+ * Letting the lead out be a little longer for one of them gives it a rail of
+ * its own, which is what anyone drawing this by hand would do.
+ */
+const APPROACH_STEPS = [1, 2, 3, 4];
+
+/** `steps` grid steps out along the port's own facing. */
 function approachPoint(
   point: [number, number],
   side: "left" | "right" | "top" | "bottom" | null,
+  steps = 1,
 ): [number, number] {
-  const step = GRID;
+  const step = GRID * steps;
   switch (side) {
     case "left":
       return [point[0] - step, point[1]];
@@ -302,22 +315,45 @@ export function rerouteWiresForBlocks(model: ModelGraph, touchedBlockIds: Set<st
     if (fromMoved && toMoved && wire.waypoints.length === 0) {
       const fromSide = portExitSideForWireEndpoint(model, wire.from);
       const toSide = portExitSideForWireEndpoint(model, wire.to);
-      const fa = approachPoint(points[0] as [number, number], fromSide);
-      const ta = approachPoint(points[points.length - 1] as [number, number], toSide);
-      const middle = routeOrtho(
-        fa[0],
-        fa[1],
-        ta[0],
-        ta[1],
-        fromDir ?? inferRouteDir(from, wire),
-        wireObstacles,
-        toDir,
-        { occupied, net, sameNetWeight: SAME_NET_WEIGHT },
-      );
-      const whole = simplifyPts([from, ...middle, to]);
-      if (isOrthogonal(whole)) {
-        occupied.push(...pointsToSegments(whole, net));
-        return { ...wire, waypoints: whole.slice(1, -1) };
+      const head = points[0] as [number, number];
+      const tail = points[points.length - 1] as [number, number];
+      const cost = (pts: Array<[number, number]>) =>
+        (routeBlocked(pts, wireObstacles) ? 1e6 : 0) +
+        routeOverlap(pts, occupied, net, SAME_NET_WEIGHT);
+
+      let best: Array<[number, number]> | null = null;
+      let bestCost = Number.POSITIVE_INFINITY;
+      for (const outSteps of APPROACH_STEPS) {
+        for (const inSteps of APPROACH_STEPS) {
+          const fa = approachPoint(head, fromSide, outSteps);
+          const ta = approachPoint(tail, toSide, inSteps);
+          const middle = routeOrtho(
+            fa[0],
+            fa[1],
+            ta[0],
+            ta[1],
+            fromDir ?? inferRouteDir(from, wire),
+            wireObstacles,
+            toDir,
+            { occupied, net, sameNetWeight: SAME_NET_WEIGHT },
+          );
+          const whole = simplifyPts([from, ...middle, to]);
+          if (!isOrthogonal(whole)) continue;
+          // The shortest lead out is tried first and wins every tie, so a
+          // wire only takes a longer one when it actually buys separation.
+          const score = cost(whole);
+          if (score < bestCost) {
+            bestCost = score;
+            best = whole;
+            if (score === 0) break;
+          }
+        }
+        if (bestCost === 0) break;
+      }
+
+      if (best) {
+        occupied.push(...pointsToSegments(best, net));
+        return { ...wire, waypoints: best.slice(1, -1) };
       }
     }
 
