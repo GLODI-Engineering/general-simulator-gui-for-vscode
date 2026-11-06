@@ -3,16 +3,22 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   MAX_RENDER_POINTS,
+  Y_AXIS_SIZE,
+  Y_LABEL_SIZE,
   buildAlignedData,
   buildAxes,
   decimateMinMax,
   formatTimeTicks,
   isBodeAxes,
   makePanAwareMousedown,
+  overlayPx,
+  spineLabel,
   valueExtents,
   xAxisDomain,
   xAxisLabel,
 } from "./axes-config";
+import type { SpineSpec } from "./axes-config";
+import { formatLogTicks, formatTicks } from "./theme";
 import type { SignalRef, WaveformSignal } from "./types";
 
 function makeSignal(overrides: Partial<WaveformSignal>): WaveformSignal {
@@ -91,22 +97,99 @@ describe("xAxisLabel", () => {
 describe("formatTimeTicks", () => {
   it("renders sub-microsecond ticks in nanoseconds instead of rounding to 0", () => {
     const labels = formatTimeTicks([0, 1e-9, 2e-9, 3e-9]);
-    expect(labels).toEqual(["0.00ns", "1.00ns", "2.00ns", "3.00ns"]);
+    expect(labels).toEqual(["0ns", "1ns", "2ns", "3ns"]);
   });
 
   it("renders microsecond-scale ticks in µs", () => {
     const labels = formatTimeTicks([0, 2e-6, 4e-6]);
-    expect(labels).toEqual(["0.00µs", "2.00µs", "4.00µs"]);
+    expect(labels).toEqual(["0µs", "2µs", "4µs"]);
   });
 
   it("renders millisecond-scale ticks in ms", () => {
     const labels = formatTimeTicks([0, 0.5e-3, 1e-3]);
-    expect(labels).toEqual(["0.00ms", "0.50ms", "1.00ms"]);
+    expect(labels).toEqual(["0.0ms", "0.5ms", "1.0ms"]);
   });
 
   it("renders second-scale ticks in s", () => {
     const labels = formatTimeTicks([0, 1, 2]);
-    expect(labels).toEqual(["0.00s", "1.00s", "2.00s"]);
+    expect(labels).toEqual(["0s", "1s", "2s"]);
+  });
+
+  /**
+   * The old formatter chose precision from each value's own magnitude
+   * (2 decimals under 10, 1 under 100, 0 above), so an evenly spaced axis
+   * came out with three different precisions and read as though the ticks
+   * were not evenly spaced at all.
+   */
+  it("gives every tick on one axis the same number of decimals", () => {
+    const labels = formatTimeTicks([0, 5e-3, 10e-3, 15e-3, 20e-3]);
+    expect(labels).toEqual(["0ms", "5ms", "10ms", "15ms", "20ms"]);
+  });
+
+  it("keeps a half-step visible rather than rounding neighbouring ticks together", () => {
+    // uPlot picks 2.5 as an increment often. Deriving decimals from the
+    // step's magnitude alone gives 0, and the axis then reads
+    // "0 3 5 8 10" — labels that are neither evenly spaced nor true.
+    expect(formatTicks([0, 2.5, 5, 7.5, 10])).toEqual(["0.0", "2.5", "5.0", "7.5", "10.0"]);
+  });
+
+  it("drops the unit suffix when the axis name already carries it", () => {
+    expect(formatTicks([0, 0.005, 0.01])).toEqual(["0", "5m", "10m"]);
+  });
+});
+
+describe("formatLogTicks", () => {
+  it("labels the decades and leaves the minor ticks unlabelled", () => {
+    const splits = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 1000];
+    expect(formatLogTicks(splits, "Hz")).toEqual([
+      "10Hz",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "100Hz",
+      "",
+      "",
+      "1kHz",
+    ]);
+  });
+
+  it("gives each decade its own prefix rather than one shared across the axis", () => {
+    expect(formatLogTicks([10, 1e3, 1e6], "Hz")).toEqual(["10Hz", "1kHz", "1MHz"]);
+  });
+
+  it("labels everything when the view sits inside a single decade", () => {
+    // Zoomed between two decades there are no decade splits at all, and an
+    // axis with no labels is worse than a crowded one.
+    expect(formatLogTicks([200, 300, 400], "Hz")).toEqual(["200Hz", "300Hz", "400Hz"]);
+  });
+});
+
+describe("spineLabel", () => {
+  it("names the quantity and puts the unit in brackets", () => {
+    expect(spineLabel({ quantity: "voltage", unit: "V", scaleKey: "s", side: 3 })).toBe(
+      "Voltage (V)",
+    );
+    expect(spineLabel({ quantity: "current", unit: "A", scaleKey: "s", side: 1 })).toBe(
+      "Current (A)",
+    );
+  });
+
+  it("titles an unknown quantity rather than dropping it", () => {
+    expect(spineLabel({ quantity: "flux_linkage", unit: "Wb", scaleKey: "s", side: 3 })).toBe(
+      "Flux linkage (Wb)",
+    );
+  });
+
+  it("names the Bode spines by what they show", () => {
+    expect(spineLabel({ quantity: "dB", unit: "dB", scaleKey: "s", side: 3 })).toBe(
+      "Magnitude (dB)",
+    );
+    expect(spineLabel({ quantity: "deg", unit: "°", scaleKey: "s", side: 1 })).toBe("Phase (°)");
   });
 });
 
@@ -117,16 +200,101 @@ describe("buildAxes x-axis", () => {
     expect(typeof x.values).toBe("function");
   });
 
-  it("labels a frequency-domain axes as Frequency (Hz) without a time-tick callback", () => {
+  it("labels a frequency-domain axes as Frequency (Hz) with a decade-tick callback", () => {
     const [x] = buildAxes([], "frequency");
     expect(x.label).toBe("Frequency (Hz)");
-    expect(x.values).toBeUndefined();
+    // A log axis needs its own formatter — see formatLogTicks. It used to
+    // have none, so decade ticks fell back to raw numbers.
+    expect(typeof x.values).toBe("function");
   });
 
   it("labels a parameter-domain axes as Sweep Parameter", () => {
     const [x] = buildAxes([], "parameter");
     expect(x.label).toBe("Sweep Parameter");
     expect(x.values).toBeUndefined();
+  });
+});
+
+describe("buildAxes y-axes", () => {
+  const voltage: SpineSpec = { quantity: "voltage", unit: "V", scaleKey: "scale-voltage", side: 3 };
+  const current: SpineSpec = { quantity: "current", unit: "A", scaleKey: "scale-current", side: 1 };
+
+  it("names each spine by quantity and unit instead of the bare unit", () => {
+    const [, left] = buildAxes([voltage], "time");
+    expect(left?.label).toBe("Voltage (V)");
+  });
+
+  /**
+   * Stacked time plots are read by running your eye down one moment through
+   * all of them, which only works when their plot areas share an x origin
+   * and width. An axes with one quantity has a left gutter only; one with
+   * two has a right gutter as well — so without a spacer the two panes of a
+   * figure were offset by the width of a whole axis.
+   */
+  it("reserves a right-hand gutter when no spine occupies it, so stacked axes align", () => {
+    const oneSpine = buildAxes([voltage], "time");
+    const twoSpines = buildAxes([voltage, current], "time");
+    expect(oneSpine.length).toBe(twoSpines.length);
+
+    const rightOf = (axes: uPlot.Axis[]) => axes.filter((a) => a.side === 1);
+    expect(rightOf(oneSpine)).toHaveLength(1);
+    expect(rightOf(twoSpines)).toHaveLength(1);
+
+    const [spacer] = rightOf(oneSpine);
+    const [real] = rightOf(twoSpines);
+    expect(spacer?.size).toBe(real?.size !== undefined ? Y_AXIS_SIZE + Y_LABEL_SIZE : undefined);
+  });
+
+  it("draws nothing in the reserved gutter", () => {
+    const [spacer] = buildAxes([voltage], "time").filter((a) => a.side === 1);
+    expect(spacer?.label).toBeUndefined();
+    expect(spacer?.ticks).toEqual({ show: false });
+    expect(spacer?.grid).toEqual({ show: false });
+    expect(
+      (spacer?.values as ((u: unknown, splits: number[]) => string[]) | undefined)?.(null, [1, 2]),
+    ).toEqual([]);
+  });
+
+  it("leaves dB and degree ticks unprefixed", () => {
+    // 0.5 dB is 0.5 dB, never "500m dB".
+    const db: SpineSpec = { quantity: "dB", unit: "dB", scaleKey: "scale-dB", side: 3 };
+    const [, mag] = buildAxes([db], "frequency");
+    expect(mag?.values).toBeUndefined();
+  });
+});
+
+describe("overlayPx", () => {
+  /**
+   * The cursor and Bode-annotation overlays are absolutely positioned divs,
+   * laid out in CSS pixels from the chart's corner. uPlot offers device
+   * pixels from the corner, or CSS pixels from the plot area — neither of
+   * which is that. Using the first (what the code did) put every line at
+   * dpr times its correct distance, so on any retina display, or in VS Code
+   * at a zoom above 100%, cursors landed outside the plot. At dpr 1 the two
+   * agree exactly, which is why it went unnoticed.
+   */
+  function fakePlot(gutterLeft: number, gutterTop: number, dpr: number) {
+    return {
+      // uPlot's own contract: `can` asks for device pixels measured from the
+      // chart corner; otherwise CSS pixels measured from the plot area.
+      valToPos: (value: number, _scale: string, can?: boolean) =>
+        can ? (gutterLeft + value) * dpr : value,
+      over: { offsetLeft: gutterLeft, offsetTop: gutterTop },
+    } as unknown as uPlot;
+  }
+
+  it("measures from the chart corner, not the plot area", () => {
+    // 100 px into a plot whose y-axis gutter is 76 px wide is 176 px from
+    // the chart's own left edge. Dropping the gutter shifts every cursor
+    // left by the width of an axis.
+    expect(overlayPx(fakePlot(76, 20, 1), 100, "x", "x")).toBe(176);
+    expect(overlayPx(fakePlot(76, 20, 1), 100, "scale-voltage", "y")).toBe(120);
+  });
+
+  it("gives the same CSS position at any device pixel ratio", () => {
+    for (const dpr of [1, 1.5, 2, 3]) {
+      expect(overlayPx(fakePlot(76, 20, dpr), 100, "x", "x"), `dpr ${dpr}`).toBe(176);
+    }
   });
 });
 

@@ -80,13 +80,7 @@ export function FigureManager() {
         className="figure-manager__tabbar"
         role="tablist"
         aria-label="Figures"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "2px",
-          padding: "4px 8px",
-          borderBottom: "1px solid #334155",
-        }}
+        style={{ display: "flex", alignItems: "center", gap: "2px", padding: "4px 8px" }}
       >
         {figureList.map((figure) => (
           <FigureTab
@@ -105,7 +99,7 @@ export function FigureManager() {
           onClick={handleNewFigure}
           title="New Figure"
           aria-label="New Figure"
-          style={{ marginLeft: "4px", padding: "2px 8px", cursor: "pointer" }}
+          style={{ marginLeft: "4px" }}
         >
           + New Figure
         </button>
@@ -116,7 +110,7 @@ export function FigureManager() {
             onClick={() => setSettingsFigureId(activeFigureId)}
             title="Figure grid settings"
             aria-label="Figure grid settings"
-            style={{ marginLeft: "auto", padding: "2px 6px", cursor: "pointer" }}
+            style={{ marginLeft: "auto" }}
           >
             ⚙
           </button>
@@ -127,7 +121,7 @@ export function FigureManager() {
       {activeFigure && activeFigureId ? (
         <GridLayout figureId={activeFigureId} rows={activeFigure.rows} cols={activeFigure.cols} />
       ) : (
-        <div className="figure-manager__empty" style={{ padding: "16px", color: "#64748b" }}>
+        <div className="figure-manager__empty">
           No figures. Click <strong>+ New Figure</strong> to create one.
         </div>
       )}

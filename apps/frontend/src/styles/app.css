@@ -986,13 +986,6 @@ textarea:focus-visible {
   flex-direction: column;
 }
 
-/* Ensure waveform plotting surface is always white (uPlot root + canvas host). */
-.axes-container .uplot,
-.axes-container .uplot-over,
-.axes-container .uplot-under {
-  background: #ffffff;
-}
-
 .signal-browser__header {
   display: flex;
   align-items: center;
@@ -2378,4 +2371,381 @@ textarea:focus-visible {
   font-weight: 700;
   font-family: ui-monospace, "JetBrains Mono", monospace;
   color: #64748b;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Waveform viewer
+   ═════════════════════════════════════════════════════════════════════════
+
+   One set of tokens for the whole results surface, in both themes. The chart
+   itself is drawn into a <canvas> by uPlot and so cannot be reached by these
+   rules — waveform/theme.ts reads the same custom properties and hands them
+   to uPlot, which is what keeps the canvas and the chrome around it in step.
+   Change a value here and both halves move.
+
+   The weight order is deliberate, and reads from the data outwards: traces
+   are the darkest thing on the plot, then type, then the plot border and
+   ticks, then the grid, which is the faintest. Before this, the legend was
+   near-black (#0f172a) and the grid was uPlot's default mid-grey — so the
+   two loudest things on a plot of a simulation were a label bar and some
+   graph paper.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --wave-surface: #ffffff;
+  --wave-surface-sunken: #f1f5f9;
+  --wave-plot-bg: #ffffff;
+  --wave-plot-border: #dde5ee;
+  --wave-grid: #eef2f7;
+  --wave-tick: #cbd5e1;
+  --wave-tick-text: #64748b;
+  --wave-axis-label: #334155;
+  --wave-text: #0f172a;
+  --wave-text-muted: #64748b;
+  --wave-border: #e2e8f0;
+  --wave-hover: #f1f5f9;
+  --wave-accent: #2563eb;
+  --wave-accent-fg: #ffffff;
+  --wave-cursor-x: #0d9488;
+  --wave-cursor-y: #b45309;
+  --wave-bode: #6366f1;
+  --wave-warn-bg: #fffbeb;
+  --wave-warn-fg: #92400e;
+  --wave-warn-border: #fcd34d;
+  --wave-badge-bg: rgba(15, 23, 42, 0.82);
+  --wave-badge-fg: #f8fafc;
+  --wave-radius: 6px;
+}
+
+:root[data-theme="dark"] {
+  --wave-surface: #0f172a;
+  --wave-surface-sunken: #0b1220;
+  --wave-plot-bg: #0f172a;
+  --wave-plot-border: #263449;
+  --wave-grid: #1b2638;
+  --wave-tick: #334155;
+  --wave-tick-text: #94a3b8;
+  --wave-axis-label: #cbd5e1;
+  --wave-text: #e2e8f0;
+  --wave-text-muted: #94a3b8;
+  --wave-border: #1e293b;
+  --wave-hover: #1e293b;
+  --wave-accent: #3b82f6;
+  --wave-accent-fg: #0b1220;
+  --wave-cursor-x: #2dd4bf;
+  --wave-cursor-y: #fbbf24;
+  --wave-bode: #818cf8;
+  --wave-warn-bg: #2a2212;
+  --wave-warn-fg: #fcd34d;
+  --wave-warn-border: #78350f;
+  --wave-badge-bg: rgba(2, 6, 23, 0.86);
+  --wave-badge-fg: #e2e8f0;
+}
+
+/* ── One axes ─────────────────────────────────────────────────────────── */
+
+.axes-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--wave-border);
+  border-radius: var(--wave-radius);
+  background: var(--wave-surface);
+}
+
+/* The plot fills whatever the header and legend leave. `min-height: 0` is
+   load-bearing: without it the flex item refuses to shrink below its
+   content, and the chart's own measured height can then only ever grow. */
+.axes-plot {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  background: var(--wave-plot-bg);
+}
+
+.axes-plot .uplot,
+.axes-plot .u-wrap {
+  background: var(--wave-plot-bg);
+}
+
+.axes-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+  padding: 2px 6px;
+  border-bottom: 1px solid var(--wave-border);
+  background: var(--wave-surface);
+  color: var(--wave-text-muted);
+  cursor: grab;
+  user-select: none;
+}
+
+.axes-header:active {
+  cursor: grabbing;
+}
+
+/* The drag affordance the UUID used to stand in for. */
+.axes-header__grip {
+  width: 18px;
+  height: 8px;
+  background-image: radial-gradient(circle at 1px 1px, var(--wave-tick) 1px, transparent 0);
+  background-size: 4px 4px;
+}
+
+/* The coupling badge says which axes zoom together. It is a quiet fact about
+   the layout, not the subject of the plot — so it is a dot of the group's
+   colour and a name, rather than a saturated filled pill, which on a page of
+   two axes was the loudest thing on screen. */
+.axes-header__group-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  color: var(--wave-text-muted);
+  font-size: 0.68rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.axes-header__group-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.axes-header__maximize {
+  margin-left: auto;
+  border: 1px solid var(--wave-border);
+  border-radius: 3px;
+  background: none;
+  padding: 1px 6px;
+  color: var(--wave-text-muted);
+  font-size: 0.7rem;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.axes-header__maximize:hover {
+  background: var(--wave-hover);
+  color: var(--wave-text);
+}
+
+.axes-signal-warning {
+  border-bottom: 1px solid var(--wave-warn-border);
+  background: var(--wave-warn-bg);
+  padding: 2px 8px;
+  color: var(--wave-warn-fg);
+  font-size: 0.75rem;
+}
+
+/* ── Legend ───────────────────────────────────────────────────────────── */
+
+.axes-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  padding: 3px 8px;
+  border-bottom: 1px solid var(--wave-border);
+  background: var(--wave-surface);
+}
+
+.axes-legend--empty {
+  color: var(--wave-text-muted);
+  font-size: 0.7rem;
+}
+
+.axes-legend__row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+}
+
+.axes-legend__name {
+  color: var(--wave-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.axes-legend__unit {
+  color: var(--wave-text-muted);
+}
+
+.axes-legend__remove {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--wave-text-muted);
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+/* Hidden until the row is hovered or the button is focused: eight signals
+   meant eight "×" glyphs competing with eight signal names. Focus-visible
+   keeps it reachable from the keyboard. */
+.axes-legend__row:hover .axes-legend__remove,
+.axes-legend__remove:focus-visible {
+  opacity: 1;
+}
+
+.axes-legend__remove:hover {
+  color: #dc2626;
+}
+
+/* ── Cursor and annotation overlays ───────────────────────────────────── */
+
+.axes-overlay-line {
+  position: absolute;
+  pointer-events: none;
+}
+
+.axes-overlay-line--v {
+  top: 0;
+  bottom: 0;
+  border-left: 1px dashed currentcolor;
+}
+
+.axes-overlay-line--h {
+  left: 0;
+  right: 0;
+  border-top: 1px dashed currentcolor;
+}
+
+.axes-overlay-line--bode {
+  color: var(--wave-bode);
+}
+
+.axes-cursor--x {
+  color: var(--wave-cursor-x);
+}
+
+.axes-cursor--y {
+  color: var(--wave-cursor-y);
+}
+
+/* The tag is named per cursor rather than inheriting `currentcolor`: setting
+   `color` for the text on the same element that uses `currentcolor` for its
+   background resolves both to the same value, which painted a white "A" on a
+   white chip — present in the DOM, invisible on screen. */
+.axes-cursor__tag {
+  position: absolute;
+  top: 0;
+  padding: 0 4px;
+  border-radius: 0 0 3px 0;
+  color: var(--wave-plot-bg);
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.axes-cursor--x .axes-cursor__tag {
+  background: var(--wave-cursor-x);
+}
+
+.axes-cursor--y .axes-cursor__tag {
+  right: 0;
+  border-radius: 0 0 0 3px;
+  background: var(--wave-cursor-y);
+}
+
+.bode-margin-badge {
+  position: absolute;
+  border-radius: 4px;
+  background: var(--wave-badge-bg);
+  padding: 4px 7px;
+  color: var(--wave-badge-fg);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ── Figure grid and tab bar ──────────────────────────────────────────── */
+
+.figure-manager {
+  background: var(--wave-surface-sunken);
+}
+
+.figure-manager__tabbar {
+  border-bottom: 1px solid var(--wave-border);
+  background: var(--wave-surface);
+}
+
+.figure-tab {
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: var(--wave-radius) var(--wave-radius) 0 0;
+  background: none;
+  padding: 4px 12px;
+  color: var(--wave-text-muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.figure-tab:hover {
+  background: var(--wave-hover);
+  color: var(--wave-text);
+}
+
+.figure-tab--active {
+  border-color: var(--wave-border);
+  background: var(--wave-surface-sunken);
+  color: var(--wave-text);
+  font-weight: 600;
+}
+
+.figure-tab__rename-input {
+  width: 10ch;
+  border: 1px solid var(--wave-accent);
+  border-radius: 3px;
+  background: var(--wave-surface);
+  padding: 1px 4px;
+  color: var(--wave-text);
+  font-size: 0.78rem;
+}
+
+.figure-grid__cell--empty {
+  border: 1px dashed var(--wave-tick);
+  border-radius: var(--wave-radius);
+  background: var(--wave-surface);
+  color: var(--wave-text-muted);
+}
+
+.waveform-tab__sidebar {
+  border-right: 1px solid var(--wave-border);
+  background: var(--wave-surface);
+  color: var(--wave-text);
+}
+
+.figure-manager__new-btn,
+.figure-manager__settings-btn {
+  border: 1px solid var(--wave-border);
+  border-radius: 4px;
+  background: var(--wave-surface);
+  padding: 2px 9px;
+  color: var(--wave-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.figure-manager__new-btn:hover,
+.figure-manager__settings-btn:hover {
+  background: var(--wave-hover);
+  color: var(--wave-text);
+}
+
+.figure-manager__empty {
+  padding: 16px;
+  color: var(--wave-text-muted);
 }

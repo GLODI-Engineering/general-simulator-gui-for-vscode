@@ -73,11 +73,11 @@ export function GridLayout({ figureId, rows, cols }: GridLayoutProps) {
       className="figure-grid"
       style={{
         display: "grid",
-        gridTemplateRows: `repeat(${rows}, 1fr)`,
-        gridTemplateColumns: `repeat(${cols}, 1fr)`,
+        gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+        gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
         flex: 1,
-        gap: "4px",
-        padding: "4px",
+        gap: "6px",
+        padding: "6px",
         minHeight: 0,
         overflow: "hidden",
       }}
@@ -101,14 +101,10 @@ export function GridLayout({ figureId, rows, cols }: GridLayoutProps) {
             onDragOver={handleCellDragOver}
             onDrop={(e) => handleCellDrop(e, row, col)}
             style={{
-              border: "1px dashed #cbd5e1",
-              borderRadius: "2px",
-              background: "#ffffff",
               minHeight: "120px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "#64748b",
               fontSize: "0.75rem",
             }}
           >

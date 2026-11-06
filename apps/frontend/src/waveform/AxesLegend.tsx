@@ -10,6 +10,11 @@ export interface AxesLegendProps {
  * ColorSwatch), name, unit, and a remove button per signal. Replaces
  * reliance on uPlot's bare built-in legend (no color editing, no remove)
  * and the unused SignalLegend.tsx (dead code, never wired up).
+ *
+ * Styling lives in styles/app.css under the `--wave-*` tokens. It used to be
+ * inline, and near-black (`#0f172a`) on a chart forced to white — a heavy
+ * dark strip laid across every plot, and the single loudest thing on the
+ * surface. A legend names the traces; it should not out-weigh them.
  */
 export function AxesLegend({ axesId }: AxesLegendProps) {
   const axesEntry = useWaveformStore((s) => s.axes.get(axesId));
@@ -21,69 +26,32 @@ export function AxesLegend({ axesId }: AxesLegendProps) {
 
   if (signals.length === 0) {
     return (
-      <div
-        className="axes-legend axes-legend--empty"
-        style={{ color: "#94a3b8", fontSize: "0.7rem", padding: "2px 6px" }}
-      >
+      <div className="axes-legend axes-legend--empty">
         No signals — drag one here, or right-click a signal in the browser.
       </div>
     );
   }
 
   return (
-    <div
-      className="axes-legend"
-      style={{
-        display: "flex",
-        flexWrap: "wrap",
-        gap: "2px 10px",
-        padding: "2px 6px",
-        background: "#0f172a",
-        borderBottom: "1px solid #1e293b",
-      }}
-    >
+    <div className="axes-legend">
       {signals.map((sig) => {
         const key = `${sig.simId}::${sig.signalName}`;
         const unit = signalCache.get(key)?.unit ?? "";
         return (
-          <div
-            key={key}
-            className="axes-legend__row"
-            style={{
-              alignItems: "center",
-              display: "flex",
-              fontSize: "0.7rem",
-              gap: "4px",
-            }}
-          >
+          <div key={key} className="axes-legend__row">
             <ColorSwatch
               color={sig.color}
               label={sig.signalName}
               onChange={(color) => setSignalColor(axesId, sig.simId, sig.signalName, color)}
             />
-            <span className="axes-legend__name" style={{ color: "#e2e8f0" }}>
-              {sig.signalName}
-            </span>
-            {unit && (
-              <span className="axes-legend__unit" style={{ color: "#64748b" }}>
-                {unit}
-              </span>
-            )}
+            <span className="axes-legend__name">{sig.signalName}</span>
+            {unit && <span className="axes-legend__unit">{unit}</span>}
             <button
               type="button"
               className="axes-legend__remove"
               aria-label={`Remove ${sig.signalName}`}
               title={`Remove ${sig.signalName}`}
               onClick={() => removeSignalFromAxes(axesId, sig.simId, sig.signalName)}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#94a3b8",
-                cursor: "pointer",
-                fontSize: "0.75rem",
-                lineHeight: 1,
-                padding: 0,
-              }}
             >
               ×
             </button>
