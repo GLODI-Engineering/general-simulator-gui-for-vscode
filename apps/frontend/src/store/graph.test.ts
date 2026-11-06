@@ -569,3 +569,150 @@ describe("FE-20: post-move reroute respects each port's facing direction", () =>
     return [Math.round(entry.stubTip.x), Math.round(entry.stubTip.y)];
   }
 });
+
+/**
+ * A rail lands on the grid; a port's stub tip does not. So a legal route could
+ * be drawn one unit from another net's terminal -- the same pixel at every
+ * zoom. When that terminal carries a junction dot, the dot lands on the
+ * passing wire and reads as a connection to it. A snubber was reported as
+ * short-circuited across a switch for exactly this reason, with the netlist
+ * correct all along: the drain run passed at y=380 and the source node sat at
+ * y=381.
+ */
+describe("a wire keeps clear of terminals belonging to other nets", () => {
+  function twoPortMetadata(): BlockMetadata {
+    return {
+      name: "test.block",
+      label: "Test",
+      version: 1,
+      category: "signal",
+      description: "",
+      paradigm: "signal",
+      domain: "signal",
+      fidelities: [],
+      ports: {
+        inputs: [{ id: "in", label: "in", kind: { domain: "signal" }, side: "left", offset: 20 }],
+        outputs: [
+          { id: "out", label: "out", kind: { domain: "signal" }, side: "right", offset: 20 },
+        ],
+      },
+      params: [],
+      symbol: { bbox: [60, 40], shape: "rect" },
+      behavior: { causality: "causal", domain: "signal", state_count: 0, equation_template: "" },
+    } as unknown as BlockMetadata;
+  }
+
+  function node(id: string, position: [number, number]): Block {
+    return {
+      id,
+      type: "test.block",
+      paradigm: "signal",
+      domain: "signal",
+      fidelity: "n_a",
+      position,
+      rotation: 0,
+      mirror: "none",
+      params: {},
+      ic: {},
+    } as unknown as Block;
+  }
+
+  it("never runs within the clearance of a foreign terminal", () => {
+    useLibraryStore.setState({ catalog: { "test.block": twoPortMetadata() } });
+    const store = useGraphStore.getState();
+    store.loadDocument({
+      schema_version: 2,
+      model: {
+        id: "m1",
+        name: "clearance",
+        grid: 10,
+        params: [],
+        blocks: [
+          node("a", [0, 0]),
+          node("b", [600, 0]),
+          node("c", [0, 300]),
+          node("d", [600, 300]),
+        ],
+        // Two independent nets whose natural routes run through the same band.
+        wires: [
+          {
+            id: "w1",
+            from: { block: "a", port: "out" },
+            to: { block: "d", port: "in" },
+            waypoints: [],
+            pinned: false,
+            net: null,
+            kind: "signal",
+          },
+          {
+            id: "w2",
+            from: { block: "c", port: "out" },
+            to: { block: "b", port: "in" },
+            waypoints: [],
+            pinned: false,
+            net: null,
+            kind: "signal",
+          },
+        ],
+        lines: [],
+        nets: [],
+        simulation: {},
+        metadata: {},
+      },
+    });
+
+    const model = useGraphStore.getState().document.model;
+    const tipOf = (blockId: string, portId: string): [number, number] => {
+      const target = model.blocks.find((candidate) => candidate.id === blockId);
+      if (!target) throw new Error(`missing block ${blockId}`);
+      const metadata = useLibraryStore.getState().catalog[target.type];
+      if (!metadata) throw new Error("missing metadata");
+      const entry = getMetadataPortCenters(target, metadata).find((e) => e.id === portId);
+      if (!entry) throw new Error(`missing port ${portId}`);
+      return [Math.round(entry.stubTip.x), Math.round(entry.stubTip.y)];
+    };
+
+    // The clearance the store applies. A run closer than this to a terminal of
+    // another net is the ambiguous case: near enough to read as touching, far
+    // enough that nothing says it does.
+    const CLEARANCE = 8;
+    const distanceToSegment = (
+      p: [number, number],
+      a: [number, number],
+      b: [number, number],
+    ): number => {
+      if (a[1] === b[1]) {
+        const lo = Math.min(a[0], b[0]);
+        const hi = Math.max(a[0], b[0]);
+        if (p[0] < lo || p[0] > hi) return Number.POSITIVE_INFINITY;
+        return Math.abs(p[1] - a[1]);
+      }
+      const lo = Math.min(a[1], b[1]);
+      const hi = Math.max(a[1], b[1]);
+      if (p[1] < lo || p[1] > hi) return Number.POSITIVE_INFINITY;
+      return Math.abs(p[0] - a[0]);
+    };
+
+    for (const wire of model.wires) {
+      const foreign =
+        wire.id === "w1"
+          ? [tipOf("c", "out"), tipOf("b", "in")]
+          : [tipOf("a", "out"), tipOf("d", "in")];
+      const points: Array<[number, number]> = [
+        tipOf(wire.from.block, wire.from.port),
+        ...wire.waypoints.map(([x, y]) => [x, y] as [number, number]),
+        tipOf(wire.to.block, wire.to.port),
+      ];
+      for (let i = 0; i < points.length - 1; i++) {
+        const a = points[i];
+        const b = points[i + 1];
+        if (!a || !b) continue;
+        for (const terminal of foreign) {
+          const gap = distanceToSegment(terminal, a, b);
+          // Either comfortably clear, or exactly on it -- never a hair away.
+          expect(gap === 0 || gap >= CLEARANCE, `${wire.id} gap ${gap}`).toBe(true);
+        }
+      }
+    }
+  });
+});
