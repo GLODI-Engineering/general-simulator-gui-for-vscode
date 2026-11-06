@@ -5,9 +5,11 @@ import { resolveBlockBbox } from "../canvas/nodes/resolve-ports";
 import { rerouteEndSegment } from "../canvas/router/attachment";
 import { type RouterComponent, getObstacles } from "../canvas/router/obstacles";
 import {
+  GRID,
   type RouteSegment,
   pointsToSegments,
   routeBlocked,
+  simplifyPts,
   routeOrtho,
   routeOverlap,
 } from "../canvas/router/ortho-route";
@@ -87,6 +89,55 @@ function portCenterForWireEndpoint(
  * facing direction after mirror+rotation. Junctions and unknown ports have no
  * facing, so they fall back to the router's own heuristics.
  */
+/**
+ * The *face* a port leaves by, after mirror and rotation.
+ *
+ * `portExitDirForWireEndpoint` below reduces this to an axis, which is all the
+ * router's `Direction` can carry -- and an axis cannot distinguish "leaves
+ * upward" from "leaves downward". That is how a wire came to approach a
+ * top-facing port from underneath, cutting through the symbol to reach it:
+ * arriving vertically was all that was being asked for. On a back-to-back
+ * switch pair it hit only the mirrored device, because only there was the
+ * wrong-side approach the shorter of the two.
+ */
+function portExitSideForWireEndpoint(
+  model: ModelGraph,
+  endpoint: { block: string; port: string },
+): "left" | "right" | "top" | "bottom" | null {
+  const block = model.blocks.find((candidate) => candidate.id === endpoint.block);
+  if (!block || block.type === "routing.junction") return null;
+  const metadata = resolveBlockMetadata(
+    block,
+    useLibraryStore.getState().catalog,
+    model.subckt_defs,
+  );
+  if (!metadata) return null;
+  return (
+    getMetadataPortCenters(block, metadata).find((port) => port.id === endpoint.port)
+      ?.rotatedSide ?? null
+  );
+}
+
+/** One grid step further out along the port's own facing. */
+function approachPoint(
+  point: [number, number],
+  side: "left" | "right" | "top" | "bottom" | null,
+): [number, number] {
+  const step = GRID;
+  switch (side) {
+    case "left":
+      return [point[0] - step, point[1]];
+    case "right":
+      return [point[0] + step, point[1]];
+    case "top":
+      return [point[0], point[1] - step];
+    case "bottom":
+      return [point[0], point[1] + step];
+    default:
+      return point;
+  }
+}
+
 function portExitDirForWireEndpoint(
   model: ModelGraph,
   endpoint: { block: string; port: string },
@@ -224,6 +275,37 @@ export function rerouteWiresForBlocks(model: ModelGraph, touchedBlockIds: Set<st
 
     const fromDir = portExitDirForWireEndpoint(model, wire.from);
     const toDir = portExitDirForWireEndpoint(model, wire.to);
+    const net = netById.get(wire.id);
+
+    // A wire with no waypoints of its own has never been routed, so route it
+    // whole rather than patching its ends. Routing runs between *approach*
+    // points -- one step out along each port's own facing -- and the port
+    // points are put back afterwards. That is what stops a wire reaching a
+    // port from the wrong side: the last thing it does is come in along the
+    // port's own normal, so it cannot arrive through the body behind it. The
+    // leading and trailing segments still run along the port's axis, which is
+    // the property FE-20 pins.
+    if (fromMoved && toMoved && wire.waypoints.length === 0) {
+      const fromSide = portExitSideForWireEndpoint(model, wire.from);
+      const toSide = portExitSideForWireEndpoint(model, wire.to);
+      const fa = approachPoint(points[0] as [number, number], fromSide);
+      const ta = approachPoint(points[points.length - 1] as [number, number], toSide);
+      const middle = routeOrtho(
+        fa[0],
+        fa[1],
+        ta[0],
+        ta[1],
+        fromDir ?? inferRouteDir(from, wire),
+        wireObstacles,
+        toDir,
+        { occupied, net },
+      );
+      const whole = simplifyPts([from, ...middle, to]);
+      if (isOrthogonal(whole)) {
+        occupied.push(...pointsToSegments(whole, net));
+        return { ...wire, waypoints: whole.slice(1, -1) };
+      }
+    }
 
     if (fromMoved) {
       points = rerouteEndSegment(points, "first", wireObstacles, fromDir);
@@ -232,7 +314,6 @@ export function rerouteWiresForBlocks(model: ModelGraph, touchedBlockIds: Set<st
       points = rerouteEndSegment(points, "last", wireObstacles, toDir);
     }
 
-    const net = netById.get(wire.id);
     if (!isOrthogonal(points)) {
       points = routeOrtho(
         from[0],

@@ -42,6 +42,10 @@ export interface RouteSegment {
 const COLLINEAR_TOLERANCE = 1.5;
 /** How far aside an alternative rail is tried, and how many to try. */
 const LANES = 6;
+/** A route that runs through a component body. Unreadable; always last. */
+const PENALTY_BLOCKED = 1e6;
+/** A route that leaves or meets a port along the wrong axis. */
+const PENALTY_FACING = 1e3;
 
 /** The axis-aligned runs of a polyline. Zero-length runs are dropped. */
 export function pointsToSegments(pts: Point[], net?: string | number): RouteSegment[] {
@@ -333,6 +337,52 @@ export function routeOrtho(
   } else {
     cands = [vFirst, hFirst];
   }
+  // Back-out candidates: step *away* from the target first, along the axis the
+  // port faces, then cross and come back. Without these the only routes that
+  // exist head straight for the target, so a port facing away from it had no
+  // legal way out and the router either cut through the body behind it or gave
+  // up the port's facing. Both directions along the axis are offered and the
+  // scoring picks; an unblocked direct route is still found first and wins on
+  // a zero score, so nothing moves unless the direct way is actually bad.
+  for (let k = 1; k <= LANES; k++) {
+    for (const sign of [-1, 1]) {
+      if (prevDir === "h") {
+        const bx = x1 + sign * k * GRID;
+        cands.push([
+          [x1, y1],
+          [bx, y1],
+          [bx, y2],
+          [x2, y2],
+        ]);
+      } else if (prevDir === "v") {
+        const by = y1 + sign * k * GRID;
+        cands.push([
+          [x1, y1],
+          [x1, by],
+          [x2, by],
+          [x2, y2],
+        ]);
+      }
+      if (nextDir === "h") {
+        const bx = x2 + sign * k * GRID;
+        cands.push([
+          [x1, y1],
+          [x1, y2],
+          [bx, y2],
+          [x2, y2],
+        ]);
+      } else if (nextDir === "v") {
+        const by = y2 + sign * k * GRID;
+        cands.push([
+          [x1, y1],
+          [x2, y1],
+          [x2, by],
+          [x2, y2],
+        ]);
+      }
+    }
+  }
+
   // With nothing occupied this reduces exactly to "first candidate that is not
   // blocked", which is what it did before: an unblocked first candidate scores
   // zero and nothing can beat it. The extra rails only come into play when the
@@ -358,20 +408,40 @@ export function routeOrtho(
     }
   }
 
+  // The axis a polyline's first (or last) segment runs along, ignoring the
+  // zero-length segments `simplifyPts` would drop.
+  const endAxis = (pts: Point[], which: "first" | "last"): Direction => {
+    const ordered = which === "first" ? pts : [...pts].reverse();
+    for (let i = 0; i < ordered.length - 1; i++) {
+      const a = ordered[i];
+      const b = ordered[i + 1];
+      if (!a || !b) continue;
+      if (a[0] !== b[0]) return "h";
+      if (a[1] !== b[1]) return "v";
+    }
+    return null;
+  };
+
   let best: Point[] | null = null;
   let bestScore = Number.POSITIVE_INFINITY;
   for (const c of cands) {
-    // A blocked route is always worse than any amount of overlap: running
-    // through a component is unreadable, running alongside another wire is
-    // merely ugly.
-    const score = (routeBlocked(c, obs) ? 1e6 : 0) + routeOverlap(c, occupied, net);
+    // Three faults, ranked. Running through a component is the worst: it is
+    // simply unreadable. Leaving a port along the wrong axis is next -- it is
+    // the reason the back-out candidates exist, and without a cost attached
+    // an ordinary turn-immediately route would always be found first and win.
+    // Sharing a line with another wire is last, and costs what it shares.
+    const facing =
+      (prevDir && endAxis(c, "first") !== prevDir ? PENALTY_FACING : 0) +
+      (nextDir && endAxis(c, "last") !== nextDir ? PENALTY_FACING : 0);
+    const score =
+      (routeBlocked(c, obs) ? PENALTY_BLOCKED : 0) + facing + routeOverlap(c, occupied, net);
     if (score < bestScore) {
       bestScore = score;
       best = c;
       if (score === 0) break;
     }
   }
-  if (best && bestScore < 1e6) {
+  if (best && bestScore < PENALTY_BLOCKED) {
     return simplifyPts(best);
   }
   const fallback = best ??
