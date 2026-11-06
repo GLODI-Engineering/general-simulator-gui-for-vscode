@@ -308,58 +308,114 @@ export function buildSeries(
 export const MAX_RENDER_POINTS = 20_000;
 
 /**
- * Bucketed min/max decimation: splits [0, values.length) into roughly
- * maxPoints/2 buckets and keeps the index of the local min and max value in
- * each bucket. Preserves visual spikes/peaks, unlike naive stride sampling
- * (which can silently skip over a narrow transient entirely).
+ * Python's `round()` is half-to-even; JavaScript's `Math.round` is
+ * half-up. Bucket edges are `round(i * bucketSize)`, and an exact .5 lands
+ * there whenever the bucket size is a half-integer. Matching it is what
+ * lets this and `crates/waveform-store` select the same samples — the
+ * point of having one algorithm is that the browser and the server draw
+ * the same picture.
  */
-function _decimateIndices(values: Float64Array, maxPoints: number): number[] {
-  const n = values.length;
-  const bucketCount = Math.max(1, Math.floor(maxPoints / 2));
-  const bucketSize = n / bucketCount;
-  const indices: number[] = [];
-  for (let b = 0; b < bucketCount; b++) {
-    const start = Math.floor(b * bucketSize);
-    const end = b === bucketCount - 1 ? n : Math.floor((b + 1) * bucketSize);
-    if (start >= end) continue;
-    let minIdx = start;
-    let maxIdx = start;
-    for (let i = start + 1; i < end; i++) {
-      const v = values[i] as number;
-      if (v < (values[minIdx] as number)) minIdx = i;
-      if (v > (values[maxIdx] as number)) maxIdx = i;
-    }
-    indices.push(minIdx < maxIdx ? minIdx : maxIdx, minIdx < maxIdx ? maxIdx : minIdx);
-  }
-  indices.sort((a, c) => a - c);
-  return indices;
+function _roundHalfEven(value: number): number {
+  const rounded = Math.round(value);
+  if (Math.abs(value % 1) === 0.5 && rounded % 2 !== 0) return rounded - Math.sign(value);
+  return rounded;
 }
 
-function _applyIndices(arr: Float64Array, indices: number[]): Float64Array {
-  const out = new Float64Array(indices.length);
-  for (let i = 0; i < indices.length; i++) {
-    out[i] = arr[indices[i] as number] as number;
-  }
-  return out;
+function _bucketBounds(index: number, bucketSize: number, n: number): [number, number] {
+  return [
+    _roundHalfEven(index * bucketSize),
+    Math.min(_roundHalfEven((index + 1) * bucketSize), n),
+  ];
 }
 
 /**
- * Decimate one signal's (time, values) pair to at most maxPoints, preserving
- * its own min/max envelope. Standalone/testable; buildAlignedData below uses
- * the lower-level _decimateIndices so every series on an axes shares one
- * index set (they're assumed index-aligned to a common time base — the axes
- * couldn't otherwise share a single uPlot x-scale).
+ * Min/max envelope on a shared time grid.
+ *
+ * ## What this replaces, and why
+ *
+ * The previous reduction chose its min/max indices from the *first* signal
+ * on the axes and applied them to every other series. So one trace kept its
+ * peaks and the rest were sampled wherever that one happened to be extreme
+ * — which made peak preservation depend on the order signals were added. A
+ * switch node plotted first kept its overshoot; plotted second it did not.
+ *
+ * Here the *time* axis is bucketed, so every signal shares one grid (which
+ * is what uPlot draws against), and within each bucket every signal
+ * contributes its own minimum and maximum, emitted in the order they
+ * occurred so a rising edge still reads as rising. Each bucket becomes a
+ * short vertical excursion covering the real range of the data it stands
+ * for — what an oscilloscope draws, for the same reason.
+ *
+ * The guarantee is the one worth stating: every original sample lies inside
+ * the band drawn for its bucket. Nothing the signal did is hidden outside
+ * what is on screen. Averaging and stride sampling both fail that — either
+ * can draw a calm line through a region where the signal was swinging.
+ *
+ * Mirrors `minmax_envelope` in `crates/waveform-store/src/decimate.rs`,
+ * which is the same algorithm for the server.
+ */
+export function minmaxEnvelope(
+  time: Float64Array,
+  columns: Float64Array[],
+  maxPoints: number,
+): { time: Float64Array; columns: Float64Array[] } {
+  const n = time.length;
+  if (n <= maxPoints || maxPoints < 4) {
+    return { time, columns };
+  }
+
+  const bucketCount = Math.floor(maxPoints / 2);
+  const bucketSize = n / bucketCount;
+
+  const outTime = new Float64Array(bucketCount * 2);
+  const outColumns = columns.map(() => new Float64Array(bucketCount * 2));
+  let written = 0;
+
+  for (let b = 0; b < bucketCount; b++) {
+    const [lo, hi] = _bucketBounds(b, bucketSize, n);
+    if (lo >= n || hi <= lo) continue;
+
+    // The bucket's own time bounds, so consecutive buckets join up.
+    outTime[written] = time[lo] as number;
+    outTime[written + 1] = time[hi - 1] as number;
+
+    for (let c = 0; c < columns.length; c++) {
+      const values = columns[c] as Float64Array;
+      let minIdx = lo;
+      let maxIdx = lo;
+      for (let i = lo + 1; i < hi; i++) {
+        const v = values[i] as number;
+        if (v < (values[minIdx] as number)) minIdx = i;
+        if (v > (values[maxIdx] as number)) maxIdx = i;
+      }
+      const out = outColumns[c] as Float64Array;
+      const first = minIdx <= maxIdx ? minIdx : maxIdx;
+      const second = minIdx <= maxIdx ? maxIdx : minIdx;
+      out[written] = values[first] as number;
+      out[written + 1] = values[second] as number;
+    }
+    written += 2;
+  }
+
+  if (written === 0) return { time, columns };
+  return {
+    time: outTime.subarray(0, written),
+    columns: outColumns.map((column) => column.subarray(0, written)),
+  };
+}
+
+/**
+ * Reduce one signal's (time, values) pair to at most maxPoints, keeping its
+ * own envelope. Standalone and testable; `buildAlignedData` below runs the
+ * same `minmaxEnvelope` across every series at once so they share one grid.
  */
 export function decimateMinMax(
   time: Float64Array,
   values: Float64Array,
   maxPoints: number,
 ): { time: Float64Array; values: Float64Array } {
-  if (time.length <= maxPoints || maxPoints < 2) {
-    return { time, values };
-  }
-  const indices = _decimateIndices(values, maxPoints);
-  return { time: _applyIndices(time, indices), values: _applyIndices(values, indices) };
+  const reduced = minmaxEnvelope(time, [values], maxPoints);
+  return { time: reduced.time, values: reduced.columns[0] as Float64Array };
 }
 
 /**
@@ -424,13 +480,10 @@ export function buildAlignedData(
 
   // Use the first cached signal's time vector as the shared x axis.
   let timeArray: Float64Array | null = null;
-  let refValues: Float64Array | null = null;
   for (const ref of refs) {
-    const key = `${ref.simId}::${ref.signalName}`;
-    const sig = cache.get(key);
+    const sig = cache.get(`${ref.simId}::${ref.signalName}`);
     if (sig) {
       timeArray = sig.time;
-      refValues = sig.values;
       break;
     }
   }
@@ -444,25 +497,25 @@ export function buildAlignedData(
     windowed ? values.subarray(winStart, winEnd + 1) : values;
 
   const timeSlice = slice(timeArray);
-  const refSlice = refValues ? slice(refValues) : null;
+  const columns = refs.map((ref) => {
+    const sig = cache.get(`${ref.simId}::${ref.signalName}`);
+    return sig ? slice(sig.values) : new Float64Array(timeSlice.length);
+  });
 
-  // One shared index set, computed from the reference signal and reapplied
-  // to every series, so they stay index-aligned to the same decimated time
-  // axis.
-  const indices =
-    timeSlice.length > maxPoints && refSlice ? _decimateIndices(refSlice, maxPoints) : null;
+  // Every series reduced together against one shared time grid, each
+  // keeping its own extremes. Reducing by one reference signal's extrema
+  // and reusing those indices — which is what this did — made peak
+  // preservation depend on which signal happened to be added first.
+  const reduced = minmaxEnvelope(timeSlice, columns, maxPoints);
 
-  const data: uPlot.AlignedData = [indices ? _applyIndices(timeSlice, indices) : timeSlice];
-  for (const ref of refs) {
-    const key = `${ref.simId}::${ref.signalName}`;
-    const sig = cache.get(key);
-    const values = sig ? slice(sig.values) : new Float64Array(timeSlice.length);
-    const sampled = indices ? _applyIndices(values, indices) : values;
-    // Display gain is applied *after* decimation, not before. The two are
-    // equivalent — scaling by a positive constant cannot change which
-    // sample of a bucket is its min or max — and doing it here scales at
-    // most MAX_RENDER_POINTS values instead of all 300,000 of them.
-    data.push(applyGain(sampled, ref.gain));
+  const data: uPlot.AlignedData = [reduced.time];
+  for (let i = 0; i < refs.length; i++) {
+    // Display gain is applied *after* the reduction: it scales at most
+    // `maxPoints` values instead of every sample in the window. A positive
+    // gain cannot change which sample of a bucket is its extreme, and a
+    // negative one only swaps which end of the pair is drawn first — both
+    // extremes are still there, so the band is unchanged.
+    data.push(applyGain(reduced.columns[i] as Float64Array, (refs[i] as SignalRef).gain));
   }
   return data;
 }
