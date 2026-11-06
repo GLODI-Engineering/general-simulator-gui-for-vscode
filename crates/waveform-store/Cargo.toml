@@ -1,0 +1,26 @@
+[package]
+name = "gs-waveform-store"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+description = "Reads a .gsim_sim_result and serves decimated windows of its signals. One implementation, compiled natively for the server and to WebAssembly for the viewer, so both decimate the same way."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+base64 = "0.22"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+
+[profile.release]
+# The .wasm ships inside the extension and is fetched by the webview on
+# every open, so size is a user-visible cost, not a build statistic.
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"

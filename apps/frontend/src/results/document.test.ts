@@ -83,8 +83,48 @@ describe("parse rejects what it cannot plot", () => {
     const doc = buildGsimSimResult(SWEEP, [signal("V", "voltage", "V", [0, 1, 2, 3])], {
       run: RUN,
     }) as unknown as { schema_version: number };
-    doc.schema_version = 2;
+    doc.schema_version = 3;
     expect(() => parseGsimSimResult(JSON.stringify(doc))).toThrow(/schema_version/);
+  });
+
+  /**
+   * v1 had no `data` block because there was only one possibility: the
+   * samples were always inline. The format shipped, so those files have to
+   * keep opening.
+   */
+  it("still reads a v1 document, by giving it the data block it implied", () => {
+    const v2 = buildGsimSimResult(SWEEP, [signal("V(out)", "voltage", "V", [0, 1, 2, 3])], {
+      run: RUN,
+    }) as unknown as Record<string, unknown>;
+    const { data: _dropped, ...withoutData } = v2;
+    const v1 = JSON.stringify({ ...withoutData, schema_version: 1 });
+
+    const loaded = parseGsimSimResult(v1);
+    expect(loaded.signals.map((s) => s.name)).toEqual(["V(out)"]);
+    expect(Array.from(loaded.signals[0]?.values ?? [])).toEqual([0, 1, 2, 3]);
+  });
+
+  it("says where the samples are when they are not in the file", () => {
+    // Failing three frames deeper on a missing `data` field would send the
+    // reader looking for a corrupt document instead of a missing file.
+    const doc = {
+      schema_version: 2,
+      run: RUN,
+      data: { kind: "hdf5", path: "run-17.h5" },
+      sweep: { name: "time", unit: "s", domain: "time", dataset: "time" },
+      signals: [{ name: "V(out)", unit: "V", quantity: "voltage", dataset: "b__out" }],
+    };
+    expect(() => parseGsimSimResult(JSON.stringify(doc))).toThrow(/run-17\.h5/);
+  });
+
+  it("writes a self-contained file from the viewer's own export", () => {
+    // The exported file is the one someone attaches to a review or commits
+    // as a fixture; a result that needs a second file is not that.
+    const doc = buildGsimSimResult(SWEEP, [signal("V", "voltage", "V", [0, 1, 2, 3])], {
+      run: RUN,
+    });
+    expect(doc.schema_version).toBe(2);
+    expect(doc.data).toEqual({ kind: "inline" });
   });
 
   /**

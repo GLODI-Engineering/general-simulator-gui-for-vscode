@@ -76,6 +76,16 @@ export function encodeSamples(
 export function decodeSamples(vector: GsimSimResultVector): Float64Array {
   const { encoding, data, name } = vector;
 
+  if (encoding === undefined || data === undefined) {
+    // A vector with no samples is not a parse failure to be reported at the
+    // byte level — it means the document said its data lives elsewhere, and
+    // whoever opened it did not supply that. Say which.
+    throw new Error(
+      `"${name}" carries no inline samples. Its document stores data externally; ` +
+        "open it through a source that can read that file.",
+    );
+  }
+
   if (encoding === "json") {
     if (!Array.isArray(data)) {
       throw new Error(`"${name}" declares encoding "json" but its data is not an array.`);
