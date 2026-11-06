@@ -65,3 +65,8 @@ apps/vscode-extension/.vscode-test/
 apps/vscode-extension/media/frontend/
 *.vsix
 render-out/
+
+# Rust build output and generated wasm packages
+crates/*/target/
+crates/*/pkg/
+crates/*/pkg-node/

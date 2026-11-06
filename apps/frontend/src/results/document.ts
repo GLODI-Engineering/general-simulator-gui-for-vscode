@@ -38,6 +38,22 @@ export interface LoadedResult {
   layout: GsimSimResultFigureLayout[];
 }
 
+/**
+ * Bring a v1 document up to the v2 shape.
+ *
+ * v1 had no `data` block because there was only one possibility: the
+ * samples were always inline. Rather than carry two schemas and two code
+ * paths for a difference that is one field, a v1 document is given the
+ * block it was implying and then validated like any other. Files written
+ * before v2 therefore keep opening, which matters — the format shipped.
+ */
+export function upgradeToV2(raw: unknown): unknown {
+  if (typeof raw !== "object" || raw === null) return raw;
+  const doc = raw as Record<string, unknown>;
+  if (doc.schema_version !== 1) return raw;
+  return { ...doc, schema_version: 2, data: { kind: "inline" } };
+}
+
 export function parseGsimSimResult(text: string, simId?: string): LoadedResult {
   let raw: unknown;
   try {
@@ -45,6 +61,8 @@ export function parseGsimSimResult(text: string, simId?: string): LoadedResult {
   } catch (error) {
     throw new GsimSimResultError(`Not valid JSON: ${(error as Error).message}`);
   }
+
+  raw = upgradeToV2(raw);
 
   if (!validateGsimSimResultDocument(raw)) {
     const [first] = validateGsimSimResultDocument.errors ?? [];
@@ -55,6 +73,17 @@ export function parseGsimSimResult(text: string, simId?: string): LoadedResult {
   }
 
   const doc: GsimSimResultDocument = raw;
+
+  if (doc.data.kind !== "inline") {
+    // Reading an HDF5-backed result needs the data file as well as this
+    // one, and a reader that can open it. Say so rather than failing on a
+    // missing `data` field three frames deeper.
+    throw new GsimSimResultError(
+      `This result keeps its samples in "${doc.data.path}". ` +
+        "Open it through a source that can read that file, not as a standalone document.",
+    );
+  }
+
   const sweep = decodeSamples(doc.sweep);
   const domain = doc.sweep.domain ?? "time";
   const id = simId ?? doc.run.id;
@@ -153,8 +182,12 @@ export function buildGsimSimResult(
   }));
 
   const doc: GsimSimResultDocument = {
-    schema_version: 1,
+    schema_version: 2,
     run: options.run,
+    // The viewer's own export writes a self-contained file: it is the one
+    // someone attaches to a review or commits as a fixture, and a result
+    // that needs a second file to be read is no longer that.
+    data: { kind: "inline" },
     sweep: {
       name: options.sweepName ?? fallback.name,
       unit: options.sweepUnit ?? fallback.unit,
