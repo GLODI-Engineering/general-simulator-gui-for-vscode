@@ -34,6 +34,20 @@ import type { PortKindDomain } from "../../../model/types";
 import { isCausalDomain, wireColorForDomain } from "../../edges/wire-color";
 import { type DrawContext, FILL, SW, type SymbolDrawing, SymbolLabel } from "../symbol-drawing";
 
+/**
+ * The symbol's own box, and where its port sits in it.
+ *
+ * Not free parameters: they must agree with `metadata.yaml`, which declares
+ * the bbox `[200, 40]` and the port at `offset: 20` on the left or right face.
+ * The artwork's lead has to *reach* that point. It did not -- the lead stopped
+ * at x=186 and sat at y=14 while the port was at (200, 20) -- so every
+ * boundary port drew with a visible gap between the end of its own lead and
+ * the start of the wire leaving it, plus a small vertical step. Nothing was
+ * disconnected; it only looked it, which on a schematic is nearly as bad.
+ */
+const W = 200;
+const PORT_Y = 20;
+
 /** The domain this boundary port exposes, from its own `kind` parameter. */
 function domainOf(ctx: DrawContext): PortKindDomain {
   const raw = ctx.params.kind;
@@ -55,14 +69,14 @@ function draw(ctx: DrawContext, outward: boolean): ReactNode {
     // Terminal: a lead from the body edge ending in an open circle. Open, not
     // filled — a filled dot is the junction mark, and a terminal is not a
     // junction.
-    const cx = outward ? 184 : 16;
-    const x1 = outward ? 130 : 22;
-    const x2 = outward ? 178 : 70;
+    const cx = outward ? W - 16 : 16;
+    const x1 = outward ? 0 : 22;
+    const x2 = outward ? W - 22 : W;
     return (
       <g>
-        <line x1={x1} y1={14} x2={x2} y2={14} stroke={color} strokeWidth={SW} />
-        <circle cx={cx} cy={14} r={6} fill={FILL} stroke={color} strokeWidth={SW} />
-        <SymbolLabel ctx={ctx} x={100} y={36} size="sm" maxWidth={196} fill={color}>
+        <line x1={x1} y1={PORT_Y} x2={x2} y2={PORT_Y} stroke={color} strokeWidth={SW} />
+        <circle cx={cx} cy={PORT_Y} r={6} fill={FILL} stroke={color} strokeWidth={SW} />
+        <SymbolLabel ctx={ctx} x={W / 2} y={38} size="sm" maxWidth={196} fill={color}>
           {portName(ctx)}
         </SymbolLabel>
       </g>
@@ -77,11 +91,11 @@ function draw(ctx: DrawContext, outward: boolean): ReactNode {
   // across the sheet. What distinguishes them is which side the lead leaves
   // by — into the sheet for an inport, out of it for an outport — and where
   // they sit, which is the same cue a reader already uses.
-  const points = "72,2 108,2 124,14 108,26 72,26";
+  const points = `72,${PORT_Y - 12} 108,${PORT_Y - 12} 124,${PORT_Y} 108,${PORT_Y + 12} 72,${PORT_Y + 12}`;
   const lead = outward ? (
-    <line x1={60} y1={14} x2={72} y2={14} stroke={color} strokeWidth={SW} />
+    <line x1={0} y1={PORT_Y} x2={72} y2={PORT_Y} stroke={color} strokeWidth={SW} />
   ) : (
-    <line x1={124} y1={14} x2={186} y2={14} stroke={color} strokeWidth={SW} />
+    <line x1={124} y1={PORT_Y} x2={W} y2={PORT_Y} stroke={color} strokeWidth={SW} />
   );
   return (
     <g>
@@ -91,7 +105,7 @@ function draw(ctx: DrawContext, outward: boolean): ReactNode {
           `ctrl_freq` does not fit in an arrowhead, and shrinking it until it
           does produced `ctrl_f…` — the truncation hid exactly the part that
           distinguishes one control port from the next two. */}
-      <SymbolLabel ctx={ctx} x={100} y={36} size="sm" maxWidth={196} fill={color}>
+      <SymbolLabel ctx={ctx} x={W / 2} y={38} size="sm" maxWidth={196} fill={color}>
         {portName(ctx)}
       </SymbolLabel>
     </g>
