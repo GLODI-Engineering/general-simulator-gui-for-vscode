@@ -5130,7 +5130,7 @@
       },
       "symbol": {
         "bbox": [
-          110,
+          200,
           40
         ],
         "shape": "rect",
@@ -5241,7 +5241,7 @@
       },
       "symbol": {
         "bbox": [
-          110,
+          200,
           40
         ],
         "shape": "rect",
@@ -9872,7 +9872,7 @@
             {
               "direction": "in",
               "id": "g",
-              "kind": "signal",
+              "kind": "physical-electrical",
               "label": "gate",
               "offset": 30,
               "side": "left"
@@ -9955,8 +9955,7 @@
           {
             "id": "g",
             "kind": {
-              "dims": "scalar",
-              "domain": "signal"
+              "domain": "physical-electrical"
             },
             "label": "gate",
             "offset": 30,
@@ -10068,7 +10067,7 @@
             {
               "direction": "in",
               "id": "g",
-              "kind": "signal",
+              "kind": "physical-electrical",
               "label": "gate",
               "offset": 30,
               "side": "left"
@@ -10151,8 +10150,7 @@
           {
             "id": "g",
             "kind": {
-              "dims": "scalar",
-              "domain": "signal"
+              "domain": "physical-electrical"
             },
             "label": "gate",
             "offset": 30,

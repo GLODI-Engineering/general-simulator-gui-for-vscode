@@ -55,14 +55,14 @@ function draw(ctx: DrawContext, outward: boolean): ReactNode {
     // Terminal: a lead from the body edge ending in an open circle. Open, not
     // filled — a filled dot is the junction mark, and a terminal is not a
     // junction.
-    const cx = outward ? 94 : 16;
-    const x1 = outward ? 40 : 22;
-    const x2 = outward ? 88 : 70;
+    const cx = outward ? 184 : 16;
+    const x1 = outward ? 130 : 22;
+    const x2 = outward ? 178 : 70;
     return (
       <g>
         <line x1={x1} y1={14} x2={x2} y2={14} stroke={color} strokeWidth={SW} />
         <circle cx={cx} cy={14} r={6} fill={FILL} stroke={color} strokeWidth={SW} />
-        <SymbolLabel ctx={ctx} x={55} y={36} size="sm" maxWidth={104} fill={color}>
+        <SymbolLabel ctx={ctx} x={100} y={36} size="sm" maxWidth={196} fill={color}>
           {portName(ctx)}
         </SymbolLabel>
       </g>
@@ -77,11 +77,11 @@ function draw(ctx: DrawContext, outward: boolean): ReactNode {
   // across the sheet. What distinguishes them is which side the lead leaves
   // by — into the sheet for an inport, out of it for an outport — and where
   // they sit, which is the same cue a reader already uses.
-  const points = "26,2 62,2 78,14 62,26 26,26";
+  const points = "72,2 108,2 124,14 108,26 72,26";
   const lead = outward ? (
-    <line x1={14} y1={14} x2={26} y2={14} stroke={color} strokeWidth={SW} />
+    <line x1={60} y1={14} x2={72} y2={14} stroke={color} strokeWidth={SW} />
   ) : (
-    <line x1={78} y1={14} x2={96} y2={14} stroke={color} strokeWidth={SW} />
+    <line x1={124} y1={14} x2={186} y2={14} stroke={color} strokeWidth={SW} />
   );
   return (
     <g>
@@ -91,7 +91,7 @@ function draw(ctx: DrawContext, outward: boolean): ReactNode {
           `ctrl_freq` does not fit in an arrowhead, and shrinking it until it
           does produced `ctrl_f…` — the truncation hid exactly the part that
           distinguishes one control port from the next two. */}
-      <SymbolLabel ctx={ctx} x={55} y={36} size="sm" maxWidth={104} fill={color}>
+      <SymbolLabel ctx={ctx} x={100} y={36} size="sm" maxWidth={196} fill={color}>
         {portName(ctx)}
       </SymbolLabel>
     </g>
