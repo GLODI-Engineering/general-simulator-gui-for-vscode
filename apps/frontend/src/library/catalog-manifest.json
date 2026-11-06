@@ -5117,6 +5117,7 @@
         "inputs": [],
         "outputs": [
           {
+            "domain_from": "kind",
             "id": "out",
             "kind": {
               "dims": "scalar",
@@ -5227,6 +5228,7 @@
       "ports": {
         "inputs": [
           {
+            "domain_from": "kind",
             "id": "in",
             "kind": {
               "dims": "scalar",

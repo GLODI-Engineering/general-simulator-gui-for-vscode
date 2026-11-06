@@ -211,6 +211,13 @@ export interface BlockPort {
   svg_x?: number;
   /** Y coordinate in the symbol SVG viewBox space. */
   svg_y?: number;
+  /**
+   * Name of a parameter that selects this port's kind domain at runtime,
+   * overriding `kind.domain`. For a port whose paradigm the user chooses
+   * rather than the component fixing it — a subsystem boundary port, which
+   * may carry a signal or any physical domain.
+   */
+  domain_from?: string;
 }
 
 export interface VariadicInputs {
