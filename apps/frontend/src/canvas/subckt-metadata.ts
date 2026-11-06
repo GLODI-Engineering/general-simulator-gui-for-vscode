@@ -26,7 +26,8 @@
  */
 
 import type { Block, BlockMetadata, GsfPrimitive, SubcktDef, Wire } from "../model/types";
-import { SYMBOL_SCALE } from "./nodes/port-hit-test";
+import { isCausalDomain } from "./edges/wire-color";
+import { SYMBOL_SCALE, getMetadataPortCenters } from "./nodes/port-hit-test";
 
 /**
  * The only `spice-subckt.*` block type gsim-core emits today
@@ -41,6 +42,8 @@ const PLAIN_WIDTH = 112;
 const PREVIEW_WIDTH = 144;
 /** Vertical pitch between two ports on the same side. */
 const PORT_PITCH = 24;
+/** Horizontal pitch between two signal ports along the bottom face. */
+const SIGNAL_PORT_PITCH = 34;
 /** Minimum body height for a plain box, so a 2-port def still looks like a part. */
 const PLAIN_MIN_HEIGHT = 48;
 /** Minimum body height when previewing content — needs room for the drawing. */
@@ -83,6 +86,35 @@ export function subcktBodyHeight(portCount: number, preview: boolean): number {
   return Math.max(min, Math.ceil(portCount / 2) * PORT_PITCH);
 }
 
+/**
+ * The pseudo-block standing for a def's own boundary inside its body
+ * (`SUBCKT_BOUNDARY_TYPE` in gsim-core's `document/subckt.rs`). Wires inside the
+ * body connect to it; it is not a component and has no catalog entry.
+ */
+export const SUBCKT_BOUNDARY_TYPE = "spice-subckt.boundary";
+
+/**
+ * Where a wire endpoint actually sits, in the def's own model coordinates.
+ *
+ * Falls back to the block's position when the port cannot be resolved — an
+ * unknown type, or the boundary pseudo-block, which has no catalog entry. A
+ * wire drawn to roughly the right place is a better preview than no wire.
+ */
+function previewPortPoint(
+  block: Block,
+  catalog: Record<string, BlockMetadata>,
+  portId: string,
+): [number, number] {
+  const metadata = catalog[block.type];
+  if (metadata) {
+    const hit = getMetadataPortCenters(block, metadata).find((p) => p.id === portId);
+    if (hit) {
+      return [hit.stubTip.x, hit.stubTip.y];
+    }
+  }
+  return [block.position[0], block.position[1]];
+}
+
 interface PreviewShape {
   kind: "block" | "wire";
   points: Array<[number, number]>;
@@ -100,7 +132,14 @@ function previewPrimitives(
 ): GsfPrimitive[] {
   const shapes: PreviewShape[] = [];
 
+  const blocksById = new Map(childBlocks(def).map((b) => [b.id, b]));
+
   for (const child of childBlocks(def)) {
+    // The boundary pseudo-block is the def's own edge, not a part inside it.
+    // Drawing a box for it put a phantom component in every preview.
+    if (child.type === SUBCKT_BOUNDARY_TYPE) {
+      continue;
+    }
     const bbox = catalog[child.type]?.symbol.bbox ?? [60, 40];
     const rotated = child.rotation === 90 || child.rotation === 270;
     const w = (rotated ? bbox[1] : bbox[0]) * SYMBOL_SCALE;
@@ -115,11 +154,23 @@ function previewPrimitives(
     });
   }
 
+  // A wire's real path is port -> waypoints -> port. Only its *waypoints* used
+  // to be collected here, and most wires have none at all — a straight
+  // port-to-port connection carries an empty array — so nearly every wire
+  // contributed nothing and the preview came out as a scatter of grey boxes
+  // with no connections between them. That is not a preview of a circuit; it
+  // is a preview of a parts bin. Resolving both endpoints through the same
+  // geometry the real canvas uses is what makes it read as a circuit.
   for (const wire of childWires(def)) {
-    const points = wire.waypoints.map(([x, y]) => [x, y] as [number, number]);
-    if (points.length >= 2) {
-      shapes.push({ kind: "wire", points });
+    const from = blocksById.get(wire.from.block);
+    const to = blocksById.get(wire.to.block);
+    if (!from || !to) {
+      continue;
     }
+    const a = previewPortPoint(from, catalog, wire.from.port);
+    const b = previewPortPoint(to, catalog, wire.to.port);
+    const mids = wire.waypoints.map(([x, y]) => [x, y] as [number, number]);
+    shapes.push({ kind: "wire", points: [a, ...mids, b] });
   }
 
   const all = shapes.flatMap((shape) => shape.points);
@@ -182,7 +233,14 @@ function signatureOf(def: StructuredSubcktDef): string {
     "#",
     ...childBlocks(def).map((b) => `${b.id}:${b.type}:${b.position.join(",")}:${b.rotation}`),
     "#",
-    ...childWires(def).map((w) => `${w.id}:${w.waypoints.map((p) => p.join(",")).join(";")}`),
+    // Endpoints are part of the drawing now, so a wire that is re-pointed at a
+    // different port must invalidate the cached metadata too.
+    ...childWires(def).map(
+      (w) =>
+        `${w.id}:${w.from.block}.${w.from.port}>${w.to.block}.${w.to.port}:${w.waypoints
+          .map((p) => p.join(","))
+          .join(";")}`,
+    ),
   ].join("|");
 }
 
@@ -255,18 +313,39 @@ export function synthesizeSubcktMetadata(
 
   const ports = def.ports ?? [];
   const preview = hasStructuredContent(def);
-  const width = preview ? PREVIEW_WIDTH : PLAIN_WIDTH;
-  const height = subcktBodyHeight(ports.length, preview);
-  const leftCount = Math.ceil(ports.length / 2);
-  const rightCount = ports.length - leftCount;
 
-  const sidePorts = (count: number, startIndex: number, sideName: "left" | "right") =>
-    ports.slice(startIndex, startIndex + count).map((port, index) => ({
+  // Split the boundary by paradigm, not by declaration order.
+  //
+  // This used to be `ports.slice(0, ceil(n/2))` left and the rest right, which
+  // put whatever happened to be declared first on the left. A real def mixes
+  // both paradigms — `sw_leg` is `(d, s, ctrl_freq, ctrl_phase, ctrl_duty)` —
+  // so the halving landed `d, s, ctrl_freq` on the left face and
+  // `ctrl_phase, ctrl_duty` on the right: power and control interleaved on
+  // both sides of the block. Every control wire then had to loop around the
+  // power path to reach it, which is most of why a sheet full of these
+  // instances read as spaghetti.
+  //
+  // Power passes *through* a block, so acausal ports keep the left and right
+  // faces. Control arrives from elsewhere on the sheet, so causal ports go to
+  // the bottom face, where a control band underneath can feed them with short
+  // vertical wires. That is the ordinary power-electronics drawing convention,
+  // and it is the same causal/acausal split `Port.tsx` uses to pick a marker
+  // shape — one rule, applied to placement as well as to drawing.
+  const physical = ports.filter((port) => !isCausalDomain(port.kind));
+  const signal = ports.filter((port) => isCausalDomain(port.kind));
+
+  const leftCount = Math.ceil(physical.length / 2);
+  const height = subcktBodyHeight(Math.max(leftCount, physical.length - leftCount) * 2, preview);
+  // Wide enough that the signal ports along the bottom are not crowded.
+  const width = Math.max(preview ? PREVIEW_WIDTH : PLAIN_WIDTH, signal.length * SIGNAL_PORT_PITCH);
+
+  const facePorts = (subset: typeof ports, sideName: "left" | "right" | "bottom", extent: number) =>
+    subset.map((port, index) => ({
       id: port.id,
       label: port.id,
       kind: { domain: port.kind },
       side: sideName,
-      offset: Math.round(((index + 0.5) * height) / Math.max(count, 1)),
+      offset: Math.round(((index + 0.5) * extent) / Math.max(subset.length, 1)),
     }));
 
   const primitives: GsfPrimitive[] = preview
@@ -300,8 +379,14 @@ export function synthesizeSubcktMetadata(
     def.name,
     [width, height],
     {
-      inputs: sidePorts(leftCount, 0, "left"),
-      outputs: sidePorts(rightCount, leftCount, "right"),
+      // `inputs`/`outputs` here are only the two buckets BlockMetadata carries;
+      // a subckt boundary port has no inherent direction, and every consumer
+      // concatenates the two anyway (see getMetadataPortCenters).
+      inputs: [
+        ...facePorts(physical.slice(0, leftCount), "left", height),
+        ...facePorts(signal, "bottom", width),
+      ],
+      outputs: facePorts(physical.slice(leftCount), "right", height),
     },
     { bbox: [width, height], shape: "primitives", primitives },
   );
