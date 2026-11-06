@@ -294,8 +294,8 @@ Simulation results are stored as HDF5 files. HDF5 is a chunked, indexed, compres
 Critical HDF5 write settings:
 
 - **Chunk size:** 10,000 points per dataset chunk (= 100 microseconds of simulation at 10ns step)
-- **Compression:** LZF (fast, low CPU cost; preferred over gzip for read-heavy workloads)
-- **Shuffle filter:** enabled — improves compression 2–3× for float data
+- **Compression:** gzip level 1 (HDF5 filter 1). LZF was chosen here originally on the belief that it was faster for read-heavy work; measured on 2,000,000 samples × 6 signals of a hard-switching converter (64 MB raw), it is not — gzip 1 is smaller (2.36 MB vs 3.13 MB), faster to write (95 ms vs 131 ms) and nearly twice as fast to read (70 ms vs 129 ms). LZF is also h5py's own filter (ID 32000), not part of the HDF5 standard, so nothing else — MATLAB, the Rust `hdf5` crate, a WebAssembly reader — can decompress those datasets. A result file no other tool can open is a cache, not a result file. Higher gzip levels buy ratio with write time (level 4: 1.93 MB but 246 ms), which is the wrong trade on the simulation's hot path.
+- **Shuffle filter:** enabled (HDF5 filter 2) — and it is doing most of the work, not the compressor. It transposes the bytes of each float so the near-constant exponent bytes sit together, giving the deflate stream something to find: the same data compresses 33× with it and 5.5× without.
 - **dtype:** `float32` not `float64` — halves size; sufficient precision for waveform display
 
 File structure:
