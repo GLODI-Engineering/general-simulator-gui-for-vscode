@@ -638,6 +638,24 @@ export class SchematicPage {
     return (await this.blockState(ref)).params?.[name];
   }
 
+  /**
+   * Press Run, the way a person does — the toolbar button, not a chord.
+   *
+   * The chord is F5. The original smoke test pressed Ctrl+T, which is not
+   * bound to anything, so the run it was written to guard never happened.
+   */
+  async run(): Promise<void> {
+    await this.probe.click(this.page.getByRole("button", { name: /^Run/ }));
+  }
+
+  /** How many samples the viewer is holding. */
+  async waveformPointCount(): Promise<number> {
+    return await this.page.evaluate(() => {
+      const win = globalThis as { __gensim_getWaveformPointCount?: () => number };
+      return win.__gensim_getWaveformPointCount?.() ?? 0;
+    });
+  }
+
   async selectAll(): Promise<void> {
     await this.focusCanvas();
     await this.probe.press("Control+A");
