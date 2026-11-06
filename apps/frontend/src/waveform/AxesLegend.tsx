@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useWaveformStore } from "../store/waveform";
 import { ColorSwatch } from "./ColorSwatch";
 import { GainControl } from "./GainControl";
+import { historyOpacity, withHistory } from "./history";
 
 export interface AxesLegendProps {
   axesId: string;
@@ -27,7 +28,11 @@ export function AxesLegend({ axesId }: AxesLegendProps) {
   const removeSignalFromAxes = useWaveformStore((s) => s.removeSignalFromAxes);
   const [editingGain, setEditingGain] = useState<string | null>(null);
 
-  const signals = axesEntry?.signals ?? [];
+  const runHistory = useWaveformStore((s) => s.runHistory);
+  const ownSignals = axesEntry?.signals ?? [];
+  // The legend lists what is drawn, history included — otherwise four
+  // traces of one colour appear with one name between them.
+  const signals = withHistory(ownSignals, signalCache, runHistory, axesEntry?.historyDepth ?? 0);
 
   if (signals.length === 0) {
     return (
@@ -42,6 +47,28 @@ export function AxesLegend({ axesId }: AxesLegendProps) {
       {signals.map((sig) => {
         const key = `${sig.simId}::${sig.signalName}`;
         const unit = signalCache.get(key)?.unit ?? "";
+        const age = sig.age ?? 0;
+        if (age > 0) {
+          // A past run's trace is derived from the current one's — there is
+          // nothing here to recolour, rescale or remove on its own, so the
+          // row is a swatch, a name and how old it is.
+          return (
+            <div key={`${key}::${age}`} className="axes-legend__row axes-legend__row--past">
+              <span
+                className="axes-legend__past-swatch"
+                style={{ background: sig.color, opacity: historyOpacity(age) }}
+                aria-hidden="true"
+              />
+              <span className="axes-legend__name">{sig.signalName}</span>
+              <span
+                className="axes-legend__age"
+                title={`${age} ${age === 1 ? "run" : "runs"} before the current one`}
+              >
+                [{age}]
+              </span>
+            </div>
+          );
+        }
         return (
           <div key={key} className="axes-legend__row">
             <ColorSwatch

@@ -1,5 +1,6 @@
 import type uPlot from "uplot";
 
+import { refLabel } from "./history";
 import { CHART_THEME_FALLBACK, type ChartTheme, formatLogTicks, formatTicks } from "./theme";
 import type { SignalRef, WaveformSignal } from "./types";
 
@@ -280,7 +281,7 @@ export function buildSeries(
     const quantity = sig?.quantity ?? "dimensionless";
     const spine = spines.find((s) => s.quantity === quantity);
     series.push({
-      label: ref.signalName,
+      label: refLabel(ref),
       stroke: ref.color,
       scale: spine?.scaleKey ?? "y",
       // 1.6px: heavy enough to stay solid where a switching waveform packs

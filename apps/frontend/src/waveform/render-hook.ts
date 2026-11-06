@@ -39,9 +39,22 @@ export interface RenderAxesSpec {
   cursorB?: number;
 }
 
+export interface RenderRunSpec {
+  simId: string;
+  signals: RenderSignalSpec[];
+}
+
 export interface RenderWaveformSpec {
   simId?: string;
   signals: RenderSignalSpec[];
+  /**
+   * Earlier runs, newest first. Seeded exactly as a sequence of real runs
+   * would leave the store, so the history overlay can be rendered and
+   * looked at.
+   */
+  history?: RenderRunSpec[];
+  /** Past runs each axes draws behind the current one. */
+  historyDepth?: number;
   figures: Array<{
     name: string;
     rows: number;
@@ -58,6 +71,26 @@ declare global {
 export function loadWaveformForRender(spec: RenderWaveformSpec): void {
   const simId = spec.simId ?? "render";
   const store = useWaveformStore.getState();
+
+  // Oldest first, so each beginRun pushes the previous one into the history
+  // the way a real sequence of runs does.
+  const past = [...(spec.history ?? [])].reverse();
+  for (const run of past) {
+    useWaveformStore.getState().beginRun(run.simId);
+    for (const sig of run.signals) {
+      useWaveformStore.getState().cacheSignal(run.simId, sig.name, {
+        simId: run.simId,
+        name: sig.name,
+        analysis: sig.analysis ?? "tran",
+        quantity: sig.quantity,
+        unit: sig.unit,
+        domain: sig.domain ?? "time",
+        time: new Float64Array(sig.x),
+        values: new Float64Array(sig.y),
+      });
+    }
+  }
+  if (past.length > 0) useWaveformStore.getState().beginRun(simId);
 
   for (const sig of spec.signals) {
     const signal: WaveformSignal = {
@@ -79,6 +112,9 @@ export function loadWaveformForRender(spec: RenderWaveformSpec): void {
       const axesId = useWaveformStore.getState().createAxes(figureId, ax.row, ax.col);
       for (const name of ax.signals) {
         useWaveformStore.getState().addSignalToAxes(axesId, simId, name);
+      }
+      if (spec.historyDepth) {
+        useWaveformStore.getState().setAxesHistoryDepth(axesId, spec.historyDepth);
       }
       if (ax.cursorA !== undefined) {
         useWaveformStore.getState().setAxesCursor(axesId, "A", ax.cursorA);

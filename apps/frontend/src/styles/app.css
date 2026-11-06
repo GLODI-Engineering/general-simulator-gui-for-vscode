@@ -3209,3 +3209,42 @@ textarea:focus-visible {
 .measurements-bar__table td {
   color: var(--wave-text);
 }
+
+/* ── Past runs ────────────────────────────────────────────────────────── */
+
+.axes-header__history {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  color: var(--wave-text-muted);
+  font-size: 0.68rem;
+}
+
+.axes-header__history select {
+  border: 1px solid var(--wave-border);
+  border-radius: 3px;
+  background: var(--wave-surface);
+  padding: 0 2px;
+  color: var(--wave-text);
+  font-size: 0.68rem;
+}
+
+/* A past run's row sits alongside the current one's but reads as secondary,
+   the same way its trace does. */
+.axes-legend__row--past .axes-legend__name {
+  color: var(--wave-text-muted);
+}
+
+.axes-legend__past-swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.axes-legend__age {
+  color: var(--wave-text-muted);
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+}

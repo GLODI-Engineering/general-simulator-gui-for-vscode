@@ -225,7 +225,53 @@ function denseCase() {
   };
 }
 
-const CASES = { buck: buckCase, bode: bodeCase, dense: denseCase };
+/**
+ * The same converter re-run three times with the compensator moved, which
+ * is what the history overlay exists for: seeing what a change did.
+ */
+function historyCase() {
+  const n = 3000;
+  const tEnd = 3e-3;
+  const run = (zeta, name) => {
+    const x = new Array(n);
+    const vout = new Array(n);
+    const il = new Array(n);
+    const wn = 2 * Math.PI * 1500;
+    for (let k = 0; k < n; k += 1) {
+      const t = (k / (n - 1)) * tEnd;
+      const env = Math.exp(-zeta * wn * t);
+      const wd = wn * Math.sqrt(Math.max(1e-9, 1 - zeta * zeta));
+      x[k] = t;
+      vout[k] = 12 * (1 - env * Math.cos(wd * t));
+      il[k] = 10 * env * Math.sin(wd * t) + 8;
+    }
+    return {
+      simId: name,
+      signals: [
+        { name: "V(out)", unit: "V", quantity: "voltage", x, y: vout },
+        { name: "I(L1)", unit: "A", quantity: "current", x, y: il },
+      ],
+    };
+  };
+
+  const current = run(0.7, "run-3");
+  return {
+    simId: current.simId,
+    signals: current.signals,
+    history: [run(0.35, "run-2"), run(0.15, "run-1")],
+    historyDepth: 2,
+    figures: [
+      {
+        name: "Compensator sweep",
+        rows: 1,
+        cols: 1,
+        axes: [{ row: 0, col: 0, signals: ["V(out)", "I(L1)"] }],
+      },
+    ],
+  };
+}
+
+const CASES = { buck: buckCase, bode: bodeCase, dense: denseCase, history: historyCase };
 
 async function startPreview() {
   const child = spawn(
