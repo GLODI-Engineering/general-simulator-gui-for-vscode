@@ -289,3 +289,33 @@ describe("overlap with wires already routed", () => {
     expect(routeBlocked(route, [box])).toBe(false);
   });
 });
+
+/**
+ * A port faces a direction, and a wire that leaves it the other way has to go
+ * through the body behind it. The candidate set used to contain only routes
+ * heading straight for the target, so a port facing away from its target had
+ * no legal way out at all.
+ */
+describe("leaving a port along the way it faces", () => {
+  it("backs out and goes around rather than turning the wrong way", () => {
+    // A box sitting immediately right of the start: heading straight for the
+    // target crosses it, so the only route that keeps a horizontal first
+    // segment is one that steps left before climbing.
+    const box = { x: 0, y: -60, w: 120, h: 120 };
+    const route = routeOrtho(-20, 0, 400, 300, "h", [box]);
+    expect(routeBlocked(route, [box])).toBe(false);
+    const [a, b] = route;
+    expect(a?.[1]).toBe(b?.[1]);
+  });
+
+  it("gives up the facing rather than cut through a component", () => {
+    // Ranking matters: a wrong-way exit is ugly, a wire through a part is
+    // unreadable. If only one of the two can be had, keep the part clear.
+    const walls = [
+      { x: -200, y: -60, w: 400, h: 20 },
+      { x: -200, y: 40, w: 400, h: 20 },
+    ];
+    const route = routeOrtho(-20, 0, 400, 300, "v", walls);
+    expect(routeBlocked(route, walls)).toBe(false);
+  });
+});
