@@ -4,7 +4,14 @@ import { getMetadataPortCenters, SYMBOL_SCALE } from "../canvas/nodes/port-hit-t
 import { resolveBlockBbox } from "../canvas/nodes/resolve-ports";
 import { rerouteEndSegment } from "../canvas/router/attachment";
 import { type RouterComponent, getObstacles } from "../canvas/router/obstacles";
-import { routeOrtho } from "../canvas/router/ortho-route";
+import {
+  type RouteSegment,
+  pointsToSegments,
+  routeBlocked,
+  routeOrtho,
+  routeOverlap,
+} from "../canvas/router/ortho-route";
+import { netOf } from "../canvas/edges/junctions";
 import { resolveBlockMetadata } from "../canvas/subckt-metadata";
 import { emit as emitAutosave } from "../file/autosave";
 import { type SwapResult, swap as swapFidelity } from "../library/fidelity-swap";
@@ -125,7 +132,9 @@ function modelToRouterComponents(model: ModelGraph): RouterComponent[] {
     // to the router — every obstacle box was undersized by exactly 1.6x, so the
     // "obstacle avoidance" router was correctly avoiding a box far smaller than what
     // is actually drawn, and wires routed straight through the visible symbol body.
-    const [rawW, rawH] = metadata ? resolveBlockBbox(metadata, block.params) : [60 / SYMBOL_SCALE, 40 / SYMBOL_SCALE];
+    const [rawW, rawH] = metadata
+      ? resolveBlockBbox(metadata, block.params)
+      : [60 / SYMBOL_SCALE, 40 / SYMBOL_SCALE];
     const w = rawW * SYMBOL_SCALE;
     const h = rawH * SYMBOL_SCALE;
     const ports = metadata
@@ -172,6 +181,28 @@ function isOrthogonal(points: Array<[number, number]>): boolean {
 
 export function rerouteWiresForBlocks(model: ModelGraph, touchedBlockIds: Set<string>): void {
   const obstacles = modelToRouterComponents(model);
+
+  // Which net each wire belongs to, by the same rule the junction dots use:
+  // wires sharing a (block, port) endpoint, or an explicit net name, are one
+  // conductor. Two wires of one net may share a run -- that is a trunk with
+  // branches -- so only cross-net overlap is avoided.
+  const nets = netOf(model.wires);
+  const netById = new Map(model.wires.map((wire, index) => [wire.id, nets[index]]));
+
+  // Runs already taken. Wires this pass is not touching keep their drawn path,
+  // so a rerouted wire avoids them; each wire this pass routes is added as it
+  // goes, so a bundle fans out instead of stacking on one line.
+  const occupied: RouteSegment[] = [];
+  for (const wire of model.wires) {
+    const fromMoved = touchedBlockIds.has(wire.from.block);
+    const toMoved = touchedBlockIds.has(wire.to.block);
+    if (!wire.pinned && (fromMoved || toMoved)) continue;
+    const from = portCenterForWireEndpoint(model, wire.from);
+    const to = portCenterForWireEndpoint(model, wire.to);
+    if (!from || !to) continue;
+    occupied.push(...pointsToSegments([from, ...wire.waypoints, to], netById.get(wire.id)));
+  }
+
   model.wires = model.wires.map((wire) => {
     const fromMoved = touchedBlockIds.has(wire.from.block);
     const toMoved = touchedBlockIds.has(wire.to.block);
@@ -201,6 +232,7 @@ export function rerouteWiresForBlocks(model: ModelGraph, touchedBlockIds: Set<st
       points = rerouteEndSegment(points, "last", wireObstacles, toDir);
     }
 
+    const net = netById.get(wire.id);
     if (!isOrthogonal(points)) {
       points = routeOrtho(
         from[0],
@@ -210,9 +242,35 @@ export function rerouteWiresForBlocks(model: ModelGraph, touchedBlockIds: Set<st
         fromDir ?? inferRouteDir(from, wire),
         wireObstacles,
         toDir,
+        { occupied, net },
       );
+    } else if (routeOverlap(points, occupied, net) > 0 || routeBlocked(points, wireObstacles)) {
+      // `rerouteEndSegment` already produced a legal *orthogonal* path, so the
+      // full router was never consulted -- and on load that is every wire,
+      // which is how a sheet ends up both with bundles drawn on one line and
+      // with wires crossing straight through components. Orthogonal was the
+      // only thing being checked here; neither obstacles nor other wires were.
+      // Ask for a route that dodges both, and keep it only if it is better.
+      const alternative = routeOrtho(
+        from[0],
+        from[1],
+        to[0],
+        to[1],
+        fromDir ?? inferRouteDir(from, wire),
+        wireObstacles,
+        toDir,
+        { occupied, net },
+      );
+      // Score both the same way the router does: a wire through a component is
+      // worse than any amount of running alongside another wire.
+      const cost = (pts: Array<[number, number]>) =>
+        (routeBlocked(pts, wireObstacles) ? 1e6 : 0) + routeOverlap(pts, occupied, net);
+      if (isOrthogonal(alternative) && cost(alternative) < cost(points)) {
+        points = alternative;
+      }
     }
 
+    occupied.push(...pointsToSegments(points, net));
     return { ...wire, waypoints: points.slice(1, -1) };
   });
 }
