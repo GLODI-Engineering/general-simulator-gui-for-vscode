@@ -86,6 +86,9 @@ impl Document {
     /// Where the samples are. A v1 document had no `data` block because
     /// there was only one possibility.
     pub fn kind(&self) -> DataKind {
-        self.data.as_ref().map(|d| d.kind).unwrap_or(DataKind::Inline)
+        self.data
+            .as_ref()
+            .map(|d| d.kind)
+            .unwrap_or(DataKind::Inline)
     }
 }
