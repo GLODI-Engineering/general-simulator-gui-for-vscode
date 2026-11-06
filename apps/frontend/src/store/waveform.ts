@@ -29,6 +29,16 @@ function _pickColor(index: number): string {
   return _COLOR_PALETTE[index % _COLOR_PALETTE.length] ?? "#3b82f6";
 }
 
+/**
+ * How many past runs to keep by default.
+ *
+ * Each one is a full copy of every signal, so this is memory, not a
+ * preference: four runs of a 25,000-step, 11-signal sweep is about 9 MB.
+ * Enough to see a trend across a few parameter tweaks; small enough not to
+ * be the reason a long sweep runs out of room.
+ */
+export const DEFAULT_HISTORY_LIMIT = 4;
+
 function _uuid(): string {
   return crypto.randomUUID();
 }
@@ -49,6 +59,21 @@ export interface WaveformState {
    * it be changed, and clicking an axes retargets it.
    */
   activeAxesId: string | null;
+
+  /**
+   * Past runs, newest first, not including the one on screen.
+   *
+   * Re-running a changed component and seeing what moved is the single most
+   * common thing anyone does with a simulator, and it was impossible here:
+   * every run replaced the last, so a comparison meant exporting both and
+   * opening them in something else. The samples are already in the cache —
+   * keeping the previous run's sim ids is all that was missing.
+   */
+  runHistory: string[];
+  /** The run currently on screen, if any. */
+  currentSimId: string | null;
+  /** How many past runs to keep. Beyond this the oldest is dropped. */
+  historyLimit: number;
   couplingGroups: Map<string, CouplingGroup>;
   signalCache: Map<string, WaveformSignal>;
   streamingSignals: Set<string>;
@@ -98,6 +123,16 @@ export interface WaveformState {
   /** Point the signal browser at an axes. Null when it no longer exists. */
   setActiveAxes: (axesId: string | null) => void;
 
+  /**
+   * Record that a new run is replacing the current one, moving the outgoing
+   * run into the history and evicting anything past `historyLimit`.
+   */
+  beginRun: (simId: string) => void;
+  /** Keep more or fewer past runs. Shrinking evicts the oldest immediately. */
+  setHistoryLimit: (limit: number) => void;
+  /** How many past runs an axes draws behind the current one. */
+  setAxesHistoryDepth: (axesId: string, depth: number) => void;
+
   /** Which measurements the bar above this axes shows, in order. */
   setAxesMeasurements: (axesId: string, measurements: MeasurementKey[]) => void;
 
@@ -129,10 +164,27 @@ export interface WaveformState {
   appendChunk: (signalId: string, values: ArrayLike<number>, x?: ArrayLike<number>) => void;
 }
 
+/** The cache with every signal belonging to `simIds` removed. */
+function _withoutRuns(
+  cache: Map<string, WaveformSignal>,
+  simIds: string[],
+): Map<string, WaveformSignal> {
+  if (simIds.length === 0) return cache;
+  const dropped = new Set(simIds);
+  const next = new Map(cache);
+  for (const [key, signal] of cache) {
+    if (dropped.has(signal.simId)) next.delete(key);
+  }
+  return next;
+}
+
 export const useWaveformStore = create<WaveformState>((set, get) => ({
   figures: new Map(),
   axes: new Map(),
   activeAxesId: null,
+  runHistory: [],
+  currentSimId: null,
+  historyLimit: DEFAULT_HISTORY_LIMIT,
   couplingGroups: new Map(),
   signalCache: new Map(),
   streamingSignals: new Set(),
@@ -311,6 +363,45 @@ export const useWaveformStore = create<WaveformState>((set, get) => ({
       const clean = Number.isFinite(gain) && gain !== 0 ? gain : 1;
       signals[idx] = clean === 1 ? { ...current, gain: undefined } : { ...current, gain: clean };
       axesMap.set(axesId, { ...entry, signals });
+      return { axes: axesMap };
+    });
+  },
+
+  beginRun: (simId) => {
+    set((state) => {
+      if (state.currentSimId === simId) return {};
+      const history = state.currentSimId
+        ? [state.currentSimId, ...state.runHistory.filter((id) => id !== state.currentSimId)]
+        : [...state.runHistory];
+      const kept = history.slice(0, Math.max(0, state.historyLimit));
+      const evicted = history.slice(Math.max(0, state.historyLimit));
+      return {
+        currentSimId: simId,
+        runHistory: kept,
+        signalCache: _withoutRuns(state.signalCache, evicted),
+      };
+    });
+  },
+
+  setHistoryLimit: (limit) => {
+    set((state) => {
+      const clean = Math.max(0, Math.floor(limit));
+      const kept = state.runHistory.slice(0, clean);
+      const evicted = state.runHistory.slice(clean);
+      return {
+        historyLimit: clean,
+        runHistory: kept,
+        signalCache: _withoutRuns(state.signalCache, evicted),
+      };
+    });
+  },
+
+  setAxesHistoryDepth: (axesId, depth) => {
+    set((state) => {
+      const axesMap = new Map(state.axes);
+      const entry = axesMap.get(axesId);
+      if (!entry) return {};
+      axesMap.set(axesId, { ...entry, historyDepth: Math.max(0, Math.floor(depth)) });
       return { axes: axesMap };
     });
   },

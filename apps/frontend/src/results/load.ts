@@ -22,6 +22,11 @@ export function applyResult(result: LoadedResult): void {
     couplingGroups: new Map(),
     signalCache: new Map(),
     streamingSignals: new Set(),
+    // A file holds one run, so there is no history to inherit — and
+    // carrying the previous file's over would offer to overlay a run from
+    // a different model entirely.
+    runHistory: [],
+    currentSimId: result.signals[0]?.simId ?? result.run.id,
   });
 
   const store = useWaveformStore.getState();
@@ -31,7 +36,9 @@ export function applyResult(result: LoadedResult): void {
 
   const simId = result.signals[0]?.simId ?? result.run.id;
   for (const figure of result.layout) {
-    const figureId = useWaveformStore.getState().createFigure(figure.name, figure.rows, figure.cols);
+    const figureId = useWaveformStore
+      .getState()
+      .createFigure(figure.name, figure.rows, figure.cols);
     for (const axes of figure.axes) {
       const axesId = useWaveformStore.getState().createAxes(figureId, axes.row, axes.col);
       for (const [index, name] of axes.signals.entries()) {

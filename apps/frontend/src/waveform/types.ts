@@ -27,6 +27,15 @@ export interface SignalRef {
    * "×10" so the plot never quietly claims the current is 20 A.
    */
   gain?: number;
+  /**
+   * How many runs ago this trace is: absent or 0 for the current run, 1 for
+   * the one before it, and so on.
+   *
+   * Set only on the refs a history overlay synthesises — `Axes.signals`
+   * holds the user's chosen set and never contains one of these, so adding
+   * and removing a signal stays about the signal, not about which run.
+   */
+  age?: number;
 }
 
 export type AxesMode = "time" | "bode" | "xy";
@@ -53,6 +62,11 @@ export interface Axes {
   cursorBH?: number;
   /** When true the pointer changes to a hand and drag pans the plot. */
   panMode?: boolean;
+  /**
+   * How many past runs to draw behind the current one. 0 or absent is just
+   * the current run.
+   */
+  historyDepth?: number;
   /**
    * Which measurements the bar above this axes shows, in order.
    *

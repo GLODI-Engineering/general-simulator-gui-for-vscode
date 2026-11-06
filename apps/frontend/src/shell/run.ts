@@ -383,6 +383,11 @@ function _populateWaveformViewer(
   const store = useWaveformStore.getState();
   const simId = manifest.sim_id;
 
+  // Move the outgoing run into the history before its axes are repopulated.
+  // Its samples stay in the cache under their own sim id, so an axes set to
+  // show past runs can draw it behind the new one.
+  store.beginRun(simId);
+
   if (store.figures.size === 0 && manifest.signals.length === 0) return;
 
   // Resolve or create the target figure.

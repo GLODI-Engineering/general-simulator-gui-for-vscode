@@ -24,6 +24,7 @@ import type { SpineSpec } from "./axes-config";
 import { buildBodeAnnotations } from "./bode-annotations";
 import type { AnnotationSpec, BodeMargins, MarginBadgeSpec } from "./bode-annotations";
 import { axesExportSubject } from "./export-subjects";
+import { withHistory } from "./history";
 import { readChartTheme } from "./theme";
 import type { SignalRef, WaveformSignal } from "./types";
 
@@ -84,6 +85,7 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
   );
   const setMaximizedAxes = useWaveformStore((s) => s.setMaximizedAxes);
   const setActiveAxes = useWaveformStore((s) => s.setActiveAxes);
+  const setAxesHistoryDepth = useWaveformStore((s) => s.setAxesHistoryDepth);
   const isTarget = useWaveformStore((s) => s.activeAxesId === axesId);
   const pushToast = useToastStore((s) => s.pushToast);
 
@@ -150,7 +152,19 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
   // 29424d2 (that effect depended on this exact unstable `spines`
   // reference). Memoizing here fixes the root cause instead of the one
   // symptom that got caught.
-  const refs = useMemo(() => axesEntry?.signals ?? _EMPTY_REFS, [axesEntry?.signals]);
+  const ownRefs = axesEntry?.signals ?? _EMPTY_REFS;
+  const historyDepth = axesEntry?.historyDepth ?? 0;
+  const runHistory = useWaveformStore((s) => s.runHistory);
+  /**
+   * What this chart draws: the axes' own signals, then the same signals
+   * from up to `historyDepth` previous runs. The overlay is derived here
+   * rather than stored, so changing the depth cannot disturb the set of
+   * signals the user chose.
+   */
+  const refs = useMemo(
+    () => withHistory(ownRefs, signalCache, runHistory, historyDepth),
+    [ownRefs, signalCache, runHistory, historyDepth],
+  );
   const signalCount = refs.length;
   const spines = useMemo(() => buildSpines(refs, signalCache), [refs, signalCache]);
   const needsReinit = spinesChanged(spinesRef.current, spines);
@@ -601,6 +615,26 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
               <span className="axes-header__group-dot" style={{ background: groupColor }} />
               {couplingGroup.name}
             </span>
+          )}
+          {/* Only offered once there is a past run to show. A control that
+              can only ever say "0" is a question with one answer. */}
+          {runHistory.length > 0 && (
+            <label className="axes-header__history">
+              <span>Past runs</span>
+              <select
+                aria-label="Past runs to overlay"
+                value={historyDepth}
+                onChange={(event) =>
+                  setAxesHistoryDepth(axesId, Number.parseInt(event.target.value, 10))
+                }
+              >
+                {Array.from({ length: runHistory.length + 1 }, (_, depth) => (
+                  <option key={depth} value={depth}>
+                    {depth}
+                  </option>
+                ))}
+              </select>
+            </label>
           )}
           <button
             type="button"

@@ -40,7 +40,11 @@ describe("f64-base64 round trip", () => {
   });
 
   it("carries the non-finite values a diverging solve produces", () => {
-    const values = Float64Array.from([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]);
+    const values = Float64Array.from([
+      Number.NaN,
+      Number.POSITIVE_INFINITY,
+      Number.NEGATIVE_INFINITY,
+    ]);
     const decoded = decodeSamples(vector({ data: encodeSamples(values, "f64-base64") }));
     expect(Number.isNaN(decoded[0] as number)).toBe(true);
     expect(decoded[1]).toBe(Number.POSITIVE_INFINITY);
