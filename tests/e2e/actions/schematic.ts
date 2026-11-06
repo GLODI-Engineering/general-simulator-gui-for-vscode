@@ -656,6 +656,17 @@ export class SchematicPage {
     });
   }
 
+  /** Click Fit, so the whole sheet is in view. */
+  async fitView(): Promise<void> {
+    await this.probe.click(this.page.getByRole("button", { name: /^Fit/ }));
+    await this.page.waitForTimeout(500);
+  }
+
+  /** Photograph the canvas. */
+  async screenshot(path: string): Promise<void> {
+    await this.canvas.screenshot({ path });
+  }
+
   async selectAll(): Promise<void> {
     await this.focusCanvas();
     await this.probe.press("Control+A");
