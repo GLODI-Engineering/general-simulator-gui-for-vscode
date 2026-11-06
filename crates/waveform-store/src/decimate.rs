@@ -79,7 +79,11 @@ pub fn minmax_decimate_by_value(values: &[f64], max_points: usize) -> Vec<usize>
         }
         let min_idx = argmin(bucket) + lo;
         let max_idx = argmax(bucket) + lo;
-        let (first, second) = if min_idx <= max_idx { (min_idx, max_idx) } else { (max_idx, min_idx) };
+        let (first, second) = if min_idx <= max_idx {
+            (min_idx, max_idx)
+        } else {
+            (max_idx, min_idx)
+        };
         indices.push(first);
         if second != first {
             indices.push(second);
@@ -159,6 +163,87 @@ pub fn window_indices(time: &[f64], from: f64, to: f64) -> (usize, usize) {
     (start, end)
 }
 
+/// One bucket of a shared-grid envelope: two output points, and for each
+/// signal the pair of values that spans what it did inside the bucket.
+///
+/// ## Why this exists
+///
+/// `decimate_indices_by_time_bucket` keeps the first and last sample of each
+/// bucket. That gives every signal one shared time grid, which is what a
+/// chart needs — and it cannot see what happened in between. On a measured
+/// 50-million-sample switching node with one sample of 96 V overshoot, it
+/// reports a 48 V peak. The overshoot is simply gone, and in power
+/// electronics that is the one failure you cannot afford to miss: it is the
+/// transient that destroys the device.
+///
+/// `minmax_decimate_by_value` does preserve it, but selects different
+/// indices for every signal, so a multi-signal query would come back on
+/// several grids and could not be drawn together.
+///
+/// This resolves both. The *time* axis is bucketed, so the grid stays
+/// shared; within each bucket every signal contributes its own minimum and
+/// maximum, emitted in the order they occurred so the trace keeps its
+/// direction of travel. Each bucket becomes a short vertical excursion
+/// covering the real range of the data it stands for — which is what an
+/// oscilloscope draws, and for the same reason.
+///
+/// The budget is unchanged: `max_points / 2` buckets, two points each.
+pub fn minmax_envelope(
+    time: &[f64],
+    columns: &[&[f64]],
+    max_points: usize,
+) -> (Vec<f64>, Vec<Vec<f64>>) {
+    let n = time.len();
+    if n <= max_points || max_points < 4 {
+        return (time.to_vec(), columns.iter().map(|c| c.to_vec()).collect());
+    }
+
+    let n_buckets = max_points / 2;
+    let bucket_size = n as f64 / n_buckets as f64;
+
+    let mut out_time = Vec::with_capacity(max_points);
+    let mut out_values: Vec<Vec<f64>> = columns
+        .iter()
+        .map(|_| Vec::with_capacity(max_points))
+        .collect();
+
+    for i in 0..n_buckets {
+        let (lo, hi) = bucket_bounds(i, bucket_size, n);
+        if lo >= n {
+            break;
+        }
+        if hi <= lo {
+            continue;
+        }
+
+        // The bucket's own time bounds, so consecutive buckets join up.
+        out_time.push(time[lo]);
+        out_time.push(time[hi - 1]);
+
+        for (column_index, column) in columns.iter().enumerate() {
+            let bucket = &column[lo..hi];
+            let min_at = argmin(bucket);
+            let max_at = argmax(bucket);
+            // Emitted in the order they happened: a rising edge then reads
+            // low-then-high, a falling one high-then-low, and the envelope
+            // keeps the shape of the waveform rather than flattening it
+            // into a band.
+            let (first, second) = if min_at <= max_at {
+                (bucket[min_at], bucket[max_at])
+            } else {
+                (bucket[max_at], bucket[min_at])
+            };
+            out_values[column_index].push(first);
+            out_values[column_index].push(second);
+        }
+    }
+
+    if out_time.is_empty() {
+        return (time.to_vec(), columns.iter().map(|c| c.to_vec()).collect());
+    }
+    (out_time, out_values)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -217,6 +302,69 @@ mod tests {
         let selected = decimate_indices_by_time_bucket(&time, 100, &parent);
         assert!(selected.len() <= 100);
         assert!(selected.windows(2).all(|w| w[0] <= w[1]));
+    }
+
+    #[test]
+    fn the_envelope_keeps_a_spike_that_time_bucketing_loses() {
+        // The measurement that motivated it: one sample of 96 V overshoot
+        // in a 50,000-sample run, deliberately not on a bucket boundary.
+        let n = 50_000;
+        let time: Vec<f64> = (0..n).map(|i| i as f64 * 1e-8).collect();
+        let mut values = vec![48.0; n];
+        let spike = n * 3 / 4 + 1237;
+        values[spike] = 96.0;
+
+        let parent: Vec<usize> = (0..n).collect();
+        let by_time = decimate_indices_by_time_bucket(&time, 3000, &parent);
+        let time_peak = by_time.iter().map(|&i| values[i]).fold(f64::MIN, f64::max);
+        assert_eq!(time_peak, 48.0, "time bucketing is expected to lose it");
+
+        let (_, envelope) = minmax_envelope(&time, &[&values], 3000);
+        let envelope_peak = envelope[0].iter().copied().fold(f64::MIN, f64::max);
+        assert_eq!(envelope_peak, 96.0, "the envelope must not lose it");
+    }
+
+    #[test]
+    fn the_envelope_keeps_every_signal_on_one_grid() {
+        // The property time bucketing was chosen for, and which value
+        // bucketing per signal would have thrown away.
+        let n = 10_000;
+        let time: Vec<f64> = (0..n).map(|i| i as f64 * 1e-6).collect();
+        let a: Vec<f64> = (0..n).map(|i| (i as f64 / 50.0).sin()).collect();
+        let b: Vec<f64> = (0..n).map(|i| (i as f64 / 37.0).cos() * 20.0).collect();
+
+        let (grid, columns) = minmax_envelope(&time, &[&a, &b], 400);
+        assert!(grid.len() <= 400);
+        assert_eq!(columns[0].len(), grid.len());
+        assert_eq!(columns[1].len(), grid.len());
+        assert!(
+            grid.windows(2).all(|w| w[0] <= w[1]),
+            "grid must stay monotonic"
+        );
+    }
+
+    #[test]
+    fn the_envelope_spans_each_bucket_rather_than_sampling_it() {
+        // A bucket must report what the signal really did inside it, so the
+        // drawn excursion covers the range rather than two arbitrary points.
+        let n = 4000;
+        let time: Vec<f64> = (0..n).map(|i| i as f64).collect();
+        let values: Vec<f64> = (0..n)
+            .map(|i| if i % 2 == 0 { -1.0 } else { 1.0 })
+            .collect();
+        let (_, columns) = minmax_envelope(&time, &[&values], 100);
+        let lo = columns[0].iter().copied().fold(f64::MAX, f64::min);
+        let hi = columns[0].iter().copied().fold(f64::MIN, f64::max);
+        assert_eq!((lo, hi), (-1.0, 1.0));
+    }
+
+    #[test]
+    fn the_envelope_hands_back_small_data_untouched() {
+        let time = vec![0.0, 1.0, 2.0];
+        let values = vec![10.0, 20.0, 30.0];
+        let (grid, columns) = minmax_envelope(&time, &[&values], 3000);
+        assert_eq!(grid, time);
+        assert_eq!(columns[0], values);
     }
 
     #[test]

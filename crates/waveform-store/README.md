@@ -32,6 +32,30 @@ An 11-signal, 25,000-sample SOGI-PLL result (3.2 MB on disk):
 
 The `.wasm` is 137 KB.
 
+## What survives decimation
+
+`tests/properties.rs` establishes this on waveforms shaped like a converter's,
+because it decides what the viewer is allowed to report:
+
+| measurement | under min/max envelope |
+|---|---|
+| max, min | **exact**, at every budget |
+| peak-to-peak | **exact** |
+| every sample inside the drawn band | **guaranteed** |
+| mean | within 0.03% while buckets stay finer than the waveform's period; structurally wrong once they span many |
+| RMS | biased high, for the same reason |
+
+The reduction is a min/max **envelope** on a shared time grid, not plain time
+bucketing. Time bucketing keeps each bucket's first and last sample and never
+looks between them: on a measured 50-million-sample switch node it turns a
+96 V overshoot into a 48 V peak. For power electronics that is the one
+failure you cannot miss, so the envelope emits each signal's own minimum and
+maximum per bucket, in the order they occurred.
+
+The rule that follows: **a measurement is computed on the samples, never on
+the reduction the chart is drawn from.** The chart can be an approximation; a
+number with a unit after it cannot.
+
 ## Layout
 
 - `decimate.rs` — min/max bucketing, a faithful port of the engine's

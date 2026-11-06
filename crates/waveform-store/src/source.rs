@@ -2,7 +2,7 @@
 
 use base64::Engine as _;
 
-use crate::decimate::{decimate_indices_by_time_bucket, window_indices};
+use crate::decimate::{minmax_envelope, window_indices};
 use crate::manifest::{DataKind, Document, Encoding, Vector};
 use crate::{Error, Result};
 
@@ -76,7 +76,10 @@ fn decode(vector: &Vector) -> Result<Vec<f64>> {
             let bytes = base64::engine::general_purpose::STANDARD
                 .decode(text)
                 .map_err(|_| {
-                    Error::Parse(format!("\"{}\" has data that is not valid base64", vector.name))
+                    Error::Parse(format!(
+                        "\"{}\" has data that is not valid base64",
+                        vector.name
+                    ))
                 })?;
             if bytes.len() % 8 != 0 {
                 // Catch truncation here. Downstream it is invisible: a
@@ -141,7 +144,10 @@ impl InlineSource {
             meta.push(SignalMeta {
                 name: signal.name.clone(),
                 unit: signal.unit.clone(),
-                quantity: signal.quantity.clone().unwrap_or_else(|| "dimensionless".into()),
+                quantity: signal
+                    .quantity
+                    .clone()
+                    .unwrap_or_else(|| "dimensionless".into()),
                 analysis: signal.analysis.clone().unwrap_or_else(|| "tran".into()),
             });
             values.push(samples);
@@ -182,31 +188,35 @@ impl WaveformSource for InlineSource {
         window: Option<(f64, f64)>,
         max_points: usize,
     ) -> Result<Slice> {
-        let columns: Vec<usize> =
-            names.iter().map(|name| self.index_of(name)).collect::<Result<_>>()?;
+        let columns: Vec<usize> = names
+            .iter()
+            .map(|name| self.index_of(name))
+            .collect::<Result<_>>()?;
 
         let (start, end) = match window {
             Some((from, to)) => window_indices(&self.sweep, from, to),
             None => (0, self.sweep.len().saturating_sub(1)),
         };
         if self.sweep.is_empty() {
-            return Ok(Slice { sweep: Vec::new(), values: vec![Vec::new(); columns.len()] });
+            return Ok(Slice {
+                sweep: Vec::new(),
+                values: vec![Vec::new(); columns.len()],
+            });
         }
 
-        let parent: Vec<usize> = (start..=end).collect();
-        let window_time: Vec<f64> = parent.iter().map(|&i| self.sweep[i]).collect();
+        let window_time = &self.sweep[start..=end];
+        let window_values: Vec<&[f64]> = columns
+            .iter()
+            .map(|&column| &self.values[column][start..=end])
+            .collect();
 
-        // Time-bucketed, not value-bucketed: every signal in the answer has
-        // to land on one shared grid, which is what a chart draws against.
-        let selected = decimate_indices_by_time_bucket(&window_time, max_points, &parent);
-
-        Ok(Slice {
-            sweep: selected.iter().map(|&i| self.sweep[i]).collect(),
-            values: columns
-                .iter()
-                .map(|&column| selected.iter().map(|&i| self.values[column][i]).collect())
-                .collect(),
-        })
+        // The envelope, not plain time bucketing: both give one shared grid,
+        // but only this one reports what each signal actually did inside a
+        // bucket. On a 50-million-sample switching node, time bucketing
+        // turns a 96 V overshoot into a 48 V peak — it keeps the first and
+        // last sample of each bucket and never looks between them.
+        let (sweep, values) = minmax_envelope(window_time, &window_values, max_points);
+        Ok(Slice { sweep, values })
     }
 }
 
@@ -244,7 +254,8 @@ mod tests {
 
     #[test]
     fn reads_a_v1_document_which_had_no_data_block() {
-        let json = document(5).replace("\"schema_version\": 2", "\"schema_version\": 1")
+        let json = document(5)
+            .replace("\"schema_version\": 2", "\"schema_version\": 1")
             .replace("\"data\": { \"kind\": \"inline\" },", "");
         let source = InlineSource::parse(&json).expect("v1 still parses");
         assert_eq!(source.signals().len(), 1);
@@ -261,7 +272,9 @@ mod tests {
     #[test]
     fn serves_only_the_window_asked_for() {
         let source = InlineSource::parse(&document(1000)).unwrap();
-        let slice = source.slice(&["V(out)".into()], Some((10e-6, 20e-6)), 1000).unwrap();
+        let slice = source
+            .slice(&["V(out)".into()], Some((10e-6, 20e-6)), 1000)
+            .unwrap();
         // ~11 samples plus one bracketing each side, and every one of them.
         assert!(slice.sweep.len() >= 11 && slice.sweep.len() <= 14);
         assert!(slice.sweep[0] <= 10e-6);
@@ -274,6 +287,39 @@ mod tests {
         let slice = source.slice(&["V(out)".into()], None, 200).unwrap();
         assert!(slice.sweep.len() <= 200, "got {}", slice.sweep.len());
         assert_eq!(slice.values[0].len(), slice.sweep.len());
+    }
+
+    #[test]
+    fn a_spike_survives_the_budget() {
+        // The property the whole reduction exists to have. One sample of
+        // overshoot in a 20,000-sample run, reduced to 200 points.
+        let n = 20_000;
+        let spike = n * 3 / 4 + 237;
+        let time: Vec<String> = (0..n).map(|i| (i as f64 * 1e-8).to_string()).collect();
+        let values: Vec<String> = (0..n)
+            .map(|i| {
+                if i == spike {
+                    "96".to_string()
+                } else {
+                    "48".to_string()
+                }
+            })
+            .collect();
+        let json = format!(
+            r#"{{
+              "schema_version": 2,
+              "run": {{ "id": "r", "analysis": "TRAN" }},
+              "data": {{ "kind": "inline" }},
+              "sweep": {{ "name": "time", "unit": "s", "encoding": "json", "data": [{}] }},
+              "signals": [{{ "name": "V(sw)", "unit": "V", "encoding": "json", "data": [{}] }}]
+            }}"#,
+            time.join(","),
+            values.join(",")
+        );
+        let source = InlineSource::parse(&json).unwrap();
+        let slice = source.slice(&["V(sw)".into()], None, 200).unwrap();
+        let peak = slice.values[0].iter().copied().fold(f64::MIN, f64::max);
+        assert_eq!(peak, 96.0, "the overshoot was decimated away");
     }
 
     #[test]
@@ -302,7 +348,10 @@ mod tests {
         // whose breach is invisible on a chart.
         let json = document(10).replace(r#""data": [0,1,2,3,4,5,6,7,8,9]"#, r#""data": [0,1,2]"#);
         let error = InlineSource::parse(&json).unwrap_err();
-        assert!(format!("{error}").contains("3 samples but the sweep has 10"), "{error}");
+        assert!(
+            format!("{error}").contains("3 samples but the sweep has 10"),
+            "{error}"
+        );
     }
 
     #[test]
