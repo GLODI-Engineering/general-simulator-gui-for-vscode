@@ -14,6 +14,7 @@ import {
   overlayPx,
   spineLabel,
   valueExtents,
+  windowIndices,
   xAxisDomain,
   xAxisLabel,
 } from "./axes-config";
@@ -260,6 +261,155 @@ describe("buildAxes y-axes", () => {
     const db: SpineSpec = { quantity: "dB", unit: "dB", scaleKey: "scale-dB", side: 3 };
     const [, mag] = buildAxes([db], "frequency");
     expect(mag?.values).toBeUndefined();
+  });
+});
+
+describe("window-aware decimation", () => {
+  function ramp(n: number, dt = 1e-6) {
+    const time = new Float64Array(n);
+    const values = new Float64Array(n);
+    for (let i = 0; i < n; i++) {
+      time[i] = i * dt;
+      values[i] = i;
+    }
+    return { time, values };
+  }
+
+  function cacheOf(n: number) {
+    const { time, values } = ramp(n);
+    const signal: WaveformSignal = {
+      simId: "s",
+      name: "v",
+      analysis: "tran",
+      quantity: "voltage",
+      unit: "V",
+      domain: "time",
+      time,
+      values,
+    };
+    return new Map([["s::v", signal]]);
+  }
+
+  const refs: SignalRef[] = [{ simId: "s", signalName: "v", color: "#000" }];
+
+  describe("windowIndices", () => {
+    it("brackets the window, one sample beyond each edge", () => {
+      // Without the extra sample a trace stops short of the border and the
+      // plot shows a gap that is not in the data.
+      //
+      // Asserted as a property rather than as two index literals: `i * 1e-6`
+      // and the literal `10e-6` are not the same double, so the exact index
+      // depends on which side of the window edge a rounding error falls —
+      // which is not the behaviour being specified.
+      const { time } = ramp(100);
+      const from = 10e-6;
+      const to = 20e-6;
+      const [start, end] = windowIndices(time, from, to);
+
+      expect(time[start]).toBeLessThanOrEqual(from);
+      expect(time[end]).toBeGreaterThanOrEqual(to);
+      // Tight: one sample beyond, not two.
+      expect(time[start + 1]).toBeGreaterThan(from);
+      expect(time[end - 1]).toBeLessThan(to);
+    });
+
+    it("clamps to the array rather than running off it", () => {
+      const { time } = ramp(100);
+      expect(windowIndices(time, -1, 1)).toEqual([0, 99]);
+    });
+
+    it("has nothing to say about an empty signal", () => {
+      expect(windowIndices(new Float64Array(0), 0, 1)).toEqual([0, -1]);
+    });
+  });
+
+  it("decimates the window, not the whole signal", () => {
+    /**
+     * The old behaviour decimated once over the full extent and let zoom
+     * only rescale that one reduced array: on a 250,000-sample run reduced
+     * to 20,000, one percent of the span left 200 points stretched across
+     * the plot. The code claimed otherwise and nothing rebuilt on zoom.
+     */
+    const cache = cacheOf(200_000);
+    const full = buildAlignedData(refs, cache, undefined, 2000);
+    expect(full[0]?.length).toBeLessThanOrEqual(2000);
+
+    // One percent of the span: 2000 samples, which fits the budget, so the
+    // window is handed over exactly rather than reduced again.
+    const zoomed = buildAlignedData(refs, cache, [0, 2000e-6], 2000);
+    const t = zoomed[0] as Float64Array;
+    expect(t.length).toBeGreaterThan(1900);
+    expect(t[t.length - 1]).toBeLessThanOrEqual(2001e-6);
+  });
+
+  it("gives an exact view once the window fits the budget", () => {
+    const cache = cacheOf(10_000);
+    const zoomed = buildAlignedData(refs, cache, [100e-6, 200e-6], 2000);
+    const time = zoomed[0] as Float64Array;
+    const values = zoomed[1] as Float64Array;
+
+    // ~101 samples plus a bracketing one each side — and every one of them,
+    // not a decimation: the ramp's values are consecutive integers, so a
+    // dropped sample shows up as a gap of more than one.
+    expect(values.length).toBeGreaterThanOrEqual(102);
+    expect(values.length).toBeLessThanOrEqual(104);
+    for (let i = 1; i < values.length; i++) {
+      expect((values[i] as number) - (values[i - 1] as number)).toBe(1);
+    }
+    expect(time[0]).toBeLessThanOrEqual(100e-6);
+  });
+
+  it("keeps every series index-aligned to the windowed time axis", () => {
+    const { time, values } = ramp(10_000);
+    const cache = new Map<string, WaveformSignal>([
+      [
+        "s::a",
+        {
+          simId: "s",
+          name: "a",
+          analysis: "tran",
+          quantity: "voltage",
+          unit: "V",
+          domain: "time",
+          time,
+          values,
+        },
+      ],
+      [
+        "s::b",
+        {
+          simId: "s",
+          name: "b",
+          analysis: "tran",
+          quantity: "voltage",
+          unit: "V",
+          domain: "time",
+          time,
+          values,
+        },
+      ],
+    ]);
+    const two: SignalRef[] = [
+      { simId: "s", signalName: "a", color: "#000" },
+      { simId: "s", signalName: "b", color: "#111" },
+    ];
+    const data = buildAlignedData(two, cache, [100e-6, 900e-6], 200);
+    expect(data[1]?.length).toBe(data[0]?.length);
+    expect(data[2]?.length).toBe(data[0]?.length);
+  });
+
+  it("still honours display gain inside a window", () => {
+    const cache = cacheOf(10_000);
+    const plain: SignalRef[] = [{ simId: "s", signalName: "v", color: "#000" }];
+    const scaled: SignalRef[] = [{ simId: "s", signalName: "v", color: "#000", gain: 10 }];
+    const window: [number, number] = [100e-6, 110e-6];
+
+    const before = buildAlignedData(plain, cache, window, 2000)[1] as Float64Array;
+    const after = buildAlignedData(scaled, cache, window, 2000)[1] as Float64Array;
+    expect(after.length).toBe(before.length);
+    for (let i = 0; i < after.length; i++) {
+      expect(after[i]).toBeCloseTo((before[i] as number) * 10, 9);
+    }
   });
 });
 

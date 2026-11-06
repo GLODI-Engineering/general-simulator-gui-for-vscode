@@ -226,6 +226,17 @@ async function main() {
       });
     }
 
+    const fullView = await (async () => {
+      await page.waitForTimeout(300);
+      return page.evaluate(() => {
+        const u = [...(globalThis.__gensim_charts?.values() ?? [])][0];
+        if (!u) return null;
+        const started = performance.now();
+        u.setData(u.data, false);
+        return { points: u.data[0]?.length ?? 0, redrawMs: performance.now() - started };
+      });
+    })();
+
     await page.mouse.move(cx, cy);
     const zoomIn = await record(async () => {
       for (let i = 0; i < 30; i += 1) {
@@ -233,6 +244,21 @@ async function main() {
         await page.waitForTimeout(16);
       }
     });
+    // What is on screen after a deep zoom. A screenshot cannot answer this:
+    // a trace drawn from 200 points stretched across 1500 px looks like a
+    // trace, just a wrong one.
+    await page.waitForTimeout(400); // let the debounced refine land
+    const zoomed = await page.evaluate(() => {
+      const u = [...(globalThis.__gensim_charts?.values() ?? [])][0];
+      if (!u) return null;
+      const span = (u.scales.x?.max ?? 0) - (u.scales.x?.min ?? 0);
+      // Cost of one full redraw at this budget, which is what a weak
+      // machine feels and what vsync-capped frame intervals hide.
+      const started = performance.now();
+      u.setData(u.data, false);
+      return { points: u.data[0]?.length ?? 0, span, redrawMs: performance.now() - started };
+    });
+
     const zoomOut = await record(async () => {
       for (let i = 0; i < 30; i += 1) {
         await page.mouse.wheel(0, 120);
@@ -260,6 +286,16 @@ async function main() {
       ["zoom in  — median / p95 / worst frame", fmt(stats(zoomIn))],
       ["zoom out — median / p95 / worst frame", fmt(stats(zoomOut))],
       ["pan      — median / p95 / worst frame", fmt(stats(drag))],
+      [
+        "zoomed in  — points / span / one redraw",
+        zoomed
+          ? `${zoomed.points} over ${zoomed.span.toPrecision(3)} s, ${ms(zoomed.redrawMs)}`
+          : "—",
+      ],
+      [
+        "full extent — points / one redraw",
+        fullView ? `${fullView.points}, ${ms(fullView.redrawMs)}` : "—",
+      ],
     ];
     console.log(
       `\n${path.basename(filePath)} — ${sizeMb.toFixed(1)} MB, ${summary.figures} axes, ${summary.traces} traces`,
