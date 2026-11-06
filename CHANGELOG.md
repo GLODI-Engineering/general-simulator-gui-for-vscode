@@ -1,5 +1,90 @@
 # Changelog
 
+## 2026-11-06 — Results you can keep, and a viewer you can read (0.3.0)
+
+### Waveform viewer
+
+- **The plot fills its panel.** It was built at a fixed 800×300 whatever it
+  sat in, so a maximised VS Code panel left roughly two thirds of the surface
+  empty grey and a narrow one clipped the chart. It now measures its cell and
+  resizes in place rather than rebuilding on every frame of a splitter drag.
+- **Cursors and annotations land where their values are.** They were
+  positioned with uPlot's device-pixel coordinates but laid out in CSS
+  pixels, so above dpr 1 — every retina display, and VS Code at any zoom
+  above 100% — each one was drawn at twice its distance from the origin and
+  fell outside the plot. `overlayPx` returns what a CSS overlay needs.
+- **Axes say what they show.** A rotated bare "V" became "Voltage (V)", with
+  the SI prefix on the ticks. Tick labels chose precision per value, so an
+  evenly spaced axis read "5.00ms 10.0ms 15.0ms"; there is now one precision
+  per axis, taken from the step. A log axis labels decades instead of all
+  nine minor ticks of each.
+- **Stacked axes share an x origin**, so a figure can be read down a moment
+  in time. An axes with one quantity has no right-hand gutter and was
+  therefore wider than its neighbour by the width of a whole axis.
+- **A real dark theme.** The chart was forced white under a near-black
+  legend. Both halves now read one set of `--wave-*` tokens; `theme.ts`
+  hands them to the canvas, which CSS cannot reach.
+- **Measurements are reachable.** RMS, mean, min, max, peak-to-peak,
+  frequency, period, rise and fall time, duty cycle and integral existed,
+  were tested, and were mounted nowhere. They are now a strip above each
+  plot — a few as columns, a row per trace, the rest one menu away, over the
+  full run or between cursors A and B — computed in a worker that keeps the
+  samples rather than copying them per request.
+- **Per-trace display gain.** A 2 A current next to a 48 V rail is a flat
+  line. Scaling it is display-only — measurements, cursors and exports read
+  the real samples — and the legend shows "×10" permanently.
+- **Past runs.** Up to four previous runs are kept and drawn behind the
+  current one, each in its signal's colour at falling contrast and labelled
+  with how old it is ("V(out) [1]"). A run on a different time base is left
+  out rather than resampled.
+- **The signal browser lists what is there.** It read only the live kernel's
+  last manifest, so a saved result showed "No simulation results available"
+  beside three populated charts. Each signal now has a checkbox, and the bar
+  names the axes it adds to; a differing quantity gets its own y-axis.
+
+### New file format
+
+- **`.gsim_sim_result`** — a simulation result as one self-contained file:
+  sweep axis, signals with units and quantities, and the layout they were
+  shown in. Double-clicking it in the Explorer opens the viewer, with no
+  kernel running. Until now a result lived only in the kernel's private
+  cache under a session-scoped id, so it could not be committed, attached to
+  a review, reopened next week, or compared against one from another branch.
+  Samples are base64 little-endian doubles, so a round trip is exact.
+  Spec: `docs/specs/gsim-sim-result-format-spec.md`.
+- The editor is read-only: a result is derived data, so there is no phantom
+  dirty dot and no Ctrl+S that rewrites a measurement. It does reload when
+  the file changes on disk.
+
+### Export
+
+- One axes **or a whole figure**, as an **image or as data**: PNG, JPEG,
+  SVG, PDF, CSV, and `.gsim_sim_result`. A figure exports as one stacked
+  image rather than its first pane. Each format states what it costs before
+  it is chosen — CSV drops the units and the last bits; the result file
+  keeps both.
+
+### Fixed
+
+- `.gitignore` carried a bare `results/` under "Simulation output", which
+  matches a directory of that name at any depth. It silently swallowed the
+  result format's whole implementation and schema, with `git add -A`
+  reporting nothing wrong.
+- The three formats this extension owns now open as JSON in the text
+  editor, so the raw file has highlighting and folding.
+
+### Tooling
+
+- `scripts/render-waveform.mjs` renders the viewer to a PNG, the way
+  `render-schematic.mjs` does for the schematic: no assertion notices that a
+  grid out-weighs the data.
+- `scripts/stress-waveform.mjs` loads a real `.gsim_sim_result` through the
+  production path and reports open time and worst-frame interval under zoom
+  and pan — worst, not mean, because one 300 ms frame is what "it froze"
+  means.
+
+---
+
 ## 2026-05-31 — Canvas algorithm adoption (phase P21)
 
 ### Frontend
