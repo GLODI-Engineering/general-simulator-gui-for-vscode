@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { useWaveformStore } from "../store/waveform";
@@ -52,30 +52,70 @@ describe("MeasurementsBar", () => {
    * never mounted anywhere in the app. Everything below is a check that it
    * is now reachable and correct, not merely present.
    */
-  it("shows a column per measurement and a row per trace", async () => {
+  /**
+   * Nothing is measured until a trace is picked.
+   *
+   * Ticking a measurement used to compute it for every trace on the axes at
+   * once — work nobody asked for, and on an axes carrying eight traces it
+   * buried the one number being looked for in seven others.
+   */
+  it("measures nothing until a signal is chosen", () => {
     render(<MeasurementsBar axesId={seed()} />);
+    expect(screen.queryByRole("table")).toBeNull();
+    expect(screen.getByText(/Tick a signal/)).toBeTruthy();
+  });
+
+  it("offers every signal on the axes as a chip", () => {
+    const axesId = seed();
+    useWaveformStore.getState().cacheSignal("run-1", "V(b)", sine("V(b)"));
+    useWaveformStore.getState().addSignalToAxes(axesId, "run-1", "V(b)");
+    render(<MeasurementsBar axesId={axesId} />);
+    const group = screen.getByRole("group", { name: "Signals to measure" });
+    expect(within(group).getByLabelText("V(a)")).toBeTruthy();
+    expect(within(group).getByLabelText("V(b)")).toBeTruthy();
+  });
+
+  it("shows a column per measurement and a row for each chosen trace", async () => {
+    const axesId = seed();
+    useWaveformStore.getState().setAxesMeasuredSignals(axesId, ["run-1::V(a)"]);
+    render(<MeasurementsBar axesId={axesId} />);
     expect(screen.getByRole("columnheader", { name: "RMS" })).toBeTruthy();
     expect(screen.getByRole("columnheader", { name: "Mean" })).toBeTruthy();
     expect(screen.getByRole("columnheader", { name: "Peak-to-peak" })).toBeTruthy();
     expect(screen.getByRole("rowheader", { name: "V(a)" })).toBeTruthy();
   });
 
+  it("leaves an unticked trace out of the table", () => {
+    const axesId = seed();
+    useWaveformStore.getState().cacheSignal("run-1", "V(b)", sine("V(b)"));
+    useWaveformStore.getState().addSignalToAxes(axesId, "run-1", "V(b)");
+    useWaveformStore.getState().setAxesMeasuredSignals(axesId, ["run-1::V(a)"]);
+    render(<MeasurementsBar axesId={axesId} />);
+    expect(screen.getByRole("rowheader", { name: "V(a)" })).toBeTruthy();
+    expect(screen.queryByRole("rowheader", { name: "V(b)" })).toBeNull();
+  });
+
   it("reports the RMS of a sine as its amplitude over root two", async () => {
-    render(<MeasurementsBar axesId={seed()} />);
+    const axesId = seed();
+    useWaveformStore.getState().setAxesMeasuredSignals(axesId, ["run-1::V(a)"]);
+    render(<MeasurementsBar axesId={axesId} />);
     await waitFor(() => {
       expect(screen.getByText(/707(\.\d+)? mV/)).toBeTruthy();
     });
   });
 
-  it("offers the rest of the library in a menu rather than on the bar", async () => {
+  /**
+   * The whole library is on the bar now, not behind a menu. The dropdown
+   * held about one and a half entries before the bar clipped it, so
+   * choosing from it meant scrolling a list through a slot.
+   */
+  it("puts every measurement on the bar, with the defaults already on", () => {
     render(<MeasurementsBar axesId={seed()} />);
-    // Shown by default: the three a converter waveform is read for.
-    expect(screen.queryByRole("columnheader", { name: "Duty cycle" })).toBeNull();
-    // Available: everything.
-    screen.getByRole("button", { name: /Measurements/ }).click();
-    await waitFor(() => {
-      expect(screen.getByLabelText?.("Duty cycle") ?? screen.getByText("Duty cycle")).toBeTruthy();
-    });
+    const group = screen.getByRole("group", { name: "Measurements" });
+    const duty = within(group).getByLabelText("Duty cycle") as HTMLInputElement;
+    const rms = within(group).getByLabelText("RMS") as HTMLInputElement;
+    expect(duty.checked).toBe(false);
+    expect(rms.checked).toBe(true);
   });
 
   it("will not measure between cursors until both are placed", () => {

@@ -3085,10 +3085,6 @@ textarea:focus-visible {
   opacity: 0.45;
 }
 
-.measurements-bar__menu-anchor {
-  position: relative;
-}
-
 .measurements-bar__add {
   border: 1px solid var(--wave-border);
   border-radius: 4px;
@@ -3104,40 +3100,6 @@ textarea:focus-visible {
 .measurements-bar__add:hover {
   background: var(--wave-hover);
   color: var(--wave-text);
-}
-
-.measurements-bar__menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  z-index: 40;
-  display: flex;
-  flex-direction: column;
-  min-width: 150px;
-  border: 1px solid var(--wave-border);
-  border-radius: 6px;
-  background: var(--wave-surface);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
-  padding: 4px;
-}
-
-.measurements-bar__menu-item {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  border-radius: 3px;
-  padding: 3px 6px;
-  font-size: 0.74rem;
-  cursor: pointer;
-}
-
-.measurements-bar__menu-item:hover {
-  background: var(--wave-hover);
-}
-
-.measurements-bar__menu-item input {
-  accent-color: var(--wave-accent);
-  cursor: pointer;
 }
 
 /* Capped, with its own scroll. The plot is the subject; an axes carrying
@@ -3344,4 +3306,66 @@ textarea:focus-visible {
 }
 .figure-settings-panel--warning {
   border-color: #fca5a5;
+}
+
+/* ── Measurement and signal chips ─────────────────────────────────────────
+ * Two flat, wrapping rows in place of the dropdown. The dropdown held about
+ * one and a half entries before the bar clipped it, so choosing a
+ * measurement meant scrolling a list through a slot. Laid out this way the
+ * rows match the signal legend above them, which is the same kind of list
+ * and should not have had a different shape in the first place.
+ */
+.measurements-bar__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  padding: 4px 6px 0;
+}
+.measurements-bar__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px 2px 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 11.5px;
+  line-height: 1.7;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: background 80ms, border-color 80ms, color 80ms;
+}
+.measurements-bar__chip:hover {
+  border-color: #94a3b8;
+  background: #eef2f7;
+}
+.measurements-bar__chip.is-on {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-weight: 600;
+}
+.measurements-bar__chip input[type="checkbox"] {
+  width: 12px;
+  height: 12px;
+  margin: 0;
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+.measurements-bar__chip:focus-within {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+}
+/* Ties a row, and a chip, to its line on the plot. */
+.measurements-bar__swatch {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.measurements-bar__table th[scope="row"] .measurements-bar__swatch {
+  margin-right: 6px;
 }

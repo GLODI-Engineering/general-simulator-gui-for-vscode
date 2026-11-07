@@ -65,12 +65,11 @@ export function MeasurementsBar({ axesId }: MeasurementsBarProps) {
   const axes = useWaveformStore((s) => s.axes.get(axesId));
   const signalCache = useWaveformStore((s) => s.signalCache);
   const setAxesMeasurements = useWaveformStore((s) => s.setAxesMeasurements);
+  const setAxesMeasuredSignals = useWaveformStore((s) => s.setAxesMeasuredSignals);
 
   const [useCursors, setUseCursors] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [table, setTable] = useState<MeasurementTable>({});
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
   const requestRef = useRef(0);
 
   const measurements = axes?.measurements ?? DEFAULT_MEASUREMENTS;
@@ -83,6 +82,27 @@ export function MeasurementsBar({ axesId }: MeasurementsBarProps) {
     }
     return out;
   }, [axes?.signals, signalCache]);
+
+  /** Trace colour per signal, so a row can be matched to its line at a glance. */
+  const colorOf = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const ref of axes?.signals ?? []) {
+      map.set(`${ref.simId}::${ref.signalName}`, ref.color);
+    }
+    return map;
+  }, [axes?.signals]);
+
+  const measuredKeys = axes?.measuredSignals ?? [];
+
+  // Only these are measured. Nothing is selected until someone says so, so
+  // ticking a measurement costs nothing until it is pointed at a trace.
+  const selectedSignals = useMemo(
+    () => signals.filter((sig) => measuredKeys.includes(`${sig.simId}::${sig.name}`)),
+    // Joined rather than passed as an array: a fresh array each render would
+    // re-measure on every render, and the *contents* are what matter here.
+    // biome-ignore lint/correctness/useExhaustiveDependencies: see above
+    [signals, measuredKeys.join("\u0000")],
+  );
 
   const cursorA = axes?.cursorA;
   const cursorB = axes?.cursorB;
@@ -98,25 +118,29 @@ export function MeasurementsBar({ axesId }: MeasurementsBarProps) {
     // number and only the latest is allowed to win.
     const ticket = ++requestRef.current;
     let cancelled = false;
-    void measure({ signals, measurements, ...(window ? { window } : {}) }).then((result) => {
-      if (cancelled || ticket !== requestRef.current) return;
-      setTable(result);
-    });
+    if (selectedSignals.length === 0 || measurements.length === 0) {
+      setTable({});
+      return;
+    }
+    void measure({ signals: selectedSignals, measurements, ...(window ? { window } : {}) }).then(
+      (result) => {
+        if (cancelled || ticket !== requestRef.current) return;
+        setTable(result);
+      },
+    );
     return () => {
       cancelled = true;
     };
-  }, [signals, measurements, window?.[0], window?.[1]]);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    function onPointerDown(event: PointerEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) setMenuOpen(false);
-    }
-    globalThis.addEventListener("pointerdown", onPointerDown);
-    return () => globalThis.removeEventListener("pointerdown", onPointerDown);
-  }, [menuOpen]);
+  }, [selectedSignals, measurements, window?.[0], window?.[1]]);
 
   if (signals.length === 0) return null;
+
+  function toggleSignal(signalKey: string) {
+    const next = measuredKeys.includes(signalKey)
+      ? measuredKeys.filter((k) => k !== signalKey)
+      : [...measuredKeys, signalKey];
+    setAxesMeasuredSignals(axesId, next);
+  }
 
   function toggleMeasurement(key: MeasurementKey) {
     const next = measurements.includes(key)
@@ -174,40 +198,54 @@ export function MeasurementsBar({ axesId }: MeasurementsBarProps) {
             A–B
           </button>
         </div>
+      </div>
 
-        <div className="measurements-bar__menu-anchor" ref={menuRef}>
-          <button
-            type="button"
-            className="measurements-bar__add"
-            aria-expanded={menuOpen}
-            aria-haspopup="menu"
-            title="Choose which measurements this axes shows"
-            onClick={() => setMenuOpen((open) => !open)}
+      {/* Two horizontal grids, in the order the question is asked: *which
+          measurement*, then *on which trace*. A dropdown held roughly one
+          and a half rows before it was clipped by the bar, which made
+          choosing from it a scroll through a slot. These are the same list
+          laid flat, matching the signal legend above the bar. */}
+      <div className="measurements-bar__grid" role="group" aria-label="Measurements">
+        {ALL_MEASUREMENTS.map((key) => (
+          <label
+            key={key}
+            className={`measurements-bar__chip${measurements.includes(key) ? " is-on" : ""}`}
           >
-            Measurements ▾
-          </button>
-          {menuOpen && (
-            <div className="measurements-bar__menu" role="menu">
-              {ALL_MEASUREMENTS.map((key) => (
-                <label key={key} className="measurements-bar__menu-item">
-                  <input
-                    type="checkbox"
-                    checked={measurements.includes(key)}
-                    onChange={() => toggleMeasurement(key)}
-                  />
-                  {MEASUREMENT_LABELS[key]}
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
+            <input
+              type="checkbox"
+              checked={measurements.includes(key)}
+              onChange={() => toggleMeasurement(key)}
+            />
+            {MEASUREMENT_LABELS[key]}
+          </label>
+        ))}
+      </div>
+
+      <div className="measurements-bar__grid" role="group" aria-label="Signals to measure">
+        {signals.map((sig) => {
+          const key = `${sig.simId}::${sig.name}`;
+          const on = measuredKeys.includes(key);
+          return (
+            <label key={key} className={`measurements-bar__chip${on ? " is-on" : ""}`}>
+              <input type="checkbox" checked={on} onChange={() => toggleSignal(key)} />
+              <span
+                className="measurements-bar__swatch"
+                style={{ background: colorOf.get(key) ?? "#94a3b8" }}
+                aria-hidden="true"
+              />
+              {sig.name}
+            </label>
+          );
+        })}
       </div>
 
       {collapsed ? (
         <p className="measurements-bar__collapsed-note">
-          {signals.length} {signals.length === 1 ? "signal" : "signals"} ·{" "}
-          {measurements.map((key) => MEASUREMENT_LABELS[key]).join(", ")}
+          {selectedSignals.length} of {signals.length} {signals.length === 1 ? "signal" : "signals"}{" "}
+          · {measurements.map((key) => MEASUREMENT_LABELS[key]).join(", ")}
         </p>
+      ) : selectedSignals.length === 0 ? (
+        <p className="measurements-bar__collapsed-note">Tick a signal above to measure it.</p>
       ) : (
         <div className="measurements-bar__scroll">
           <table className="measurements-bar__table">
@@ -222,9 +260,18 @@ export function MeasurementsBar({ axesId }: MeasurementsBarProps) {
               </tr>
             </thead>
             <tbody>
-              {signals.map((signal) => (
+              {selectedSignals.map((signal) => (
                 <tr key={`${signal.simId}::${signal.name}`}>
-                  <th scope="row">{signal.name}</th>
+                  <th scope="row">
+                    <span
+                      className="measurements-bar__swatch"
+                      style={{
+                        background: colorOf.get(`${signal.simId}::${signal.name}`) ?? "#94a3b8",
+                      }}
+                      aria-hidden="true"
+                    />
+                    {signal.name}
+                  </th>
                   {measurements.map((key) => (
                     <td key={key}>{cellText(signal, key)}</td>
                   ))}

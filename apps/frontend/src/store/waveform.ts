@@ -135,6 +135,7 @@ export interface WaveformState {
 
   /** Which measurements the bar above this axes shows, in order. */
   setAxesMeasurements: (axesId: string, measurements: MeasurementKey[]) => void;
+  setAxesMeasuredSignals: (axesId: string, signalKeys: string[]) => void;
 
   // Zoom / cursor actions
   setAxesZoom: (axesId: string, xMin: number, xMax: number) => void;
@@ -416,6 +417,15 @@ export const useWaveformStore = create<WaveformState>((set, get) => ({
       const entry = axesMap.get(axesId);
       if (!entry) return {};
       axesMap.set(axesId, { ...entry, measurements });
+      return { axes: axesMap };
+    });
+  },
+  setAxesMeasuredSignals: (axesId, signalKeys) => {
+    set((state) => {
+      const axesMap = new Map(state.axes);
+      const entry = axesMap.get(axesId);
+      if (!entry) return {};
+      axesMap.set(axesId, { ...entry, measuredSignals: signalKeys });
       return { axes: axesMap };
     });
   },
