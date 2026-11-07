@@ -3248,3 +3248,100 @@ textarea:focus-visible {
   font-size: 0.66rem;
   font-variant-numeric: tabular-nums;
 }
+
+/* ── Figure grid settings dialog ──────────────────────────────────────────
+ * FigureSettingsPanel.tsx was written against this class vocabulary and the
+ * vocabulary was never given a stylesheet — not one matching rule existed.
+ * The dialog rendered as bare text and native controls over the chart, with
+ * the waveform showing through it. Tokens match .about-dialog so the two
+ * read as the same product.
+ */
+.figure-settings-panel {
+  width: min(360px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 20px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #111827;
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.28);
+}
+.figure-settings-panel__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.figure-settings-panel__field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: #334155;
+}
+.figure-settings-panel__input {
+  width: 84px;
+  padding: 5px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.figure-settings-panel__input:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+  border-color: #2563eb;
+}
+.figure-settings-panel__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
+}
+.figure-settings-panel__btn {
+  padding: 6px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 80ms, border-color 80ms;
+}
+.figure-settings-panel__btn:hover {
+  background: #eef2f7;
+  border-color: #94a3b8;
+}
+.figure-settings-panel__btn--primary {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+.figure-settings-panel__btn--primary:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+.figure-settings-panel__btn--danger {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+}
+.figure-settings-panel__btn--danger:hover {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
+.figure-settings-panel__warning-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #334155;
+}
+.figure-settings-panel--warning {
+  border-color: #fca5a5;
+}
