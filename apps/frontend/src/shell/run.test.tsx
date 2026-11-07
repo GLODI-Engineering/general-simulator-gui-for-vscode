@@ -48,7 +48,11 @@ vi.mock("../store", () => ({
     getState: () => ({
       document: {
         model: {
-          blocks: [],
+          // One block, because Run now refuses an empty sheet rather than
+          // sending a netlist with nothing in it. These tests are about the
+          // simulate flow, not about emptiness — the empty case has its own
+          // tests in run-feedback.test.ts.
+          blocks: [{ id: "a" }],
           wires: isModelValid
             ? []
             : [{ from: { block: "a", port: "out" }, to: { block: "a", port: "in" } }],
