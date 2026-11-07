@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 import { getIpcClient } from "../ipc/transport";
+import type { MeasurementKey } from "../waveform/measurements";
 import type {
   Axes,
   AxesMode,
@@ -28,6 +29,16 @@ function _pickColor(index: number): string {
   return _COLOR_PALETTE[index % _COLOR_PALETTE.length] ?? "#3b82f6";
 }
 
+/**
+ * How many past runs to keep by default.
+ *
+ * Each one is a full copy of every signal, so this is memory, not a
+ * preference: four runs of a 25,000-step, 11-signal sweep is about 9 MB.
+ * Enough to see a trend across a few parameter tweaks; small enough not to
+ * be the reason a long sweep runs out of room.
+ */
+export const DEFAULT_HISTORY_LIMIT = 4;
+
 function _uuid(): string {
   return crypto.randomUUID();
 }
@@ -39,6 +50,30 @@ function _signalCacheKey(simId: string, signalName: string): string {
 export interface WaveformState {
   figures: Map<string, Figure>;
   axes: Map<string, Axes>;
+  /**
+   * The axes the signal browser's checkboxes act on.
+   *
+   * Something has to answer "add it where?", and an implicit notion of
+   * focus answers it differently depending on where the pointer last was.
+   * This is explicit: the browser shows which axes it is targeting and lets
+   * it be changed, and clicking an axes retargets it.
+   */
+  activeAxesId: string | null;
+
+  /**
+   * Past runs, newest first, not including the one on screen.
+   *
+   * Re-running a changed component and seeing what moved is the single most
+   * common thing anyone does with a simulator, and it was impossible here:
+   * every run replaced the last, so a comparison meant exporting both and
+   * opening them in something else. The samples are already in the cache —
+   * keeping the previous run's sim ids is all that was missing.
+   */
+  runHistory: string[];
+  /** The run currently on screen, if any. */
+  currentSimId: string | null;
+  /** How many past runs to keep. Beyond this the oldest is dropped. */
+  historyLimit: number;
   couplingGroups: Map<string, CouplingGroup>;
   signalCache: Map<string, WaveformSignal>;
   streamingSignals: Set<string>;
@@ -61,6 +96,11 @@ export interface WaveformState {
   removeSignalFromAxes: (axesId: string, simId: string, signalName: string) => void;
   /** FE-161: update one signal's display color on an axes. No-op if the (simId, signalName) pair isn't on that axes. */
   setSignalColor: (axesId: string, simId: string, signalName: string, color: string) => void;
+  /**
+   * Set one signal's display-only multiplier on an axes (see SignalRef.gain).
+   * A gain of 1, or a non-finite or zero value, clears it.
+   */
+  setSignalGain: (axesId: string, simId: string, signalName: string, gain: number) => void;
   /** Replace all signals on the given axes atomically (clears old, adds new). */
   resetAxesSignals: (axesId: string, signals: Array<{ simId: string; signalName: string }>) => void;
   /** FE-164: empty an axes' signals and reset its zoom/cursor state, leaving id/figureId/row/col/mode/couplingGroupId untouched. */
@@ -79,6 +119,24 @@ export interface WaveformState {
    */
   ensureFigureXCoupling: (figureId: string) => void;
   deleteCouplingGroup: (id: string) => void;
+
+  /** Point the signal browser at an axes. Null when it no longer exists. */
+  setActiveAxes: (axesId: string | null) => void;
+
+  /**
+   * Record that a new run is replacing the current one, moving the outgoing
+   * run into the history and evicting anything past `historyLimit`.
+   */
+  beginRun: (simId: string) => void;
+  /** Keep more or fewer past runs. Shrinking evicts the oldest immediately. */
+  setHistoryLimit: (limit: number) => void;
+  /** How many past runs an axes draws behind the current one. */
+  setAxesHistoryDepth: (axesId: string, depth: number) => void;
+
+  /** Which measurements the bar above this axes shows, in order. */
+  setAxesMeasurements: (axesId: string, measurements: MeasurementKey[]) => void;
+  setAxesMeasuredSignals: (axesId: string, signalKeys: string[]) => void;
+  setAxesCollapsed: (axesId: string, collapsed: boolean) => void;
 
   // Zoom / cursor actions
   setAxesZoom: (axesId: string, xMin: number, xMax: number) => void;
@@ -108,9 +166,27 @@ export interface WaveformState {
   appendChunk: (signalId: string, values: ArrayLike<number>, x?: ArrayLike<number>) => void;
 }
 
+/** The cache with every signal belonging to `simIds` removed. */
+function _withoutRuns(
+  cache: Map<string, WaveformSignal>,
+  simIds: string[],
+): Map<string, WaveformSignal> {
+  if (simIds.length === 0) return cache;
+  const dropped = new Set(simIds);
+  const next = new Map(cache);
+  for (const [key, signal] of cache) {
+    if (dropped.has(signal.simId)) next.delete(key);
+  }
+  return next;
+}
+
 export const useWaveformStore = create<WaveformState>((set, get) => ({
   figures: new Map(),
   axes: new Map(),
+  activeAxesId: null,
+  runHistory: [],
+  currentSimId: null,
+  historyLimit: DEFAULT_HISTORY_LIMIT,
   couplingGroups: new Map(),
   signalCache: new Map(),
   streamingSignals: new Set(),
@@ -199,6 +275,9 @@ export const useWaveformStore = create<WaveformState>((set, get) => ({
     // X-coupled by default (a fresh multi-axes figure shouldn't require a
     // manual step to link zoom across its axes).
     get().ensureFigureXCoupling(figureId);
+    // The signal browser needs somewhere to put a ticked signal from the
+    // moment there is anywhere at all.
+    if (get().activeAxesId === null) get().setActiveAxes(id);
     return id;
   },
 
@@ -208,6 +287,8 @@ export const useWaveformStore = create<WaveformState>((set, get) => ({
       if (!axesEntry) return {};
       const axes = new Map(state.axes);
       axes.delete(id);
+      const activeAxesId =
+        state.activeAxesId === id ? (axes.keys().next().value ?? null) : state.activeAxesId;
       const figures = new Map(state.figures);
       const figure = figures.get(axesEntry.figureId);
       if (figure) {
@@ -216,7 +297,7 @@ export const useWaveformStore = create<WaveformState>((set, get) => ({
           axesIds: figure.axesIds.filter((aid) => aid !== id),
         });
       }
-      return { axes, figures };
+      return { axes, figures, activeAxesId };
     });
   },
 
@@ -265,6 +346,96 @@ export const useWaveformStore = create<WaveformState>((set, get) => ({
       const signals = [...entry.signals];
       signals[idx] = { ...(signals[idx] as SignalRef), color };
       axesMap.set(axesId, { ...entry, signals });
+      return { axes: axesMap };
+    });
+  },
+
+  setSignalGain: (axesId, simId, signalName, gain) => {
+    set((state) => {
+      const axesMap = new Map(state.axes);
+      const entry = axesMap.get(axesId);
+      if (!entry) return {};
+      const idx = entry.signals.findIndex((s) => s.simId === simId && s.signalName === signalName);
+      if (idx === -1) return {};
+      const signals = [...entry.signals];
+      const current = signals[idx] as SignalRef;
+      // A gain of 0 would flatten the trace onto the axis and read as "this
+      // signal is zero", which is the one thing a display aid must never
+      // say. Non-finite is the same mistake typed differently.
+      const clean = Number.isFinite(gain) && gain !== 0 ? gain : 1;
+      signals[idx] = clean === 1 ? { ...current, gain: undefined } : { ...current, gain: clean };
+      axesMap.set(axesId, { ...entry, signals });
+      return { axes: axesMap };
+    });
+  },
+
+  beginRun: (simId) => {
+    set((state) => {
+      if (state.currentSimId === simId) return {};
+      const history = state.currentSimId
+        ? [state.currentSimId, ...state.runHistory.filter((id) => id !== state.currentSimId)]
+        : [...state.runHistory];
+      const kept = history.slice(0, Math.max(0, state.historyLimit));
+      const evicted = history.slice(Math.max(0, state.historyLimit));
+      return {
+        currentSimId: simId,
+        runHistory: kept,
+        signalCache: _withoutRuns(state.signalCache, evicted),
+      };
+    });
+  },
+
+  setHistoryLimit: (limit) => {
+    set((state) => {
+      const clean = Math.max(0, Math.floor(limit));
+      const kept = state.runHistory.slice(0, clean);
+      const evicted = state.runHistory.slice(clean);
+      return {
+        historyLimit: clean,
+        runHistory: kept,
+        signalCache: _withoutRuns(state.signalCache, evicted),
+      };
+    });
+  },
+
+  setAxesHistoryDepth: (axesId, depth) => {
+    set((state) => {
+      const axesMap = new Map(state.axes);
+      const entry = axesMap.get(axesId);
+      if (!entry) return {};
+      axesMap.set(axesId, { ...entry, historyDepth: Math.max(0, Math.floor(depth)) });
+      return { axes: axesMap };
+    });
+  },
+
+  setActiveAxes: (axesId) => {
+    set((state) => (state.activeAxesId === axesId ? {} : { activeAxesId: axesId }));
+  },
+
+  setAxesMeasurements: (axesId, measurements) => {
+    set((state) => {
+      const axesMap = new Map(state.axes);
+      const entry = axesMap.get(axesId);
+      if (!entry) return {};
+      axesMap.set(axesId, { ...entry, measurements });
+      return { axes: axesMap };
+    });
+  },
+  setAxesMeasuredSignals: (axesId, signalKeys) => {
+    set((state) => {
+      const axesMap = new Map(state.axes);
+      const entry = axesMap.get(axesId);
+      if (!entry) return {};
+      axesMap.set(axesId, { ...entry, measuredSignals: signalKeys });
+      return { axes: axesMap };
+    });
+  },
+  setAxesCollapsed: (axesId, collapsed) => {
+    set((state) => {
+      const axesMap = new Map(state.axes);
+      const entry = axesMap.get(axesId);
+      if (!entry) return {};
+      axesMap.set(axesId, { ...entry, collapsed });
       return { axes: axesMap };
     });
   },

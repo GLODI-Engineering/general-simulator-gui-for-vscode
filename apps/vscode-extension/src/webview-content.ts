@@ -17,6 +17,7 @@ const HTML_FOR_ROLE: Record<WebviewRole, string> = {
   schematic: "schematic.html",
   library: "library.html",
   waveform: "waveform.html",
+  results: "results.html",
 };
 
 /** Candidate roots for the built frontend, most-specific first. */

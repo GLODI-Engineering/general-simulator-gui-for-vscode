@@ -27,9 +27,9 @@ const here = dirname(fileURLToPath(import.meta.url));
  * can run.
  */
 describe("simulator compatibility data", () => {
-  const fromYaml = yaml.load(
-    readFileSync(resolve(here, "./simulator-compat.yaml"), "utf-8"),
-  ) as { simulators: Array<{ id: string; label: string; supported: string[] }> };
+  const fromYaml = yaml.load(readFileSync(resolve(here, "./simulator-compat.yaml"), "utf-8")) as {
+    simulators: Array<{ id: string; label: string; supported: string[] }>;
+  };
   const fromCode = loadSimulatorCompat();
 
   it("declares the same simulators in both copies", () => {

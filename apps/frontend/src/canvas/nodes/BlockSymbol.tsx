@@ -2,10 +2,10 @@ import { isAutoRefdes } from "../../library/refdes";
 import type { BlockMetadata, Mirror, ParamValue, Rotation } from "../../model/types";
 import { WIRE_STROKE } from "../edges/WireEdge";
 import { Port } from "./Port";
-import { shouldShowPortLabel } from "./port-labels";
 import type { PortSide } from "./Port";
 import { formatEngineering, getSchematicSymbol } from "./component-symbols";
 import { SYMBOL_SCALE, getMetadataPortCenters } from "./port-hit-test";
+import { shouldShowPortLabel } from "./port-labels";
 import { type Primitive, metadataToPrimitives } from "./primitive-renderer";
 import { resolveBlockBbox, resolveBlockPorts } from "./resolve-ports";
 
@@ -367,7 +367,11 @@ export function labelAnchorFor(
     case "left":
       return { x: -gap, y: height * BESIDE_LABEL_ROW + row * LABEL_ROW, textAnchor: "end" };
     default:
-      return { x: width + gap, y: height * BESIDE_LABEL_ROW + row * LABEL_ROW, textAnchor: "start" };
+      return {
+        x: width + gap,
+        y: height * BESIDE_LABEL_ROW + row * LABEL_ROW,
+        textAnchor: "start",
+      };
   }
 }
 
@@ -547,8 +551,7 @@ export function BlockSymbol({
   // entirely, invisible both inside and above. A switch loses all labelling this way (no
   // `valueParam` either); a resistor/inductor/capacitor still shows its value but silently
   // loses its own letter.
-  const suppressDuplicateTopLabel =
-    schematic === undefined || schematic.staticLabel !== undefined;
+  const suppressDuplicateTopLabel = schematic === undefined || schematic.staticLabel !== undefined;
   const labelForTop =
     duplicatesTypeText(label, typeText) && suppressDuplicateTopLabel ? undefined : label;
   const topLabel = bodyLabel
@@ -559,9 +562,7 @@ export function BlockSymbol({
   // A drawing that declares its own band is believed; the derivation below is
   // only a fallback for the older artwork that cannot say.
   const declaredInk =
-    schematic?.inkHeight !== undefined
-      ? schematic.inkHeight * SYMBOL_SCALE
-      : undefined;
+    schematic?.inkHeight !== undefined ? schematic.inkHeight * SYMBOL_SCALE : undefined;
   const derivedInk = symbolInkHeight(
     ports.map((port) => ({
       rotatedSide: port.rotatedSide as string,
@@ -576,8 +577,8 @@ export function BlockSymbol({
   );
   const inkHeight = declaredInk ?? derivedInk;
 
-  const signalPortCount = [...resolvedPorts.inputs, ...resolvedPorts.outputs].filter(
-    (port) => shouldShowPortLabel(port.kind, 2),
+  const signalPortCount = [...resolvedPorts.inputs, ...resolvedPorts.outputs].filter((port) =>
+    shouldShowPortLabel(port.kind, 2),
   ).length;
 
   const occupiedSides = new Set<PortSide>(ports.map((port) => port.rotatedSide as PortSide));
@@ -614,12 +615,7 @@ export function BlockSymbol({
               <path d={metadata.symbol.path} fill="#ffffff" stroke="#111827" strokeWidth={1.5} />
             ) : (
               metadataToPrimitives(metadata, params, { text: bodyLabel }).map((p) => (
-                <PrimitiveShape
-                  key={primitiveKey(p)}
-                  p={p}
-                  rotation={rotation}
-                  mirror={mirror}
-                />
+                <PrimitiveShape key={primitiveKey(p)} p={p} rotation={rotation} mirror={mirror} />
               ))
             )}
             {showLabels && inlineFallbackLabel && metadata.symbol.shape === "custom" ? (

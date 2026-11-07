@@ -2,7 +2,7 @@
   "name": "general-simulator-gui",
   "displayName": "General Simulator GUI for VS Code",
   "description": "Schematic capture, component authoring and circuit/system simulation inside VS Code, powered by the general-simulator engine.",
-  "version": "0.2.0",
+  "version": "0.3.3",
   "private": false,
   "publisher": "gensim",
   "engines": {
@@ -44,6 +44,16 @@
         "selector": [
           {
             "filenamePattern": "*.gsim_sch"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "generalSimulator.simResult",
+        "displayName": "General Simulator Simulation Result",
+        "selector": [
+          {
+            "filenamePattern": "*.gsim_sim_result"
           }
         ],
         "priority": "default"
@@ -119,6 +129,13 @@
           "default": true,
           "description": "Start the kernel sidecar automatically when the extension activates."
         }
+      }
+    },
+    "configurationDefaults": {
+      "files.associations": {
+        "*.gsim_sch": "json",
+        "*.gsim_sym": "json",
+        "*.gsim_sim_result": "json"
       }
     }
   },

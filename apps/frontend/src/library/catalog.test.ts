@@ -14,9 +14,9 @@ import { fileURLToPath } from "node:url";
 import Ajv from "ajv";
 import yaml from "js-yaml";
 
-import { loadCatalog } from "./catalog-core";
 import { describe, expect, it } from "vitest";
 import loadCatalogImpl from "./catalog";
+import { loadCatalog } from "./catalog-core";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, "../../../../");

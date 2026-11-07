@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import uPlot from "uplot";
 import "uplot/dist/uPlot.min.css";
 
 import { useToastStore } from "../store/toast";
 import { useWaveformStore } from "../store/waveform";
 import { AxesLegend } from "./AxesLegend";
-import { ExportDialog } from "./ExportDialog";
+import { ExportDialog, type ExportSubject } from "./ExportDialog";
+import { MeasurementsBar } from "./MeasurementsBar";
 import {
+  MAX_RENDER_POINTS,
   buildAlignedData,
   buildAxes,
   buildScales,
@@ -15,12 +17,17 @@ import {
   dataExtents,
   isBodeAxes,
   makePanAwareMousedown,
+  overlayPx,
   spinesChanged,
+  valueExtents,
   xAxisDomain,
 } from "./axes-config";
 import type { SpineSpec } from "./axes-config";
 import { buildBodeAnnotations } from "./bode-annotations";
 import type { AnnotationSpec, BodeMargins, MarginBadgeSpec } from "./bode-annotations";
+import { axesExportSubject } from "./export-subjects";
+import { withHistory } from "./history";
+import { readChartTheme } from "./theme";
 import type { SignalRef, WaveformSignal } from "./types";
 
 export type { BodeMargins };
@@ -43,36 +50,105 @@ function _groupColor(index: number): string {
   return _GROUP_COLORS[index % _GROUP_COLORS.length] ?? "#3b82f6";
 }
 
+/**
+ * Floors for the measured size. A chart narrower or shorter than this has no
+ * room left for its own axes after uPlot subtracts them, and uPlot throws
+ * rather than drawing a negative-width plot area.
+ */
+const MIN_CHART_WIDTH = 240;
+const MIN_CHART_HEIGHT = 120;
+
+/**
+ * How long the view has to hold still before the data is re-decimated for it.
+ *
+ * Re-decimating on every frame of a wheel zoom would cost O(window) per
+ * frame across every trace, which on a long run is tens of milliseconds and
+ * the end of 60 fps. Rescaling the data already in hand is free and looks
+ * right immediately; the sharper version lands once the gesture stops. Same
+ * bargain a map makes with its tiles.
+ */
+const REFINE_DELAY_MS = 140;
+
+/**
+ * Points per view, derived from the plot's width.
+ *
+ * Two per pixel is the most a min/max decimation can show: one for the top
+ * of each column, one for the bottom. Beyond that the extra samples land on
+ * pixels that are already painted.
+ */
+function budgetFor(plotWidth: number): number {
+  return Math.min(MAX_RENDER_POINTS, Math.max(1000, Math.round(plotWidth * 2)));
+}
+
 // Stable fallback so `refs` doesn't become a fresh [] reference on every
 // render while axesEntry is undefined (see the useMemo below).
 const _EMPTY_REFS: SignalRef[] = [];
 
 export interface AxesProps {
   axesId: string;
+  /** Fixed chart width. Omit (the normal case) to fill the grid cell. */
   width?: number;
+  /** Fixed chart height. Omit (the normal case) to fill the grid cell. */
   height?: number;
   onZoomChange?: (xMin: number, xMax: number, yMin: number, yMax: number) => void;
   /** Optional Bode stability margins; triggers annotation overlays when present. */
   bodeMargins?: BodeMargins;
 }
 
-export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMargins }: AxesProps) {
+/**
+ * Live charts by axes id, for the render and stress harnesses. Kept out of
+ * React state deliberately: nothing in the app reads it, so it must not be
+ * able to cause a render.
+ */
+const _charts = new Map<string, uPlot>();
+
+function _registerChart(axesId: string, chart: uPlot | null): void {
+  if (chart) _charts.set(axesId, chart);
+  else _charts.delete(axesId);
+  (globalThis as { __gensim_charts?: Map<string, uPlot> }).__gensim_charts = _charts;
+}
+
+export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesProps) {
   const axesEntry = useWaveformStore((s) => s.axes.get(axesId));
   const signalCache = useWaveformStore((s) => s.signalCache);
   const couplingGroups = useWaveformStore((s) => s.couplingGroups);
   const assignAxesToGroup = useWaveformStore((s) => s.assignAxesToGroup);
   const propagateZoom = useWaveformStore((s) => s.propagateZoom);
   const setAxesZoom = useWaveformStore((s) => s.setAxesZoom);
+  const setAxesYZoom = useWaveformStore((s) => s.setAxesYZoom);
+  const setAxesCollapsed = useWaveformStore((s) => s.setAxesCollapsed);
+  const deleteAxes = useWaveformStore((s) => s.deleteAxes);
   const addSignalToAxes = useWaveformStore((s) => s.addSignalToAxes);
   // FE-167: maximize/restore this axes to fill its figure.
   const maximizedAxesId = useWaveformStore((s) =>
     axesEntry ? s.figures.get(axesEntry.figureId)?.maximizedAxesId : undefined,
   );
   const setMaximizedAxes = useWaveformStore((s) => s.setMaximizedAxes);
+  const setActiveAxes = useWaveformStore((s) => s.setActiveAxes);
+  const setAxesHistoryDepth = useWaveformStore((s) => s.setAxesHistoryDepth);
+  const isTarget = useWaveformStore((s) => s.activeAxesId === axesId);
   const pushToast = useToastStore((s) => s.pushToast);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const uplotRef = useRef<uPlot | null>(null);
+  // The plot's real size on screen. uPlot needs explicit pixel dimensions —
+  // it cannot be told to fill its parent — so something has to measure the
+  // parent and tell it. Nothing did: every chart was built at the component's
+  // default 800x300 regardless of the panel it sat in, which on a maximised
+  // VS Code panel left roughly two thirds of the surface empty grey, and on a
+  // narrow one clipped the plot.
+  const [measured, setMeasured] = useState<{ width: number; height: number }>({
+    width: width ?? MIN_CHART_WIDTH,
+    height: height ?? MIN_CHART_HEIGHT,
+  });
+  const plotWidth = width ?? measured.width;
+  const plotHeight = height ?? measured.height;
+  // Read by the construction path below, which must not list the size in its
+  // deps: a resize is handled by uPlot's own setSize (see the effect further
+  // down), not by destroying and rebuilding the chart on every pixel of a
+  // splitter drag.
+  const sizeRef = useRef({ width: plotWidth, height: plotHeight });
+  sizeRef.current = { width: plotWidth, height: plotHeight };
   const spinesRef = useRef<SpineSpec[]>([]);
   const dragOverRef = useRef(false);
   // Last zoom bounds this component pushed into uPlot — lets the sync effect
@@ -100,12 +176,16 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
 
   const [annotationLines, setAnnotationLines] = useState<AnnotationSpec[]>([]);
   const [marginBadge, setMarginBadge] = useState<MarginBadgeSpec | null>(null);
-  const [exportCanvas, setExportCanvas] = useState<HTMLCanvasElement | null>(null);
+  const [exportSubject, setExportSubject] = useState<ExportSubject | null>(null);
   // FE-165: pixel positions for the visible cursor lines (A/B vertical,
   // AH/BH horizontal). Recomputed whenever the chart's scale changes (the
   // `setScale` hook below) and whenever the cursor values themselves change
   // (the dedicated effect further down) — px position depends on both.
   const [cursorLines, setCursorLines] = useState<AnnotationSpec[]>([]);
+  // The window the chart is currently showing, and the timer that will
+  // re-decimate for it once the view stops moving.
+  const viewRef = useRef<[number, number] | null>(null);
+  const refineTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Memoized so effects keyed on `refs`/`spines` only re-fire when the
   // underlying signal list or cache actually changes, not on every render
@@ -116,7 +196,19 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
   // 29424d2 (that effect depended on this exact unstable `spines`
   // reference). Memoizing here fixes the root cause instead of the one
   // symptom that got caught.
-  const refs = useMemo(() => axesEntry?.signals ?? _EMPTY_REFS, [axesEntry?.signals]);
+  const ownRefs = axesEntry?.signals ?? _EMPTY_REFS;
+  const historyDepth = axesEntry?.historyDepth ?? 0;
+  const runHistory = useWaveformStore((s) => s.runHistory);
+  /**
+   * What this chart draws: the axes' own signals, then the same signals
+   * from up to `historyDepth` previous runs. The overlay is derived here
+   * rather than stored, so changing the depth cannot disturb the set of
+   * signals the user chose.
+   */
+  const refs = useMemo(
+    () => withHistory(ownRefs, signalCache, runHistory, historyDepth),
+    [ownRefs, signalCache, runHistory, historyDepth],
+  );
   const signalCount = refs.length;
   const spines = useMemo(() => buildSpines(refs, signalCache), [refs, signalCache]);
   const needsReinit = spinesChanged(spinesRef.current, spines);
@@ -145,10 +237,97 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
     }
   }
 
+  /**
+   * Re-decimate for whatever window is on screen now.
+   *
+   * `setData(…, false)` keeps the viewer's current zoom instead of
+   * autoscaling back out — the window is the reason this ran.
+   */
+  const refineForView = useCallback(() => {
+    const u = uplotRef.current;
+    if (!u) return;
+    const { refs: liveRefs, signalCache: liveCache } = latestRef.current;
+    u.setData(
+      buildAlignedData(
+        liveRefs,
+        liveCache,
+        viewRef.current ?? undefined,
+        budgetFor(sizeRef.current.width),
+      ),
+      false,
+    );
+  }, []);
+
+  const scheduleRefine = useCallback(() => {
+    if (refineTimerRef.current) clearTimeout(refineTimerRef.current);
+    refineTimerRef.current = setTimeout(() => {
+      refineTimerRef.current = null;
+      refineForView();
+    }, REFINE_DELAY_MS);
+  }, [refineForView]);
+
+  useEffect(
+    () => () => {
+      if (refineTimerRef.current) clearTimeout(refineTimerRef.current);
+    },
+    [],
+  );
+
+  // Keep `measured` in step with the cell the chart sits in. ResizeObserver
+  // rather than a window resize listener: the panel is resized by dragging
+  // VS Code's own splitters and by maximising an axes, neither of which
+  // changes the window size.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver((entries) => {
+      const box = entries[0]?.contentRect;
+      if (!box) return;
+      const next = {
+        width: Math.max(MIN_CHART_WIDTH, Math.round(box.width)),
+        height: Math.max(MIN_CHART_HEIGHT, Math.round(box.height)),
+      };
+      setMeasured((prev) =>
+        prev.width === next.width && prev.height === next.height ? prev : next,
+      );
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Resize in place. Rebuilding the chart would also work, but it throws away
+  // the zoom, the cursors and the decimation cache on every frame of a
+  // splitter drag.
+  //
+  // The overlays have to be recomputed here too. They are positioned in
+  // pixels, and uPlot's setSize does not fire `setScale` — so without this,
+  // a chart that mounted at its minimum size and then grew to fill the panel
+  // kept drawing its cursors at the positions they had when it was 240px
+  // wide, bunched against the left edge.
+  useEffect(() => {
+    const u = uplotRef.current;
+    if (!u) return;
+    u.setSize({ width: plotWidth, height: plotHeight });
+    // A wider plot can show more points, so the budget changed with it.
+    scheduleRefine();
+    const firstYKey = spinesRef.current[0]?.scaleKey ?? "y";
+    setCursorLines(_buildCursorLines(axesEntryRef.current, u, firstYKey));
+    if (bodeMargins && isBodeAxes(latestRef.current.refs, latestRef.current.signalCache)) {
+      const result = buildBodeAnnotations(bodeMargins, u, magSpineKey);
+      setAnnotationLines(result.lines);
+      setMarginBadge(result.badge);
+    }
+  }, [plotWidth, plotHeight, bodeMargins, magSpineKey, scheduleRefine]);
+
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const data = buildAlignedData(refs, signalCache);
+    const data = buildAlignedData(
+      refs,
+      signalCache,
+      viewRef.current ?? undefined,
+      budgetFor(sizeRef.current.width),
+    );
     const hasData = data[0] instanceof Float64Array && data[0].length > 0;
 
     if (!hasData) {
@@ -192,11 +371,11 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
 
     const series = buildSeries(refs, signalCache, spines);
     const scales = buildScales(spines, xDomain === "frequency");
-    const axes = buildAxes(spines, xDomain);
+    const axes = buildAxes(spines, xDomain, readChartTheme(containerRef.current ?? undefined));
 
     const opts: uPlot.Options = {
-      width,
-      height,
+      width: sizeRef.current.width,
+      height: sizeRef.current.height,
       scales,
       axes,
       series,
@@ -206,6 +385,14 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
       // FE-163: when panMode is on, dragging translates the visible window
       // instead of uPlot's default box-zoom.
       cursor: {
+        // uPlot's default drag is `{ x: true, y: false }`, so a box drag only
+        // ever zoomed time: pulling a box vertically did nothing at all. The
+        // store has carried `setAxesYZoom` and the `setScale` hook below has
+        // persisted yMin/yMax the whole time — the gesture was the only piece
+        // missing. `uni` keeps the common gestures unsurprising: a mostly
+        // horizontal drag zooms time alone, a mostly vertical one zooms value
+        // alone, and a deliberate box zooms both.
+        drag: { x: true, y: true, uni: 30 },
         bind: {
           mousedown: makePanAwareMousedown(
             () => axesEntryRef.current?.panMode,
@@ -235,6 +422,10 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
             // FE-165: cursor line pixel positions depend on the current
             // scale, so they need recomputing on every zoom/pan too.
             setCursorLines(_buildCursorLines(axesEntryRef.current, u, firstYKey));
+
+            // And re-decimate for the new window, once it stops moving.
+            viewRef.current = [xMin, xMax];
+            scheduleRefine();
           },
         ],
         ready: [
@@ -261,6 +452,25 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
               (e: WheelEvent) => {
                 e.preventDefault();
                 const rect = u.over.getBoundingClientRect();
+                const factorY = e.deltaY < 0 ? 0.85 : 1 / 0.85;
+
+                // Shift+wheel zooms the value axis. Without it the wheel only
+                // ever zoomed time, so a trace too small to read vertically
+                // could not be magnified at all — the axis is not clamped to
+                // the data extent the way time is, because magnifying past the
+                // data is exactly the point when you are inspecting a flat
+                // region or ringing on a rail.
+                if (e.shiftKey) {
+                  const yKey = spinesRef.current[0]?.scaleKey ?? "y";
+                  const at = u.posToVal(e.clientY - rect.top, yKey);
+                  const lo = u.scales[yKey]?.min ?? 0;
+                  const hi = u.scales[yKey]?.max ?? 1;
+                  const nextMin = at - (at - lo) * factorY;
+                  const nextMax = at + (hi - at) * factorY;
+                  if (nextMax > nextMin) setAxesYZoom(axesId, nextMin, nextMax);
+                  return;
+                }
+
                 const cursorVal = u.posToVal(e.clientX - rect.left, "x");
                 const curMin = u.scales.x?.min ?? 0;
                 const curMax = u.scales.x?.max ?? 1;
@@ -283,6 +493,10 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
 
     uplotRef.current = new uPlot(opts, data, containerRef.current);
     spinesRef.current = spines;
+    // Harness door, same role as `__gensim_canvasFitView` on the schematic
+    // side: scripts/stress-waveform.mjs reads how many points are actually
+    // on screen, which is the one thing a screenshot cannot tell you.
+    _registerChart(axesId, uplotRef.current);
 
     // Reapply any zoom already recorded for this axes (e.g. surviving a
     // spine-set change that forced the reinit above) instead of dropping
@@ -308,18 +522,18 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
         uplotRef.current = null;
         spinesRef.current = [];
       }
+      _registerChart(axesId, null);
     };
   }, [
     refs,
     signalCache,
     spines,
     needsReinit,
-    width,
-    height,
     onZoomChange,
     axesId,
     propagateZoom,
     setAxesZoom,
+    setAxesYZoom,
     bodeMode,
     xDomain,
     bodeMargins,
@@ -479,9 +693,8 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
   // ---------------------------------------------------------------------------
   function handleHeaderContextMenu(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
-    const canvas = containerRef.current?.querySelector<HTMLCanvasElement>("canvas");
-    if (!canvas) return;
-    setExportCanvas(canvas);
+    if (!containerRef.current) return;
+    setExportSubject(axesExportSubject(axesId, containerRef.current, () => latestRef.current));
   }
 
   // ---------------------------------------------------------------------------
@@ -493,12 +706,34 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
     setMaximizedAxes(axesEntry.figureId, isMaximized ? null : axesId);
   }
 
+  const isCollapsed = axesEntry?.collapsed === true;
+
+  // The same two fits the main toolbar performs on the active axes, bound
+  // here to this axes so they need no selection first.
+  function handleFitX() {
+    const refs = axesEntry?.signals ?? [];
+    const ext = dataExtents(refs, signalCache);
+    if (ext) setAxesZoom(axesId, ext[0], ext[1]);
+  }
+
+  function handleFitY() {
+    const refs = axesEntry?.signals ?? [];
+    // Within the visible x-window, not the whole run: fitting a zoomed-in
+    // region to the full run's extremes is not a fit of what is on screen.
+    const ext = valueExtents(refs, signalCache, axesEntry?.xMin, axesEntry?.xMax);
+    if (ext) setAxesYZoom(axesId, ext[0], ext[1]);
+  }
+
   return (
     <>
       <div
-        className="axes-container"
+        className={`axes-container${isTarget ? " axes-container--target" : ""}${
+          isCollapsed ? " axes-container--collapsed" : ""
+        }`}
         data-axes-id={axesId}
-        style={{ position: "relative" }}
+        // Clicking an axes points the signal browser's checkboxes at it, so
+        // "tick a signal to plot it here" needs no extra step.
+        onPointerDownCapture={() => setActiveAxes(axesId)}
         onDragLeave={handleDragLeave}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
@@ -507,111 +742,119 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
         <div
           className="axes-header"
           draggable
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "2px 6px",
-            background: "#ffffff",
-            borderBottom: "1px solid #e2e8f0",
-            cursor: "grab",
-            userSelect: "none",
-            minHeight: "24px",
-          }}
           onContextMenu={handleHeaderContextMenu}
           onDragStart={handleDragStart}
         >
-          <span
-            className="axes-header__id"
-            style={{ color: "#64748b", fontSize: "0.7rem", fontFamily: "monospace" }}
-          >
-            {axesId.slice(0, 8)}
-          </span>
+          {/* The axes' own title is the signals it carries, which the legend
+              below already spells out — so the header shows the thing the
+              legend cannot: which coupling group this axes zooms with. It
+              used to show eight characters of the axes' UUID, which named
+              nothing the user had ever seen or chosen. */}
+          <span className="axes-header__grip" aria-hidden="true" />
           {couplingGroup && (
             <span
               className="axes-header__group-badge"
               aria-label={`Coupling group: ${couplingGroup.name}`}
-              style={{
-                background: groupColor,
-                color: "#fff",
-                borderRadius: "3px",
-                padding: "1px 6px",
-                fontSize: "0.7rem",
-                fontWeight: 600,
-                lineHeight: "1.4",
-              }}
             >
+              <span className="axes-header__group-dot" style={{ background: groupColor }} />
               {couplingGroup.name}
             </span>
           )}
+          {/* Only offered once there is a past run to show. A control that
+              can only ever say "0" is a question with one answer. */}
+          {runHistory.length > 0 && (
+            <label className="axes-header__history">
+              <span>Past runs</span>
+              <select
+                aria-label="Past runs to overlay"
+                value={historyDepth}
+                onChange={(event) =>
+                  setAxesHistoryDepth(axesId, Number.parseInt(event.target.value, 10))
+                }
+              >
+                {Array.from({ length: runHistory.length + 1 }, (_, depth) => (
+                  <option key={depth} value={depth}>
+                    {depth}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {/* Fit, minimize and close, in that order — the two that change
+              what you see, then the two that change whether you see it.
+              Fit was previously only on the main toolbar, acting on the
+              active axes, so fitting a particular plot meant selecting it
+              first. On a figure of six that is five clicks of ceremony. */}
+          <button
+            type="button"
+            className="axes-header__btn"
+            aria-label="Fit time axis to data"
+            title="Fit horizontally to the data"
+            onClick={handleFitX}
+          >
+            ↔
+          </button>
+          <button
+            type="button"
+            className="axes-header__btn"
+            aria-label="Fit value axis to data"
+            title="Fit vertically to the data in view"
+            onClick={handleFitY}
+          >
+            ↕
+          </button>
+          <button
+            type="button"
+            className="axes-header__btn"
+            aria-label={isCollapsed ? "Restore axes" : "Minimize axes"}
+            title={isCollapsed ? "Restore axes" : "Minimize to its header"}
+            onClick={() => setAxesCollapsed(axesId, !isCollapsed)}
+          >
+            {isCollapsed ? "▸" : "—"}
+          </button>
+          <button
+            type="button"
+            className="axes-header__btn axes-header__btn--close"
+            aria-label="Close axes"
+            title="Remove this axes from the figure"
+            onClick={() => deleteAxes(axesId)}
+          >
+            ×
+          </button>
           <button
             type="button"
             className="axes-header__maximize"
             aria-label={isMaximized ? "Restore axes" : "Maximize axes"}
             title={isMaximized ? "Restore axes" : "Maximize axes to fill figure"}
             onClick={handleMaximizeToggle}
-            style={{
-              background: "none",
-              border: "1px solid #cbd5e1",
-              borderRadius: "3px",
-              color: "#64748b",
-              cursor: "pointer",
-              fontSize: "0.7rem",
-              lineHeight: 1.2,
-              marginLeft: "auto",
-              padding: "1px 5px",
-            }}
           >
             {isMaximized ? "⤡" : "⤢"}
           </button>
         </div>
 
         {signalCount > 10 && (
-          <div
-            className="axes-signal-warning"
-            role="alert"
-            style={{
-              background: "#fef3c7",
-              borderBottom: "1px solid #f59e0b",
-              color: "#92400e",
-              fontSize: "0.75rem",
-              padding: "2px 8px",
-            }}
-          >
+          <div className="axes-signal-warning" role="alert">
             {signalCount} signals on one axes — consider splitting across multiple axes.
           </div>
         )}
         <AxesLegend axesId={axesId} />
-        <div ref={containerRef} style={{ position: "relative", background: "#ffffff" }}>
+        <MeasurementsBar axesId={axesId} />
+        <div ref={containerRef} className="axes-plot">
           {/* Bode annotation lines rendered as absolutely-positioned overlays. */}
           {annotationLines.map((line) =>
             line.kind === "vline" ? (
               <div
                 key={`vline-${line.value}`}
-                className="bode-annotation-vline"
+                className="axes-overlay-line axes-overlay-line--v axes-overlay-line--bode"
                 aria-label={line.label}
-                style={{
-                  borderLeft: "1px dashed #ef4444",
-                  bottom: 0,
-                  left: line.px,
-                  pointerEvents: "none",
-                  position: "absolute",
-                  top: 0,
-                }}
+                style={{ left: line.px }}
               />
             ) : (
               <div
                 key={`hline-${line.value}`}
-                className="bode-annotation-hline"
+                className="axes-overlay-line axes-overlay-line--h axes-overlay-line--bode"
                 aria-label={line.label}
-                style={{
-                  borderTop: "1px dashed #6366f1",
-                  left: 0,
-                  pointerEvents: "none",
-                  position: "absolute",
-                  right: 0,
-                  top: line.px,
-                }}
+                style={{ top: line.px }}
               />
             ),
           )}
@@ -620,58 +863,20 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
             line.kind === "vline" ? (
               <div
                 key={`cursor-vline-${line.label}`}
-                className="cursor-line cursor-line--vertical"
+                className="axes-overlay-line axes-overlay-line--v axes-cursor axes-cursor--x"
                 aria-label={`Cursor ${line.label}`}
-                style={{
-                  borderLeft: "1px dashed #14b8a6",
-                  bottom: 0,
-                  left: line.px,
-                  pointerEvents: "none",
-                  position: "absolute",
-                  top: 0,
-                }}
+                style={{ left: line.px }}
               >
-                <span
-                  style={{
-                    background: "#14b8a6",
-                    color: "#0f172a",
-                    fontSize: "0.65rem",
-                    fontWeight: 600,
-                    padding: "0 3px",
-                    position: "absolute",
-                    top: 0,
-                  }}
-                >
-                  {line.label}
-                </span>
+                <span className="axes-cursor__tag">{line.label}</span>
               </div>
             ) : (
               <div
                 key={`cursor-hline-${line.label}`}
-                className="cursor-line cursor-line--horizontal"
+                className="axes-overlay-line axes-overlay-line--h axes-cursor axes-cursor--y"
                 aria-label={`Cursor ${line.label}`}
-                style={{
-                  borderTop: "1px dashed #f59e0b",
-                  left: 0,
-                  pointerEvents: "none",
-                  position: "absolute",
-                  right: 0,
-                  top: line.px,
-                }}
+                style={{ top: line.px }}
               >
-                <span
-                  style={{
-                    background: "#f59e0b",
-                    color: "#0f172a",
-                    fontSize: "0.65rem",
-                    fontWeight: 600,
-                    padding: "0 3px",
-                    position: "absolute",
-                    right: 0,
-                  }}
-                >
-                  {line.label}
-                </span>
+                <span className="axes-cursor__tag">{line.label}</span>
               </div>
             ),
           )}
@@ -679,19 +884,7 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
           {marginBadge && (
             <div
               className="bode-margin-badge"
-              style={{
-                background: "rgba(0,0,0,0.72)",
-                borderRadius: "4px",
-                color: "#f0f0f0",
-                fontSize: "0.7rem",
-                left: marginBadge.pxLeft,
-                lineHeight: "1.5",
-                padding: "4px 6px",
-                pointerEvents: "none",
-                position: "absolute",
-                top: marginBadge.pxTop,
-                whiteSpace: "nowrap",
-              }}
+              style={{ left: marginBadge.pxLeft, top: marginBadge.pxTop }}
             >
               <div>GM: {marginBadge.gainMarginDb.toFixed(1)} dB</div>
               <div>PM: {marginBadge.phaseMarginDeg.toFixed(1)}°</div>
@@ -701,18 +894,26 @@ export function Axes({ axesId, width = 800, height = 300, onZoomChange, bodeMarg
         </div>
       </div>
 
-      {exportCanvas && (
-        <ExportDialog
-          canvas={exportCanvas}
-          defaultFilename={`axes-${axesId}`}
-          onClose={() => setExportCanvas(null)}
-        />
+      {exportSubject && (
+        <ExportDialog subject={exportSubject} onClose={() => setExportSubject(null)} />
       )}
     </>
   );
 }
 
-/** FE-165: build the (up to) 4 cursor overlay lines for the current uPlot scale. */
+/**
+ * FE-165: build the (up to) 4 cursor overlay lines for the current uPlot scale.
+ *
+
+ * `false`, not `true`: uPlot's third argument asks for *canvas* pixels, which
+ * are CSS pixels multiplied by the device pixel ratio. These positions are
+ * written straight into `style.left` / `style.top` on overlay divs, which are
+ * laid out in CSS pixels — so on any HiDPI display (every retina laptop, and
+ * VS Code at a zoom level above 100%) every cursor and annotation line was
+ * drawn at twice its distance from the origin, landing outside the plot.
+ * At dpr 1 the two agree, which is why this survived.
+ */
+
 function _buildCursorLines(
   entry: { cursorA?: number; cursorB?: number; cursorAH?: number; cursorBH?: number } | undefined,
   u: uPlot,
@@ -723,7 +924,7 @@ function _buildCursorLines(
   if (entry.cursorA !== undefined) {
     lines.push({
       kind: "vline",
-      px: u.valToPos(entry.cursorA, "x", true),
+      px: overlayPx(u, entry.cursorA, "x", "x"),
       scaleKey: "x",
       value: entry.cursorA,
       label: "A",
@@ -732,7 +933,7 @@ function _buildCursorLines(
   if (entry.cursorB !== undefined) {
     lines.push({
       kind: "vline",
-      px: u.valToPos(entry.cursorB, "x", true),
+      px: overlayPx(u, entry.cursorB, "x", "x"),
       scaleKey: "x",
       value: entry.cursorB,
       label: "B",
@@ -741,7 +942,7 @@ function _buildCursorLines(
   if (entry.cursorAH !== undefined) {
     lines.push({
       kind: "hline",
-      px: u.valToPos(entry.cursorAH, yScaleKey, true),
+      px: overlayPx(u, entry.cursorAH, yScaleKey, "y"),
       scaleKey: yScaleKey,
       value: entry.cursorAH,
       label: "A",
@@ -750,7 +951,7 @@ function _buildCursorLines(
   if (entry.cursorBH !== undefined) {
     lines.push({
       kind: "hline",
-      px: u.valToPos(entry.cursorBH, yScaleKey, true),
+      px: overlayPx(u, entry.cursorBH, yScaleKey, "y"),
       scaleKey: yScaleKey,
       value: entry.cursorBH,
       label: "B",

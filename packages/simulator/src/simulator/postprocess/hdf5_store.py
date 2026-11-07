@@ -3,7 +3,7 @@
 Replaces the pre-HDF5 stopgap (one ``time.npy`` plus one ``.npy`` per signal,
 see ``result_writer.py``'s original docstring) with a single ``data.h5`` file
 per simulation, matching the storage design in
-``docs/specs/simulator-architecture-spec.md`` §7: chunked, LZF-compressed,
+``docs/specs/simulator-architecture-spec.md`` §7: chunked, gzip-compressed,
 float32 signal data, with a precomputed min/max-decimated LOD pyramid built
 once at write time so the query-time ``/lod`` endpoint doesn't have to
 rescan a full-resolution array on every request.
@@ -69,11 +69,43 @@ def dataset_key(block_id: str, port_id: str) -> str:
     return f"{block_id}__{port_id}"
 
 
+# gzip (HDF5 filter 1) rather than lzf (h5py's own, filter 32000).
+#
+# The portability argument came first: lzf is not part of the HDF5 standard,
+# so nothing but h5py-with-the-plugin can read these datasets — not MATLAB,
+# not the Rust `hdf5` crate, and not a WebAssembly reader. That mattered the
+# moment a Rust reader became part of the plan, because a result file no
+# other tool can open is not a result file, it is a cache.
+#
+# The measurement then said the portable choice is also the better one. On
+# 2,000,000 samples x 6 signals of a hard-switching converter (64 MB raw):
+#
+#   lzf + shuffle      3.13 MB   131 ms write   129 ms read
+#   gzip 1 + shuffle   2.36 MB    95 ms write    70 ms read
+#   gzip 4 + shuffle   1.93 MB   246 ms write   137 ms read
+#
+# So level 1 is smaller, faster to write and nearly twice as fast to read
+# than what it replaces. Higher levels buy ratio with write time, and this
+# runs on the simulation's hot path, where stalling the run to save a
+# further 20% of a file nobody is short of space for is the wrong trade.
+_GZIP_LEVEL = 1
+
+
 def _dataset_kwargs(n: int) -> dict[str, Any]:
     if n < _CHUNK_THRESHOLD:
         return {}
     chunk = min(_CHUNK_SIZE, n)
-    return {"chunks": (chunk,), "compression": "lzf", "shuffle": True}
+    # shuffle is doing most of the work, not gzip: it transposes the bytes of
+    # each float so the (nearly constant) exponent bytes sit together, which
+    # is what gives a deflate stream something to find. Without it the same
+    # data compresses 5.5x instead of 33x. It is also HDF5 filter 2 — part of
+    # the standard, and a byte transposition any reader can implement.
+    return {
+        "chunks": (chunk,),
+        "compression": "gzip",
+        "compression_opts": _GZIP_LEVEL,
+        "shuffle": True,
+    }
 
 
 def write_hdf5(bundle: ResultBundle, h5_path: pathlib.Path) -> None:

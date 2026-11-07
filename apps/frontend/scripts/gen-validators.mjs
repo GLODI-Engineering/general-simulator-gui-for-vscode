@@ -73,6 +73,17 @@ const TARGETS = [
     typeImport: 'import type { BlockMetadata } from "../../model/types";',
     validatedType: "BlockMetadata",
   },
+  {
+    label: "gsim_sim_result",
+    // Mirrors apps/frontend/src/results/document.ts.
+    ajvOptions: { allErrors: true, strict: true },
+    referenced: [],
+    schema: () => readSchema("results", "gsim_sim_result.schema.json"),
+    basename: "gsim-sim-result",
+    exportName: "validateGsimSimResultDocument",
+    typeImport: 'import type { GsimSimResultDocument } from "../../results/types";',
+    validatedType: "GsimSimResultDocument",
+  },
 ];
 
 const BANNER = `\

@@ -9,7 +9,7 @@
  */
 
 /** Which surface a webview is hosting. */
-export type WebviewRole = "schematic" | "library" | "waveform";
+export type WebviewRole = "schematic" | "library" | "waveform" | "results";
 
 export interface KernelConfig {
   port: number;

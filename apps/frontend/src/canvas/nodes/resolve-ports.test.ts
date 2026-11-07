@@ -112,7 +112,10 @@ describe("resolveBlockPorts", () => {
 describe("getMetadataPortCenters with param-driven ports", () => {
   it("gives a control.sum real, distinct input port centres", () => {
     const metadata = metadataFor("control.sum");
-    const centers = getMetadataPortCenters(blockFor("s1", "control.sum", { signs: "+-" }), metadata);
+    const centers = getMetadataPortCenters(
+      blockFor("s1", "control.sum", { signs: "+-" }),
+      metadata,
+    );
     const ids = centers.map((c) => c.id);
     expect(ids).toContain("in0");
     expect(ids).toContain("in1");

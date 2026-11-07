@@ -5117,6 +5117,7 @@
         "inputs": [],
         "outputs": [
           {
+            "domain_from": "kind",
             "id": "out",
             "kind": {
               "dims": "scalar",
@@ -5130,7 +5131,7 @@
       },
       "symbol": {
         "bbox": [
-          60,
+          200,
           40
         ],
         "shape": "rect",
@@ -5227,6 +5228,7 @@
       "ports": {
         "inputs": [
           {
+            "domain_from": "kind",
             "id": "in",
             "kind": {
               "dims": "scalar",
@@ -5241,7 +5243,7 @@
       },
       "symbol": {
         "bbox": [
-          60,
+          200,
           40
         ],
         "shape": "rect",
@@ -9872,7 +9874,7 @@
             {
               "direction": "in",
               "id": "g",
-              "kind": "signal",
+              "kind": "physical-electrical",
               "label": "gate",
               "offset": 30,
               "side": "left"
@@ -9955,8 +9957,7 @@
           {
             "id": "g",
             "kind": {
-              "dims": "scalar",
-              "domain": "signal"
+              "domain": "physical-electrical"
             },
             "label": "gate",
             "offset": 30,
@@ -10068,7 +10069,7 @@
             {
               "direction": "in",
               "id": "g",
-              "kind": "signal",
+              "kind": "physical-electrical",
               "label": "gate",
               "offset": 30,
               "side": "left"
@@ -10151,8 +10152,7 @@
           {
             "id": "g",
             "kind": {
-              "dims": "scalar",
-              "domain": "signal"
+              "domain": "physical-electrical"
             },
             "label": "gate",
             "offset": 30,

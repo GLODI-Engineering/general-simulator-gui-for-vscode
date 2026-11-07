@@ -12,7 +12,11 @@ ports:
   outputs:
     - id: out
       label: ""
+      # The domain is chosen by the `kind` param, not fixed here. Declared
+      # plainly as `signal` it was wrong for four of the five values that
+      # param offers, so a physical boundary port drew a signal marker.
       kind: { domain: signal, dims: scalar }
+      domain_from: kind
       side: right
       offset: 20
 
@@ -30,7 +34,7 @@ params:
     description: Port kind domain exposed to the parent.
 
 symbol:
-  bbox: [60, 40]
+  bbox: [200, 40]
   shape: rect
   text: "In"
 

@@ -1,10 +1,19 @@
 import { create } from "zustand";
 
-import { getMetadataPortCenters, SYMBOL_SCALE } from "../canvas/nodes/port-hit-test";
+import { netOf } from "../canvas/edges/junctions";
+import { SYMBOL_SCALE, getMetadataPortCenters } from "../canvas/nodes/port-hit-test";
 import { resolveBlockBbox } from "../canvas/nodes/resolve-ports";
 import { rerouteEndSegment } from "../canvas/router/attachment";
 import { type RouterComponent, getObstacles } from "../canvas/router/obstacles";
-import { routeOrtho } from "../canvas/router/ortho-route";
+import {
+  GRID,
+  type RouteSegment,
+  pointsToSegments,
+  routeBlocked,
+  routeOrtho,
+  routeOverlap,
+  simplifyPts,
+} from "../canvas/router/ortho-route";
 import { resolveBlockMetadata } from "../canvas/subckt-metadata";
 import { emit as emitAutosave } from "../file/autosave";
 import { type SwapResult, swap as swapFidelity } from "../library/fidelity-swap";
@@ -80,6 +89,102 @@ function portCenterForWireEndpoint(
  * facing direction after mirror+rotation. Junctions and unknown ports have no
  * facing, so they fall back to the router's own heuristics.
  */
+/**
+ * The *face* a port leaves by, after mirror and rotation.
+ *
+ * `portExitDirForWireEndpoint` below reduces this to an axis, which is all the
+ * router's `Direction` can carry -- and an axis cannot distinguish "leaves
+ * upward" from "leaves downward". That is how a wire came to approach a
+ * top-facing port from underneath, cutting through the symbol to reach it:
+ * arriving vertically was all that was being asked for. On a back-to-back
+ * switch pair it hit only the mirrored device, because only there was the
+ * wrong-side approach the shorter of the two.
+ */
+function portExitSideForWireEndpoint(
+  model: ModelGraph,
+  endpoint: { block: string; port: string },
+): "left" | "right" | "top" | "bottom" | null {
+  const block = model.blocks.find((candidate) => candidate.id === endpoint.block);
+  if (!block || block.type === "routing.junction") return null;
+  const metadata = resolveBlockMetadata(
+    block,
+    useLibraryStore.getState().catalog,
+    model.subckt_defs,
+  );
+  if (!metadata) return null;
+  return (
+    getMetadataPortCenters(block, metadata).find((port) => port.id === endpoint.port)
+      ?.rotatedSide ?? null
+  );
+}
+
+/**
+ * What a wire pays for running along another wire of its *own* net, per unit,
+ * relative to running along a wire of a different net.
+ *
+ * Sharing a run within a net is electrically a trunk with branches, and the
+ * junction dot it produces is a real node. But a branch that peels off halfway
+ * along another branch puts that dot in the middle of a plain run, where it
+ * reads as a crossing that has been wrongly connected. A small cost makes the
+ * branches leave from the port instead, so the dot lands on the port where a
+ * reader expects it. It stays well under 1 so that separating two different
+ * nets always takes priority over tidying one.
+ */
+const SAME_NET_WEIGHT = 0.35;
+
+/**
+ * How far a wire must stay from a terminal belonging to a different net.
+ *
+ * Rails land on the grid, but a port's stub tip does not: tips fall where the
+ * symbol's geometry puts them, at 381 or 421 rather than 380 or 420. So a
+ * perfectly legal rail could be drawn *one unit* from another net's terminal.
+ * One unit is the same pixel at every zoom, and when that terminal carries a
+ * junction dot -- as a node shared by two wires does -- the dot lands on top
+ * of the passing wire and reads as a connection to it. That is how a snubber
+ * came to look short-circuited across a switch while the netlist had it
+ * wired correctly: the drain run passed at y=380 and the source node sat at
+ * y=381.
+ *
+ * Near-misses are worse than either touching or clearing, because only a
+ * near-miss is ambiguous. Foreign terminals therefore become small obstacles,
+ * so a route either keeps a readable distance or crosses somewhere else
+ * entirely.
+ */
+const FOREIGN_NODE_CLEARANCE = 8;
+
+/**
+ * How many grid steps out from a port an approach point may be placed.
+ *
+ * One step is the natural choice and is tried first. More exist because the
+ * step decides which rail the wire runs along to reach the port, and blocks
+ * that feed a common destination usually sit in a column: every one of their
+ * ports then shares an x, so every wire wants the same rail and they stack.
+ * Letting the lead out be a little longer for one of them gives it a rail of
+ * its own, which is what anyone drawing this by hand would do.
+ */
+const APPROACH_STEPS = [1, 2, 3, 4];
+
+/** `steps` grid steps out along the port's own facing. */
+function approachPoint(
+  point: [number, number],
+  side: "left" | "right" | "top" | "bottom" | null,
+  steps = 1,
+): [number, number] {
+  const step = GRID * steps;
+  switch (side) {
+    case "left":
+      return [point[0] - step, point[1]];
+    case "right":
+      return [point[0] + step, point[1]];
+    case "top":
+      return [point[0], point[1] - step];
+    case "bottom":
+      return [point[0], point[1] + step];
+    default:
+      return point;
+  }
+}
+
 function portExitDirForWireEndpoint(
   model: ModelGraph,
   endpoint: { block: string; port: string },
@@ -125,7 +230,9 @@ function modelToRouterComponents(model: ModelGraph): RouterComponent[] {
     // to the router — every obstacle box was undersized by exactly 1.6x, so the
     // "obstacle avoidance" router was correctly avoiding a box far smaller than what
     // is actually drawn, and wires routed straight through the visible symbol body.
-    const [rawW, rawH] = metadata ? resolveBlockBbox(metadata, block.params) : [60 / SYMBOL_SCALE, 40 / SYMBOL_SCALE];
+    const [rawW, rawH] = metadata
+      ? resolveBlockBbox(metadata, block.params)
+      : [60 / SYMBOL_SCALE, 40 / SYMBOL_SCALE];
     const w = rawW * SYMBOL_SCALE;
     const h = rawH * SYMBOL_SCALE;
     const ports = metadata
@@ -172,6 +279,44 @@ function isOrthogonal(points: Array<[number, number]>): boolean {
 
 export function rerouteWiresForBlocks(model: ModelGraph, touchedBlockIds: Set<string>): void {
   const obstacles = modelToRouterComponents(model);
+
+  // Which net each wire belongs to, by the same rule the junction dots use:
+  // wires sharing a (block, port) endpoint, or an explicit net name, are one
+  // conductor. Two wires of one net may share a run -- that is a trunk with
+  // branches -- so only cross-net overlap is avoided.
+  const nets = netOf(model.wires);
+  const netById = new Map(model.wires.map((wire, index) => [wire.id, nets[index]]));
+
+  // Runs already taken. Wires this pass is not touching keep their drawn path,
+  // so a rerouted wire avoids them; each wire this pass routes is added as it
+  // goes, so a bundle fans out instead of stacking on one line.
+  // Every terminal that carries a wire, with the net it belongs to. Used to
+  // keep a wire a readable distance from terminals that are not its own.
+  const nodePoints: Array<{ at: [number, number]; net: number | undefined }> = [];
+  {
+    const seen = new Set<string>();
+    for (const wire of model.wires) {
+      for (const end of [wire.from, wire.to]) {
+        const key = `${end.block}\u0000${end.port}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const at = portCenterForWireEndpoint(model, end);
+        if (at) nodePoints.push({ at, net: netById.get(wire.id) });
+      }
+    }
+  }
+
+  const occupied: RouteSegment[] = [];
+  for (const wire of model.wires) {
+    const fromMoved = touchedBlockIds.has(wire.from.block);
+    const toMoved = touchedBlockIds.has(wire.to.block);
+    if (!wire.pinned && (fromMoved || toMoved)) continue;
+    const from = portCenterForWireEndpoint(model, wire.from);
+    const to = portCenterForWireEndpoint(model, wire.to);
+    if (!from || !to) continue;
+    occupied.push(...pointsToSegments([from, ...wire.waypoints, to], netById.get(wire.id)));
+  }
+
   model.wires = model.wires.map((wire) => {
     const fromMoved = touchedBlockIds.has(wire.from.block);
     const toMoved = touchedBlockIds.has(wire.to.block);
@@ -185,7 +330,18 @@ export function rerouteWiresForBlocks(model: ModelGraph, touchedBlockIds: Set<st
       return wire;
     }
 
-    const wireObstacles = getObstacles(obstacles, from[0], from[1], to[0], to[1]);
+    const net = netById.get(wire.id);
+    const wireObstacles = [
+      ...getObstacles(obstacles, from[0], from[1], to[0], to[1]),
+      ...nodePoints
+        .filter((node) => node.net !== net)
+        .map((node) => ({
+          x: node.at[0] - FOREIGN_NODE_CLEARANCE,
+          y: node.at[1] - FOREIGN_NODE_CLEARANCE,
+          w: FOREIGN_NODE_CLEARANCE * 2,
+          h: FOREIGN_NODE_CLEARANCE * 2,
+        })),
+    ];
     let points: Array<[number, number]> = [from, ...wire.waypoints, to].map(([x, y]) => [
       Math.round(x),
       Math.round(y),
@@ -193,6 +349,59 @@ export function rerouteWiresForBlocks(model: ModelGraph, touchedBlockIds: Set<st
 
     const fromDir = portExitDirForWireEndpoint(model, wire.from);
     const toDir = portExitDirForWireEndpoint(model, wire.to);
+
+    // A wire with no waypoints of its own has never been routed, so route it
+    // whole rather than patching its ends. Routing runs between *approach*
+    // points -- one step out along each port's own facing -- and the port
+    // points are put back afterwards. That is what stops a wire reaching a
+    // port from the wrong side: the last thing it does is come in along the
+    // port's own normal, so it cannot arrive through the body behind it. The
+    // leading and trailing segments still run along the port's axis, which is
+    // the property FE-20 pins.
+    if (fromMoved && toMoved && wire.waypoints.length === 0) {
+      const fromSide = portExitSideForWireEndpoint(model, wire.from);
+      const toSide = portExitSideForWireEndpoint(model, wire.to);
+      const head = points[0] as [number, number];
+      const tail = points[points.length - 1] as [number, number];
+      const cost = (pts: Array<[number, number]>) =>
+        (routeBlocked(pts, wireObstacles) ? 1e6 : 0) +
+        routeOverlap(pts, occupied, net, SAME_NET_WEIGHT);
+
+      let best: Array<[number, number]> | null = null;
+      let bestCost = Number.POSITIVE_INFINITY;
+      for (const outSteps of APPROACH_STEPS) {
+        for (const inSteps of APPROACH_STEPS) {
+          const fa = approachPoint(head, fromSide, outSteps);
+          const ta = approachPoint(tail, toSide, inSteps);
+          const middle = routeOrtho(
+            fa[0],
+            fa[1],
+            ta[0],
+            ta[1],
+            fromDir ?? inferRouteDir(from, wire),
+            wireObstacles,
+            toDir,
+            { occupied, net, sameNetWeight: SAME_NET_WEIGHT },
+          );
+          const whole = simplifyPts([from, ...middle, to]);
+          if (!isOrthogonal(whole)) continue;
+          // The shortest lead out is tried first and wins every tie, so a
+          // wire only takes a longer one when it actually buys separation.
+          const score = cost(whole);
+          if (score < bestCost) {
+            bestCost = score;
+            best = whole;
+            if (score === 0) break;
+          }
+        }
+        if (bestCost === 0) break;
+      }
+
+      if (best) {
+        occupied.push(...pointsToSegments(best, net));
+        return { ...wire, waypoints: best.slice(1, -1) };
+      }
+    }
 
     if (fromMoved) {
       points = rerouteEndSegment(points, "first", wireObstacles, fromDir);
@@ -210,9 +419,36 @@ export function rerouteWiresForBlocks(model: ModelGraph, touchedBlockIds: Set<st
         fromDir ?? inferRouteDir(from, wire),
         wireObstacles,
         toDir,
+        { occupied, net, sameNetWeight: SAME_NET_WEIGHT },
       );
+    } else if (routeOverlap(points, occupied, net) > 0 || routeBlocked(points, wireObstacles)) {
+      // `rerouteEndSegment` already produced a legal *orthogonal* path, so the
+      // full router was never consulted -- and on load that is every wire,
+      // which is how a sheet ends up both with bundles drawn on one line and
+      // with wires crossing straight through components. Orthogonal was the
+      // only thing being checked here; neither obstacles nor other wires were.
+      // Ask for a route that dodges both, and keep it only if it is better.
+      const alternative = routeOrtho(
+        from[0],
+        from[1],
+        to[0],
+        to[1],
+        fromDir ?? inferRouteDir(from, wire),
+        wireObstacles,
+        toDir,
+        { occupied, net, sameNetWeight: SAME_NET_WEIGHT },
+      );
+      // Score both the same way the router does: a wire through a component is
+      // worse than any amount of running alongside another wire.
+      const cost = (pts: Array<[number, number]>) =>
+        (routeBlocked(pts, wireObstacles) ? 1e6 : 0) +
+        routeOverlap(pts, occupied, net, SAME_NET_WEIGHT);
+      if (isOrthogonal(alternative) && cost(alternative) < cost(points)) {
+        points = alternative;
+      }
     }
 
+    occupied.push(...pointsToSegments(points, net));
     return { ...wire, waypoints: points.slice(1, -1) };
   });
 }

@@ -132,3 +132,70 @@ export function autoOrthogonalPath(source: WirePoint, target: WirePoint): string
   // Elbow at (tx, sy): go horizontal to target column, then vertical to target row.
   return `M ${sx} ${sy} L ${tx} ${sy} L ${tx} ${ty}`;
 }
+
+/**
+ * The wire path, with a small arc wherever it steps over a wire it is not
+ * connected to.
+ *
+ * The arc always bulges the same way along the direction of travel, so a wire
+ * crossing five others reads as one line hopping five times rather than as a
+ * line that wanders. Hops that fall too close to a corner are dropped: an arc
+ * that ran into a bend would distort the corner, and a corner is load-bearing
+ * -- it is how the eye follows the wire.
+ */
+export function wireSvgPathWithHops(
+  points: WirePoint[],
+  hops: Array<{ at: WirePoint }>,
+  radius: number,
+): string {
+  if (points.length === 0) {
+    return "";
+  }
+  if (hops.length === 0) {
+    return wireSvgPath(points);
+  }
+  const first = points[0];
+  if (!first) {
+    return "";
+  }
+  const out = [`M ${first[0]} ${first[1]}`];
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i];
+    const b = points[i + 1];
+    if (!a || !b) continue;
+    const horizontal = a[1] === b[1];
+    const along = horizontal ? Math.sign(b[0] - a[0]) : Math.sign(b[1] - a[1]);
+    const start = horizontal ? a[0] : a[1];
+    const end = horizontal ? b[0] : b[1];
+
+    const onThis = hops
+      .filter(({ at }) => {
+        const across = horizontal ? at[1] : at[0];
+        const position = horizontal ? at[0] : at[1];
+        if (across !== (horizontal ? a[1] : a[0])) return false;
+        const lo = Math.min(start, end);
+        const hi = Math.max(start, end);
+        // Clear of both ends by a whole arc, so no corner is eaten.
+        return position - radius > lo && position + radius < hi;
+      })
+      .map(({ at }) => (horizontal ? at[0] : at[1]))
+      .sort((m, n) => (along > 0 ? m - n : n - m));
+
+    for (const position of onThis) {
+      const before = position - radius * along;
+      const after = position + radius * along;
+      // Sweep is chosen from the direction of travel so the bulge stays on
+      // the same side of the wire whichever way the wire runs.
+      const sweep = horizontal ? (along > 0 ? 1 : 0) : along > 0 ? 0 : 1;
+      if (horizontal) {
+        out.push(`L ${before} ${a[1]}`);
+        out.push(`A ${radius} ${radius} 0 0 ${sweep} ${after} ${a[1]}`);
+      } else {
+        out.push(`L ${a[0]} ${before}`);
+        out.push(`A ${radius} ${radius} 0 0 ${sweep} ${a[0]} ${after}`);
+      }
+    }
+    out.push(`L ${b[0]} ${b[1]}`);
+  }
+  return out.join(" ");
+}
