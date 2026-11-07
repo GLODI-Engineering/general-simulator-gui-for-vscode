@@ -85,6 +85,13 @@ export interface Axes {
    * the choice of which measurement.
    */
   measuredSignals?: string[];
+  /**
+   * Collapsed to its header, keeping its place in the grid.
+   *
+   * Distinct from closing: a figure laid out over several axes loses its
+   * shape if the only way to get one out of the way is to delete it.
+   */
+  collapsed?: boolean;
 }
 
 export interface CouplingGroup {

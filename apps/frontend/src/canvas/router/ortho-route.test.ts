@@ -13,12 +13,12 @@ import { describe, expect, it } from "vitest";
 import { sideToAxis } from "../nodes/port-hit-test";
 import type { ObstacleBox } from "./obstacles";
 import {
+  type Direction,
+  type Point,
   pointsToSegments,
   routeBlocked,
   routeOrtho,
   routeOverlap,
-  type Direction,
-  type Point,
 } from "./ortho-route";
 
 function isOrthogonal(points: Point[]): boolean {

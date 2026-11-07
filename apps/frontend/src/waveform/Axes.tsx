@@ -19,6 +19,7 @@ import {
   makePanAwareMousedown,
   overlayPx,
   spinesChanged,
+  valueExtents,
   xAxisDomain,
 } from "./axes-config";
 import type { SpineSpec } from "./axes-config";
@@ -115,6 +116,8 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
   const propagateZoom = useWaveformStore((s) => s.propagateZoom);
   const setAxesZoom = useWaveformStore((s) => s.setAxesZoom);
   const setAxesYZoom = useWaveformStore((s) => s.setAxesYZoom);
+  const setAxesCollapsed = useWaveformStore((s) => s.setAxesCollapsed);
+  const deleteAxes = useWaveformStore((s) => s.deleteAxes);
   const addSignalToAxes = useWaveformStore((s) => s.addSignalToAxes);
   // FE-167: maximize/restore this axes to fill its figure.
   const maximizedAxesId = useWaveformStore((s) =>
@@ -703,10 +706,30 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
     setMaximizedAxes(axesEntry.figureId, isMaximized ? null : axesId);
   }
 
+  const isCollapsed = axesEntry?.collapsed === true;
+
+  // The same two fits the main toolbar performs on the active axes, bound
+  // here to this axes so they need no selection first.
+  function handleFitX() {
+    const refs = axesEntry?.signals ?? [];
+    const ext = dataExtents(refs, signalCache);
+    if (ext) setAxesZoom(axesId, ext[0], ext[1]);
+  }
+
+  function handleFitY() {
+    const refs = axesEntry?.signals ?? [];
+    // Within the visible x-window, not the whole run: fitting a zoomed-in
+    // region to the full run's extremes is not a fit of what is on screen.
+    const ext = valueExtents(refs, signalCache, axesEntry?.xMin, axesEntry?.xMax);
+    if (ext) setAxesYZoom(axesId, ext[0], ext[1]);
+  }
+
   return (
     <>
       <div
-        className={`axes-container${isTarget ? " axes-container--target" : ""}`}
+        className={`axes-container${isTarget ? " axes-container--target" : ""}${
+          isCollapsed ? " axes-container--collapsed" : ""
+        }`}
         data-axes-id={axesId}
         // Clicking an axes points the signal browser's checkboxes at it, so
         // "tick a signal to plot it here" needs no extra step.
@@ -757,6 +780,47 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
               </select>
             </label>
           )}
+          {/* Fit, minimize and close, in that order — the two that change
+              what you see, then the two that change whether you see it.
+              Fit was previously only on the main toolbar, acting on the
+              active axes, so fitting a particular plot meant selecting it
+              first. On a figure of six that is five clicks of ceremony. */}
+          <button
+            type="button"
+            className="axes-header__btn"
+            aria-label="Fit time axis to data"
+            title="Fit horizontally to the data"
+            onClick={handleFitX}
+          >
+            ↔
+          </button>
+          <button
+            type="button"
+            className="axes-header__btn"
+            aria-label="Fit value axis to data"
+            title="Fit vertically to the data in view"
+            onClick={handleFitY}
+          >
+            ↕
+          </button>
+          <button
+            type="button"
+            className="axes-header__btn"
+            aria-label={isCollapsed ? "Restore axes" : "Minimize axes"}
+            title={isCollapsed ? "Restore axes" : "Minimize to its header"}
+            onClick={() => setAxesCollapsed(axesId, !isCollapsed)}
+          >
+            {isCollapsed ? "▸" : "—"}
+          </button>
+          <button
+            type="button"
+            className="axes-header__btn axes-header__btn--close"
+            aria-label="Close axes"
+            title="Remove this axes from the figure"
+            onClick={() => deleteAxes(axesId)}
+          >
+            ×
+          </button>
           <button
             type="button"
             className="axes-header__maximize"

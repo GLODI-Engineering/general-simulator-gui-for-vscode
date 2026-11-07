@@ -23,7 +23,9 @@ export function getBlockBoundingBox(
   const baseBbox: [number, number] =
     block.type === "routing.junction"
       ? [1, 1]
-      : (metadata ? resolveBlockBbox(metadata, block.params) : [96, 48]);
+      : metadata
+        ? resolveBlockBbox(metadata, block.params)
+        : [96, 48];
   const rotated = block.rotation === 90 || block.rotation === 270;
   const width = (rotated ? baseBbox[1] : baseBbox[0]) * SYMBOL_SCALE;
   const height = (rotated ? baseBbox[0] : baseBbox[1]) * SYMBOL_SCALE;

@@ -4,6 +4,7 @@ import { useWaveformStore } from "../store/waveform";
 import { FigureSettingsPanel } from "./FigureSettingsPanel";
 import { FigureTab } from "./FigureTab";
 import { GridLayout } from "./GridLayout";
+import { dataExtents, valueExtents } from "./axes-config";
 
 const DEFAULT_ROWS = 1;
 const DEFAULT_COLS = 1;
@@ -70,6 +71,32 @@ export function FigureManager() {
     setSettingsFigureId(null);
   }
 
+  /**
+   * Fit one direction across every axes in the figure.
+   *
+   * Reads the store directly rather than through subscriptions: this runs on
+   * a click, and what matters is the state at that moment. Coupling groups
+   * need no special handling — `setAxesZoom`/`setAxesYZoom` already
+   * propagate to a group's members, so fitting each axes in turn converges
+   * rather than fighting itself.
+   */
+  function fitAll(axis: "x" | "y") {
+    const state = useWaveformStore.getState();
+    const figure = activeFigureId ? state.figures.get(activeFigureId) : undefined;
+    if (!figure) return;
+    for (const axesId of figure.axesIds) {
+      const entry = state.axes.get(axesId);
+      if (!entry) continue;
+      if (axis === "x") {
+        const ext = dataExtents(entry.signals, state.signalCache);
+        if (ext) state.setAxesZoom(axesId, ext[0], ext[1]);
+      } else {
+        const ext = valueExtents(entry.signals, state.signalCache, entry.xMin, entry.xMax);
+        if (ext) state.setAxesYZoom(axesId, ext[0], ext[1]);
+      }
+    }
+  }
+
   return (
     <div
       className="figure-manager"
@@ -103,6 +130,33 @@ export function FigureManager() {
         >
           + New Figure
         </button>
+        {/* Fit every axes in the figure at once. Separate horizontal and
+            vertical, because fitting time when the value range is already
+            right — or the reverse — is the common case, and one button that
+            resets both throws away half of what was set up. */}
+        {activeFigure && (
+          <button
+            type="button"
+            className="figure-manager__settings-btn"
+            onClick={() => fitAll("x")}
+            title="Fit every axes in this figure horizontally"
+            aria-label="Fit all axes horizontally"
+            style={{ marginLeft: "auto" }}
+          >
+            ↔ all
+          </button>
+        )}
+        {activeFigure && (
+          <button
+            type="button"
+            className="figure-manager__settings-btn"
+            onClick={() => fitAll("y")}
+            title="Fit every axes in this figure vertically"
+            aria-label="Fit all axes vertically"
+          >
+            ↕ all
+          </button>
+        )}
         {activeFigure && (
           <button
             type="button"
@@ -110,7 +164,6 @@ export function FigureManager() {
             onClick={() => setSettingsFigureId(activeFigureId)}
             title="Figure grid settings"
             aria-label="Figure grid settings"
-            style={{ marginLeft: "auto" }}
           >
             ⚙
           </button>

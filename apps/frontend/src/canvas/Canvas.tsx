@@ -25,11 +25,11 @@ import { CanvasOverlay, ProbeOverlay } from "./CanvasOverlay";
 import { ContextMenu } from "./ContextMenu";
 import { type FlowBlockData, deriveFlowEdges, deriveFlowNodes } from "./derive-flow-state";
 import { resolveDroppedBlock, screenToModelCoords, setActiveDragBlock } from "./dnd";
-import { schematicBounds } from "./fit-bounds";
 import WireEdge from "./edges/WireEdge";
 import { computeHops } from "./edges/hops";
 import { type Junction, computeJunctions } from "./edges/junctions";
 import { applySegDrag } from "./edges/segment-drag";
+import { schematicBounds } from "./fit-bounds";
 import { GridLayer } from "./grid/GridLayer";
 import {
   activeModelFromStore,
@@ -37,7 +37,7 @@ import {
   mutateActiveModelFromStore,
 } from "./model-mutation";
 import BlockNode from "./nodes/BlockNode";
-import { getMetadataPortCenters, SYMBOL_SCALE } from "./nodes/port-hit-test";
+import { SYMBOL_SCALE, getMetadataPortCenters } from "./nodes/port-hit-test";
 import { resolveBlockBbox, resolveBlockPorts } from "./nodes/resolve-ports";
 import { canConnect } from "./port-compat";
 import { readProbes, removeProbe } from "./probes";

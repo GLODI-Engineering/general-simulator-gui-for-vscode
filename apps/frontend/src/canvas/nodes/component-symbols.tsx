@@ -2,8 +2,8 @@ import type { ReactNode, SVGProps } from "react";
 import type { ParamValue } from "../../model/types";
 import { WIRE_STROKE } from "../edges/WireEdge";
 import { SYMBOL_SCALE } from "./port-hit-test";
-import PmosSvg from "./symbols/spice-primitive-P-MOS.drawio.svg?react";
 import { findDrawing } from "./symbols/registry";
+import PmosSvg from "./symbols/spice-primitive-P-MOS.drawio.svg?react";
 
 const STROKE = "#0f172a";
 const FILL = "#ffffff";

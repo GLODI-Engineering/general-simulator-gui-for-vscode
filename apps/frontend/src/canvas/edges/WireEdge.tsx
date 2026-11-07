@@ -12,7 +12,6 @@ import {
   buildWirePoints,
   isOrthogonalPolyline,
   snapNearOrthogonal,
-  wireSvgPath,
   wireSvgPathWithHops,
 } from "./wire-path";
 
