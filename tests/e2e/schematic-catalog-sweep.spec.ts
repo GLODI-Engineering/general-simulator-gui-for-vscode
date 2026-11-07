@@ -16,9 +16,9 @@
  *   SWEEP_FILTER=converter npx playwright test ...                   # one family
  */
 
-import { expect, test } from "./fixtures/build";
-import { SchematicPage } from "./actions/schematic";
 import { allComponents } from "./actions/catalog";
+import { SchematicPage } from "./actions/schematic";
+import { expect, test } from "./fixtures/build";
 
 const LIMIT = Number(process.env.SWEEP_LIMIT ?? "0");
 const FILTER = process.env.SWEEP_FILTER ?? "";
@@ -55,9 +55,7 @@ test.describe("catalog sweep", () => {
         await sheet.clearSheet();
         const block = await sheet.insertType(component.type);
 
-        const nodeBox = await sheet.canvas
-          .locator(`[data-block-id="${block.id}"]`)
-          .boundingBox();
+        const nodeBox = await sheet.canvas.locator(`[data-block-id="${block.id}"]`).boundingBox();
         if (!nodeBox || nodeBox.width < 4 || nodeBox.height < 4) {
           failures.push({ type: component.type, problem: "symbol has no visible area" });
           continue;

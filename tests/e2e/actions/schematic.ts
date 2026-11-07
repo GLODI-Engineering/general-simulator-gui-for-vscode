@@ -581,9 +581,7 @@ export class SchematicPage {
       const out: Record<string, string> = {};
       for (const field of document.querySelectorAll(".inspector-field")) {
         const label = field.querySelector("span")?.textContent?.trim();
-        const input = field.querySelector<HTMLInputElement | HTMLSelectElement>(
-          "input, select",
-        );
+        const input = field.querySelector<HTMLInputElement | HTMLSelectElement>("input, select");
         if (label) out[label] = input?.value ?? "";
       }
       return out;

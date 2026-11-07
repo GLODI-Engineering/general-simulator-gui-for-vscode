@@ -268,6 +268,36 @@ suite("General Simulator — VS Code integration", () => {
       assert.equal(schematic, "passive.capacitor");
     });
 
+    /**
+     * The gesture a hand makes: press on a toolbar component, drag onto the
+     * sheet, release — all inside the schematic webview. Reported broken
+     * after #3 was fixed and shipped, so it is pinned here, in real VS Code,
+     * rather than only in a browser where it already passed.
+     */
+    test("dragging a component out of the toolbar drops it on the sheet", async () => {
+      const startCount = await api.probe<number>("schematic", "blockCount");
+      const drag = await api.probe<{
+        inserted: number;
+        lastBlockType: string | null;
+        draggableAttr: string | null;
+        draggedAfterStart: string | null;
+      }>("schematic", "dispatchToolbarDrag");
+
+      assert.equal(
+        drag.draggableAttr,
+        "true",
+        "the toolbar button must offer a drag at all — if this fails the build predates #3",
+      );
+      assert.ok(
+        drag.draggedAfterStart,
+        "dragstart must record which block is in flight, or the drop has nothing to resolve",
+      );
+      assert.equal(drag.inserted, 1, "the drop must insert exactly one block");
+
+      const endCount = await api.probe<number>("schematic", "blockCount");
+      assert.equal(endCount, startCount + 1, "the graph store really grew");
+    });
+
     test("dropping on the real canvas inserts the host-brokered block", async () => {
       const startCount = await api.probe<number>("schematic", "blockCount");
 

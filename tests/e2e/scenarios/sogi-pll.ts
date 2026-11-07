@@ -91,8 +91,25 @@ export async function placeSogiPll(sheet: SchematicPage): Promise<SogiPll> {
   const dth = await sheet.add(DELAY, 0.86, 0.95);
 
   return {
-    vin, e1, ksogi, e2, mulA, intA, da, mulB, intB, db,
-    zero, park, gkp, gki, inti, wnom, wsum, intTh, dth,
+    vin,
+    e1,
+    ksogi,
+    e2,
+    mulA,
+    intA,
+    da,
+    mulB,
+    intB,
+    db,
+    zero,
+    park,
+    gkp,
+    gki,
+    inti,
+    wnom,
+    wsum,
+    intTh,
+    dth,
   };
 }
 
@@ -105,18 +122,42 @@ export async function placeSogiPll(sheet: SchematicPage): Promise<SogiPll> {
  */
 export async function wireSogiPll(sheet: SchematicPage, b: SogiPll): Promise<void> {
   sheet.probe.trace.note("wiring the SOGI");
-  await sheet.wire({ block: b.vin, port: "out" }, { block: b.e1, port: await sheet.inputPort(b.e1, 0) });
+  await sheet.wire(
+    { block: b.vin, port: "out" },
+    { block: b.e1, port: await sheet.inputPort(b.e1, 0) },
+  );
   await sheet.wire({ block: b.intA, port: "out" }, { block: b.da, port: "in" });
-  await sheet.wire({ block: b.da, port: "out" }, { block: b.e1, port: await sheet.inputPort(b.e1, 1) });
+  await sheet.wire(
+    { block: b.da, port: "out" },
+    { block: b.e1, port: await sheet.inputPort(b.e1, 1) },
+  );
   await sheet.wire({ block: b.e1, port: "out" }, { block: b.ksogi, port: "in" });
-  await sheet.wire({ block: b.ksogi, port: "out" }, { block: b.e2, port: await sheet.inputPort(b.e2, 0) });
+  await sheet.wire(
+    { block: b.ksogi, port: "out" },
+    { block: b.e2, port: await sheet.inputPort(b.e2, 0) },
+  );
   await sheet.wire({ block: b.intB, port: "out" }, { block: b.db, port: "in" });
-  await sheet.wire({ block: b.db, port: "out" }, { block: b.e2, port: await sheet.inputPort(b.e2, 1) });
-  await sheet.wire({ block: b.e2, port: "out" }, { block: b.mulA, port: await sheet.inputPort(b.mulA, 0) });
-  await sheet.wire({ block: b.wsum, port: "out" }, { block: b.mulA, port: await sheet.inputPort(b.mulA, 1) });
+  await sheet.wire(
+    { block: b.db, port: "out" },
+    { block: b.e2, port: await sheet.inputPort(b.e2, 1) },
+  );
+  await sheet.wire(
+    { block: b.e2, port: "out" },
+    { block: b.mulA, port: await sheet.inputPort(b.mulA, 0) },
+  );
+  await sheet.wire(
+    { block: b.wsum, port: "out" },
+    { block: b.mulA, port: await sheet.inputPort(b.mulA, 1) },
+  );
   await sheet.wire({ block: b.mulA, port: "out" }, { block: b.intA, port: "in" });
-  await sheet.wire({ block: b.da, port: "out" }, { block: b.mulB, port: await sheet.inputPort(b.mulB, 0) });
-  await sheet.wire({ block: b.wsum, port: "out" }, { block: b.mulB, port: await sheet.inputPort(b.mulB, 1) });
+  await sheet.wire(
+    { block: b.da, port: "out" },
+    { block: b.mulB, port: await sheet.inputPort(b.mulB, 0) },
+  );
+  await sheet.wire(
+    { block: b.wsum, port: "out" },
+    { block: b.mulB, port: await sheet.inputPort(b.mulB, 1) },
+  );
   await sheet.wire({ block: b.mulB, port: "out" }, { block: b.intB, port: "in" });
 
   sheet.probe.trace.note("wiring the Park transform, on the delayed states");
@@ -130,9 +171,18 @@ export async function wireSogiPll(sheet: SchematicPage, b: SogiPll): Promise<voi
   await sheet.wire({ block: b.park, port: "q" }, { block: b.gkp, port: "in" });
   await sheet.wire({ block: b.park, port: "q" }, { block: b.gki, port: "in" });
   await sheet.wire({ block: b.gki, port: "out" }, { block: b.inti, port: "in" });
-  await sheet.wire({ block: b.gkp, port: "out" }, { block: b.wsum, port: await sheet.inputPort(b.wsum, 0) });
-  await sheet.wire({ block: b.inti, port: "out" }, { block: b.wsum, port: await sheet.inputPort(b.wsum, 1) });
-  await sheet.wire({ block: b.wnom, port: "out" }, { block: b.wsum, port: await sheet.inputPort(b.wsum, 2) });
+  await sheet.wire(
+    { block: b.gkp, port: "out" },
+    { block: b.wsum, port: await sheet.inputPort(b.wsum, 0) },
+  );
+  await sheet.wire(
+    { block: b.inti, port: "out" },
+    { block: b.wsum, port: await sheet.inputPort(b.wsum, 1) },
+  );
+  await sheet.wire(
+    { block: b.wnom, port: "out" },
+    { block: b.wsum, port: await sheet.inputPort(b.wsum, 2) },
+  );
   await sheet.wire({ block: b.wsum, port: "out" }, { block: b.intTh, port: "in" });
 }
 
