@@ -179,10 +179,10 @@ export function bridgingComponents(): ComponentSpec[] {
 export function paramLabel(type: string, name: string): string {
   const param = componentByType(type).params.find((p) => p.name === name);
   if (!param) {
-    const available = componentByType(type).params.map((p) => p.name).join(", ");
-    throw new Error(
-      `"${type}" has no parameter "${name}". It has: ${available || "(none)"}`,
-    );
+    const available = componentByType(type)
+      .params.map((p) => p.name)
+      .join(", ");
+    throw new Error(`"${type}" has no parameter "${name}". It has: ${available || "(none)"}`);
   }
   return param.label;
 }

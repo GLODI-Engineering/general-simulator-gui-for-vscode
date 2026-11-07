@@ -98,7 +98,10 @@ export async function loadSymbols(workspace: vscode.Uri): Promise<LoadedSymbols>
       }
       metadata.push(parsed);
     } catch (error) {
-      failures.push({ file: fileName, reason: error instanceof Error ? error.message : String(error) });
+      failures.push({
+        file: fileName,
+        reason: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 

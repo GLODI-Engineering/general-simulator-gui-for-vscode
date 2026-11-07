@@ -8,15 +8,9 @@
   "engines": {
     "vscode": "^1.90.0"
   },
-  "categories": [
-    "Visualization",
-    "Data Science",
-    "Other"
-  ],
+  "categories": ["Visualization", "Data Science", "Other"],
   "main": "./out/extension.js",
-  "activationEvents": [
-    "onStartupFinished"
-  ],
+  "activationEvents": ["onStartupFinished"],
   "contributes": {
     "viewsContainers": {
       "activitybar": [

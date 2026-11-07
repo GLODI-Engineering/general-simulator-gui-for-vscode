@@ -27,18 +27,18 @@ import * as vscode from "vscode";
 
 import { KernelSidecar } from "./kernel";
 import {
+  type HostBoundMessage,
+  type WebviewBoundMessage,
+  type WebviewRole,
+  isHostBoundMessage,
+} from "./protocol";
+import {
   SYMBOLS_DIR,
   SymbolLibraryError,
   loadSymbols,
   saveSymbol,
   symbolWorkspace,
 } from "./symbolLibrary";
-import {
-  type HostBoundMessage,
-  type WebviewBoundMessage,
-  type WebviewRole,
-  isHostBoundMessage,
-} from "./protocol";
 
 interface RegisteredWebview {
   role: WebviewRole;
@@ -174,9 +174,7 @@ export class GsimHost implements vscode.Disposable {
     for (const failure of failures) {
       // Reported, never silently skipped: a component that vanishes with no
       // explanation is worse than one that is visibly broken.
-      this.log.appendLine(
-        `[symbols] ignoring ${SYMBOLS_DIR}/${failure.file}: ${failure.reason}`,
-      );
+      this.log.appendLine(`[symbols] ignoring ${SYMBOLS_DIR}/${failure.file}: ${failure.reason}`);
     }
     if (failures.length > 0) {
       void vscode.window.showWarningMessage(
