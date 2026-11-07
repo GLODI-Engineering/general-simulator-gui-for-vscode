@@ -75,6 +75,16 @@ export interface Axes {
    * output rail (mean, ripple).
    */
   measurements?: MeasurementKey[];
+  /**
+   * Which signals the measurement table covers, as `simId::signalName` keys.
+   *
+   * Absent means none, and that is deliberate: measuring every trace the
+   * moment a measurement is ticked does work nobody asked for. On an axes
+   * carrying eight traces it also buries the one number being looked for in
+   * seven others. The choice of *what to measure* is as much the user's as
+   * the choice of which measurement.
+   */
+  measuredSignals?: string[];
 }
 
 export interface CouplingGroup {
