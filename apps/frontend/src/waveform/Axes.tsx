@@ -114,6 +114,7 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
   const assignAxesToGroup = useWaveformStore((s) => s.assignAxesToGroup);
   const propagateZoom = useWaveformStore((s) => s.propagateZoom);
   const setAxesZoom = useWaveformStore((s) => s.setAxesZoom);
+  const setAxesYZoom = useWaveformStore((s) => s.setAxesYZoom);
   const addSignalToAxes = useWaveformStore((s) => s.addSignalToAxes);
   // FE-167: maximize/restore this axes to fill its figure.
   const maximizedAxesId = useWaveformStore((s) =>
@@ -381,6 +382,14 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
       // FE-163: when panMode is on, dragging translates the visible window
       // instead of uPlot's default box-zoom.
       cursor: {
+        // uPlot's default drag is `{ x: true, y: false }`, so a box drag only
+        // ever zoomed time: pulling a box vertically did nothing at all. The
+        // store has carried `setAxesYZoom` and the `setScale` hook below has
+        // persisted yMin/yMax the whole time — the gesture was the only piece
+        // missing. `uni` keeps the common gestures unsurprising: a mostly
+        // horizontal drag zooms time alone, a mostly vertical one zooms value
+        // alone, and a deliberate box zooms both.
+        drag: { x: true, y: true, uni: 30 },
         bind: {
           mousedown: makePanAwareMousedown(
             () => axesEntryRef.current?.panMode,
@@ -440,6 +449,25 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
               (e: WheelEvent) => {
                 e.preventDefault();
                 const rect = u.over.getBoundingClientRect();
+                const factorY = e.deltaY < 0 ? 0.85 : 1 / 0.85;
+
+                // Shift+wheel zooms the value axis. Without it the wheel only
+                // ever zoomed time, so a trace too small to read vertically
+                // could not be magnified at all — the axis is not clamped to
+                // the data extent the way time is, because magnifying past the
+                // data is exactly the point when you are inspecting a flat
+                // region or ringing on a rail.
+                if (e.shiftKey) {
+                  const yKey = spinesRef.current[0]?.scaleKey ?? "y";
+                  const at = u.posToVal(e.clientY - rect.top, yKey);
+                  const lo = u.scales[yKey]?.min ?? 0;
+                  const hi = u.scales[yKey]?.max ?? 1;
+                  const nextMin = at - (at - lo) * factorY;
+                  const nextMax = at + (hi - at) * factorY;
+                  if (nextMax > nextMin) setAxesYZoom(axesId, nextMin, nextMax);
+                  return;
+                }
+
                 const cursorVal = u.posToVal(e.clientX - rect.left, "x");
                 const curMin = u.scales.x?.min ?? 0;
                 const curMax = u.scales.x?.max ?? 1;
@@ -502,6 +530,7 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
     axesId,
     propagateZoom,
     setAxesZoom,
+    setAxesYZoom,
     bodeMode,
     xDomain,
     bodeMargins,
