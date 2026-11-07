@@ -14,9 +14,17 @@ ports:
       kind: { domain: physical-electrical }
       side: top
       offset: 30
+    # physical-electrical, not signal. A gate is a *voltage* here: the engine
+    # requires it be driven by a `sig2phys domain=voltage` converter and
+    # compares V_GS against v_th, and dae-runtime says so in as many words --
+    # "an ideal switch's gate is itself a voltage, so it shares the same
+    # Signal-to-PS boundary a V-source's own magnitude uses". Declared as
+    # `signal` it disagreed with `converter.sig2phys`, whose `out` is
+    # physical-electrical, so the wire between them was drawn black into a
+    # blue port: a visible domain mismatch on every gated device on the sheet.
     - id: g
       label: "gate"
-      kind: { domain: signal, dims: scalar }
+      kind: { domain: physical-electrical }
       side: left
       offset: 30
   outputs:

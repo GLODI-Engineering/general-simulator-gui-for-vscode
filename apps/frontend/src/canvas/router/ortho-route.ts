@@ -1,6 +1,21 @@
 /**
  * FE-98: Orthogonal auto-router with obstacle avoidance.
  *
+ * It also avoids lying on top of wires that are already routed. Obstacles stop
+ * a wire running *through* a component; `occupied` stops two wires being drawn
+ * as one stroke. The distinction that matters is parallel-and-collinear, not
+ * "wires meet":
+ *
+ * - a vertical segment crossing a horizontal one is an ordinary crossing and is
+ *   fine; schematics are full of them, and a bare crossing already means "not
+ *   connected" by the junction rules;
+ * - two parallel segments sharing a line and overlapping along it is not fine,
+ *   because the two wires become one stroke and no reader can separate them.
+ *
+ * Overlap between wires of the *same net* is left alone: that is one conductor
+ * drawn as a trunk with branches, and pushing those apart would make one node
+ * look like two.
+ *
  * Pure, DOM-free. Ported from the reference editor `schematic_editor.html`
  * (routeOrtho / detour / routeBlocked / segCrossesBox / simplifyPts).
  *
@@ -12,6 +27,83 @@
 import type { ObstacleBox } from "./obstacles";
 
 export const GRID = 20;
+
+/** An axis-aligned run already taken by another wire. */
+export interface RouteSegment {
+  axis: "h" | "v";
+  at: number;
+  lo: number;
+  hi: number;
+  /** Wires sharing a net may overlap freely; only cross-net overlap counts. */
+  net?: string | number;
+}
+
+/** Two parallel runs count as the same line within this distance. */
+const COLLINEAR_TOLERANCE = 1.5;
+/**
+ * How many alternative rails to try, in grid steps either side.
+ *
+ * Wide rather than narrow on purpose. Blocks that feed the same destination
+ * are usually in a column, so their outputs share an x and every wire leaving
+ * them wants the same rail; the nearby lanes are then taken by the very wires
+ * being separated, or blocked by the column itself. A search that gives up
+ * after a few steps finds nothing and the wires stack. The candidates are
+ * cheap to score, and a lane is only taken when it beats what is already
+ * there.
+ */
+const LANES = 16;
+/** A route that runs through a component body. Unreadable; always last. */
+const PENALTY_BLOCKED = 1e6;
+/** A route that leaves or meets a port along the wrong axis. */
+const PENALTY_FACING = 1e3;
+
+/** The axis-aligned runs of a polyline. Zero-length runs are dropped. */
+export function pointsToSegments(pts: Point[], net?: string | number): RouteSegment[] {
+  const segs: RouteSegment[] = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i];
+    const b = pts[i + 1];
+    if (!a || !b) continue;
+    if (a[1] === b[1]) {
+      segs.push({ axis: "h", at: a[1], lo: Math.min(a[0], b[0]), hi: Math.max(a[0], b[0]), net });
+    } else if (a[0] === b[0]) {
+      segs.push({ axis: "v", at: a[0], lo: Math.min(a[1], b[1]), hi: Math.max(a[1], b[1]), net });
+    }
+  }
+  return segs.filter((s) => s.hi - s.lo > 0);
+}
+
+/**
+ * Length this route shares, collinearly, with runs already drawn.
+ *
+ * Overlap with a *different* net counts in full: the two wires become one
+ * stroke. Overlap within the same net counts at `sameNetWeight`, which is zero
+ * by default. It is not zero in practice, because a branch that runs along
+ * another branch of its own net and peels off halfway puts a junction dot in
+ * the middle of a plain run, where a reader cannot tell it from a crossing.
+ * The node is real, so the dot is not wrong -- it is just in a place that has
+ * to be puzzled out. Giving same-net sharing a smaller, non-zero cost makes
+ * branches leave from the port itself, which puts the dot where a reader
+ * already expects one, without ever outweighing a genuine cross-net overlap.
+ */
+export function routeOverlap(
+  pts: Point[],
+  occupied: RouteSegment[],
+  net?: string | number,
+  sameNetWeight = 0,
+): number {
+  let total = 0;
+  for (const seg of pointsToSegments(pts, net)) {
+    for (const other of occupied) {
+      if (seg.axis !== other.axis) continue;
+      if (Math.abs(seg.at - other.at) > COLLINEAR_TOLERANCE) continue;
+      const shared = Math.max(0, Math.min(seg.hi, other.hi) - Math.max(seg.lo, other.lo));
+      const sameNet = net !== undefined && other.net !== undefined && other.net === net;
+      total += sameNet ? shared * sameNetWeight : shared;
+    }
+  }
+  return total;
+}
 
 export type Point = [number, number];
 export type Direction = "h" | "v" | null;
@@ -212,7 +304,11 @@ export function routeOrtho(
   prevDir: Direction,
   obs: ObstacleBox[],
   nextDir: Direction = null,
+  opts: { occupied?: RouteSegment[]; net?: string | number; sameNetWeight?: number } = {},
 ): Point[] {
+  const occupied = opts.occupied ?? [];
+  const net = opts.net;
+  const sameNetWeight = opts.sameNetWeight ?? 0;
   if (x1 === x2 || y1 === y2) {
     const r: Point[] = [
       [x1, y1],
@@ -266,14 +362,128 @@ export function routeOrtho(
   } else {
     cands = [vFirst, hFirst];
   }
-  for (const c of cands) {
-    if (!routeBlocked(c, obs)) {
-      return simplifyPts(c);
+  // Back-out candidates: step *away* from the target first, along the axis the
+  // port faces, then cross and come back. Without these the only routes that
+  // exist head straight for the target, so a port facing away from it had no
+  // legal way out and the router either cut through the body behind it or gave
+  // up the port's facing. Both directions along the axis are offered and the
+  // scoring picks; an unblocked direct route is still found first and wins on
+  // a zero score, so nothing moves unless the direct way is actually bad.
+  for (let k = 1; k <= LANES; k++) {
+    for (const sign of [-1, 1]) {
+      if (prevDir === "h") {
+        const bx = x1 + sign * k * GRID;
+        cands.push([
+          [x1, y1],
+          [bx, y1],
+          [bx, y2],
+          [x2, y2],
+        ]);
+      } else if (prevDir === "v") {
+        const by = y1 + sign * k * GRID;
+        cands.push([
+          [x1, y1],
+          [x1, by],
+          [x2, by],
+          [x2, y2],
+        ]);
+      }
+      if (nextDir === "h") {
+        const bx = x2 + sign * k * GRID;
+        cands.push([
+          [x1, y1],
+          [x1, y2],
+          [bx, y2],
+          [x2, y2],
+        ]);
+      } else if (nextDir === "v") {
+        const by = y2 + sign * k * GRID;
+        cands.push([
+          [x1, y1],
+          [x2, y1],
+          [x2, by],
+          [x2, y2],
+        ]);
+      }
     }
   }
-  const fallback = cands[0] ?? [
-    [x1, y1],
-    [x2, y2],
-  ];
-  return detour(x1, y1, x2, y2, obs) ?? fallback;
+
+  // With nothing occupied this reduces exactly to "first candidate that is not
+  // blocked", which is what it did before: an unblocked first candidate scores
+  // zero and nothing can beat it. The extra rails only come into play when the
+  // obvious lane is already taken by another wire.
+  if (occupied.length > 0) {
+    // The step scales with the gap being crossed, instead of always being one
+    // grid square. A fixed step searches a few dozen units either side of the
+    // mid-rail, which is nothing when the two ends are a couple of thousand
+    // apart: every lane it tries is inside the same congested strip as the
+    // rail it is trying to leave, so it finds nothing and the wires stack.
+    // Scaling makes the search cover the whole corridor, and `snap` keeps
+    // every lane on the grid.
+    const laneX = Math.max(GRID, snap(Math.abs(x2 - x1) / LANES));
+    const laneY = Math.max(GRID, snap(Math.abs(y2 - y1) / LANES));
+    for (let k = 1; k <= LANES; k++) {
+      for (const sign of [1, -1]) {
+        const ox = mx + sign * k * laneX;
+        const oy = my + sign * k * laneY;
+        cands.push([
+          [x1, y1],
+          [ox, y1],
+          [ox, y2],
+          [x2, y2],
+        ]);
+        cands.push([
+          [x1, y1],
+          [x1, oy],
+          [x2, oy],
+          [x2, y2],
+        ]);
+      }
+    }
+  }
+
+  // The axis a polyline's first (or last) segment runs along, ignoring the
+  // zero-length segments `simplifyPts` would drop.
+  const endAxis = (pts: Point[], which: "first" | "last"): Direction => {
+    const ordered = which === "first" ? pts : [...pts].reverse();
+    for (let i = 0; i < ordered.length - 1; i++) {
+      const a = ordered[i];
+      const b = ordered[i + 1];
+      if (!a || !b) continue;
+      if (a[0] !== b[0]) return "h";
+      if (a[1] !== b[1]) return "v";
+    }
+    return null;
+  };
+
+  let best: Point[] | null = null;
+  let bestScore = Number.POSITIVE_INFINITY;
+  for (const c of cands) {
+    // Three faults, ranked. Running through a component is the worst: it is
+    // simply unreadable. Leaving a port along the wrong axis is next -- it is
+    // the reason the back-out candidates exist, and without a cost attached
+    // an ordinary turn-immediately route would always be found first and win.
+    // Sharing a line with another wire is last, and costs what it shares.
+    const facing =
+      (prevDir && endAxis(c, "first") !== prevDir ? PENALTY_FACING : 0) +
+      (nextDir && endAxis(c, "last") !== nextDir ? PENALTY_FACING : 0);
+    const score =
+      (routeBlocked(c, obs) ? PENALTY_BLOCKED : 0) +
+      facing +
+      routeOverlap(c, occupied, net, sameNetWeight);
+    if (score < bestScore) {
+      bestScore = score;
+      best = c;
+      if (score === 0) break;
+    }
+  }
+  if (best && bestScore < PENALTY_BLOCKED) {
+    return simplifyPts(best);
+  }
+  const fallback = best ??
+    cands[0] ?? [
+      [x1, y1],
+      [x2, y2],
+    ];
+  return detour(x1, y1, x2, y2, obs) ?? simplifyPts(fallback);
 }

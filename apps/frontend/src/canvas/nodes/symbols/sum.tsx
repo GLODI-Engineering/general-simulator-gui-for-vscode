@@ -10,8 +10,8 @@ import {
   FILL,
   STROKE,
   SW,
-  SymbolLabel,
   type SymbolDrawing,
+  SymbolLabel,
 } from "../symbol-drawing";
 
 /**
@@ -23,8 +23,30 @@ import {
  */
 function signsOf(ctx: DrawContext): string[] {
   const raw = ctx.params.signs;
-  const text = typeof raw === "string" && raw.length > 0 ? raw : "+-";
-  return [...text].map((c) => (c === "-" ? "−" : "+"));
+  // Two spellings, because the catalogue and the compiler disagree about
+  // which one this parameter is. `metadata.yaml` declares it a string and
+  // defaults it to "++"; gsim-core's `Arity::ParamLen` reads it with
+  // `as_array`, so a document that compiles carries `[1, -1]`. Reading only
+  // the string form meant every sum on a compilable sheet fell back to the
+  // "+-" default: a three-input summing junction drew two inputs, one of
+  // them negated, and nothing in the picture was true.
+  if (Array.isArray(raw)) {
+    return raw.map((value) => (Number(value) < 0 ? "−" : "+"));
+  }
+  if (typeof raw === "string" && raw.length > 0) {
+    // A comma-separated numeric string is the same list spelled the other
+    // way, and reading it as individual characters would give one port per
+    // digit and comma.
+    if (raw.includes(",")) {
+      return raw
+        .split(",")
+        .map((part) => part.trim())
+        .filter((part) => part.length > 0)
+        .map((part) => (Number(part) < 0 ? "−" : "+"));
+    }
+    return [...raw].map((c) => (c === "-" ? "−" : "+"));
+  }
+  return ["+", "−"];
 }
 
 /**

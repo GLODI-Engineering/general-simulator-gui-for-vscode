@@ -6,6 +6,7 @@ import { toAnalysisPayload } from "../simulation/SimSettings";
 import { useGraphStore, useIpcStore, useLibraryStore, useUiStore } from "../store";
 import { analysisToPayload } from "../store/model";
 import { useSimSettingsStore } from "../store/sim-settings";
+import { useToastStore } from "../store/toast";
 import { useWaveformStore } from "../store/waveform";
 
 // If the backend never answers a simulate request at all — hung solver
@@ -93,6 +94,12 @@ function buildAnalysisPayload(analysisId?: string): Record<string, unknown> {
  * hang or fail with a stale/confusing error. Returns false if the caller
  * should bail (reconnectKernel() already reported the specific failure).
  */
+/** True when the sheet holds at least one block for a netlist to describe. */
+export function hasAnythingToSimulate(): boolean {
+  const model = useGraphStore.getState().document.model;
+  return (model.blocks?.length ?? 0) > 0;
+}
+
 async function ensureKernelConnected(): Promise<boolean> {
   const status = useIpcStore.getState().status;
   if (status === "idle" || status === "busy" || status === "connecting") {
@@ -115,10 +122,36 @@ async function ensureKernelConnected(): Promise<boolean> {
 /**
  * Trigger a simulation run using the default analysis (or fall back to v1 settings).
  */
+/**
+ * Why a click must always answer.
+ *
+ * Run used to begin by connecting to the kernel and returning bare if that
+ * failed. The reason went to the Output panel, which is not necessarily
+ * open — so from the outside, clicking Run did nothing at all. An empty
+ * schematic was not checked anywhere, so that click did nothing either,
+ * and for a different reason the user had no way to tell apart.
+ *
+ * Both now say so where the click happened.
+ */
 export async function triggerRun(): Promise<void> {
-  if (!(await ensureKernelConnected())) return;
-
   const importedNetlist = useIpcStore.getState().importedNetlist;
+
+  // Checked before connecting: there is no point starting a kernel to
+  // simulate nothing, and "the schematic is empty" is a better answer than
+  // whatever a solver says about a netlist with no components in it.
+  if (!importedNetlist && !hasAnythingToSimulate()) {
+    useToastStore
+      .getState()
+      .pushToast("Nothing to simulate — the schematic is empty. Add a component first.");
+    return;
+  }
+
+  if (!(await ensureKernelConnected())) {
+    useToastStore
+      .getState()
+      .pushToast("Could not reach the simulation kernel. See the Output panel for why.");
+    return;
+  }
 
   if (!importedNetlist && hasValidationErrors()) {
     useUiStore.getState().focusBottomTab("core.problems");
@@ -246,7 +279,19 @@ export async function triggerRun(): Promise<void> {
  * The Run dropdown in TopBar uses this.
  */
 export async function triggerRunAnalysis(analysisId: string): Promise<void> {
-  if (!(await ensureKernelConnected())) return;
+  if (!useIpcStore.getState().importedNetlist && !hasAnythingToSimulate()) {
+    useToastStore
+      .getState()
+      .pushToast("Nothing to simulate — the schematic is empty. Add a component first.");
+    return;
+  }
+
+  if (!(await ensureKernelConnected())) {
+    useToastStore
+      .getState()
+      .pushToast("Could not reach the simulation kernel. See the Output panel for why.");
+    return;
+  }
 
   if (hasValidationErrors()) {
     useUiStore.getState().focusBottomTab("core.problems");
@@ -382,6 +427,11 @@ function _populateWaveformViewer(
 
   const store = useWaveformStore.getState();
   const simId = manifest.sim_id;
+
+  // Move the outgoing run into the history before its axes are repopulated.
+  // Its samples stay in the cache under their own sim id, so an axes set to
+  // show past runs can draw it behind the new one.
+  store.beginRun(simId);
 
   if (store.figures.size === 0 && manifest.signals.length === 0) return;
 

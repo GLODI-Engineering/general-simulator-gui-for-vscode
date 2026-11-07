@@ -12,7 +12,14 @@ import { describe, expect, it } from "vitest";
 
 import { sideToAxis } from "../nodes/port-hit-test";
 import type { ObstacleBox } from "./obstacles";
-import { type Direction, type Point, routeBlocked, routeOrtho } from "./ortho-route";
+import {
+  type Direction,
+  type Point,
+  pointsToSegments,
+  routeBlocked,
+  routeOrtho,
+  routeOverlap,
+} from "./ortho-route";
 
 function isOrthogonal(points: Point[]): boolean {
   for (let i = 0; i < points.length - 1; i += 1) {
@@ -180,5 +187,135 @@ describe("FE-20: wires leave a port along the port's facing direction", () => {
       ),
       { numRuns: 300 },
     );
+  });
+});
+
+/**
+ * Obstacles stop a wire running *through* a component. `occupied` stops two
+ * wires being drawn as one stroke. The distinction is parallel-and-collinear
+ * versus crossing: a schematic is full of crossings and they mean nothing, but
+ * two runs on the same line cannot be told apart.
+ */
+describe("overlap with wires already routed", () => {
+  it("counts nothing for a plain crossing", () => {
+    // Horizontal run crossed by a vertical one: they meet, they do not share.
+    const occupied = pointsToSegments([
+      [50, -50],
+      [50, 50],
+    ]);
+    expect(
+      routeOverlap(
+        [
+          [0, 0],
+          [100, 0],
+        ],
+        occupied,
+      ),
+    ).toBe(0);
+  });
+
+  it("counts the shared length of two collinear runs", () => {
+    const occupied = pointsToSegments([
+      [40, 0],
+      [140, 0],
+    ]);
+    expect(
+      routeOverlap(
+        [
+          [0, 0],
+          [100, 0],
+        ],
+        occupied,
+      ),
+    ).toBe(60);
+  });
+
+  it("ignores overlap between wires of the same net", () => {
+    const occupied = pointsToSegments(
+      [
+        [40, 0],
+        [140, 0],
+      ],
+      "n1",
+    );
+    expect(
+      routeOverlap(
+        [
+          [0, 0],
+          [100, 0],
+        ],
+        occupied,
+        "n1",
+      ),
+    ).toBe(0);
+    expect(
+      routeOverlap(
+        [
+          [0, 0],
+          [100, 0],
+        ],
+        occupied,
+        "n2",
+      ),
+    ).toBe(60);
+  });
+
+  it("routes onto a free lane when the obvious one is taken", () => {
+    const plain = routeOrtho(0, 0, 200, 100, null, []);
+    const occupied = pointsToSegments(plain, "other");
+    const dodged = routeOrtho(0, 0, 200, 100, null, [], null, { occupied, net: "mine" });
+    expect(routeOverlap(plain, occupied, "mine")).toBeGreaterThan(0);
+    expect(routeOverlap(dodged, occupied, "mine")).toBe(0);
+  });
+
+  it("leaves routing unchanged when nothing is occupied", () => {
+    // The default path must not move: an unblocked first candidate scores zero
+    // and nothing can beat it.
+    expect(routeOrtho(0, 0, 200, 100, null, [], null, { occupied: [] })).toEqual(
+      routeOrtho(0, 0, 200, 100, null, []),
+    );
+  });
+
+  it("prefers crossing a wire to running through a component", () => {
+    const box = { x: 80, y: -40, w: 60, h: 200 };
+    const occupied = pointsToSegments(
+      [
+        [0, 0],
+        [200, 0],
+      ],
+      "other",
+    );
+    const route = routeOrtho(0, 0, 200, 100, null, [box], null, { occupied, net: "mine" });
+    expect(routeBlocked(route, [box])).toBe(false);
+  });
+});
+
+/**
+ * A port faces a direction, and a wire that leaves it the other way has to go
+ * through the body behind it. The candidate set used to contain only routes
+ * heading straight for the target, so a port facing away from its target had
+ * no legal way out at all.
+ */
+describe("leaving a port along the way it faces", () => {
+  it("backs out and goes around rather than turning the wrong way", () => {
+    // A box sitting immediately right of the start: heading straight for the
+    // target crosses it, so the only route that keeps a horizontal first
+    // segment is one that steps left before climbing.
+    const box = { x: 0, y: -60, w: 120, h: 120 };
+    const route = routeOrtho(-20, 0, 400, 300, "h", [box]);
+    expect(routeBlocked(route, [box])).toBe(false);
+    const [a, b] = route;
+    expect(a?.[1]).toBe(b?.[1]);
+  });
+
+  it("gives up the facing rather than cut through a component", () => {
+    // Ranking matters: a wrong-way exit is ugly, a wire through a part is
+    // unreadable. If only one of the two can be had, keep the part clear.
+    const walls = [
+      { x: -200, y: -60, w: 400, h: 20 },
+      { x: -200, y: 40, w: 400, h: 20 },
+    ];
+    const route = routeOrtho(-20, 0, 400, 300, "v", walls);
+    expect(routeBlocked(route, walls)).toBe(false);
   });
 });

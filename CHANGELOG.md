@@ -1,5 +1,168 @@
 # Changelog
 
+## 2026-11-06 — Rows have a floor (0.3.3)
+
+### Fixed
+
+- **Three axes in a short editor were squashed to nothing.** Each row took
+  an equal share of whatever height was going, so three panes got about
+  70 px each and, after the header, legend and measurement strip, the chart
+  itself was a sliver. Rows now have a minimum height and the figure
+  scrolls past it — two readable plots you scroll between beat three
+  unreadable ones.
+
+---
+
+## 2026-11-06 — The viewer follows VS Code's theme (0.3.2)
+
+### Fixed
+
+- **A white chart inside a dark editor.** A webview is a separate document
+  and inherits none of the workbench's styling, so nothing told the viewer
+  which theme was active — it drew light regardless, a bright rectangle in
+  the middle of a dark window. VS Code marks the webview body with
+  `vscode-light` / `vscode-dark` / `vscode-high-contrast` and rewrites that
+  class when the theme changes without a reload, so the viewer now observes
+  it: right at boot, and on every switch afterwards. High contrast counts
+  as dark, except its light variant, which carries both classes and would
+  otherwise have read as dark.
+
+---
+
+## 2026-11-06 — Decimation that keeps the transient (0.3.1)
+
+### Fixed
+
+- **The chart kept one signal's peaks and lost the rest.** The reduction
+  chose its min/max indices from the *first* signal on an axes and reused
+  them for every other series, so peak preservation depended on the order
+  signals were added: a switch node plotted first kept its overshoot,
+  plotted second it did not, and nothing on screen said so. Replaced with a
+  shared-grid min/max envelope — the time axis is bucketed so every signal
+  keeps one grid, and within each bucket every signal contributes its own
+  minimum and maximum. Verified on 400,000 samples of a 100 kHz switch node
+  with a single-sample 96 V overshoot: reduced to ~2,700 points, the
+  transient is still on the chart.
+- **Zooming in never recovered detail.** The data was decimated once over
+  its full extent and zoom only rescaled it, so one percent of a 250,000
+  sample run left 200 points stretched across the plot. The visible window
+  is now reduced instead, which costs less rather than more — the work
+  follows what is on screen. Zoom far enough and the window is handed over
+  exact.
+- The point budget comes from the plot's width — two per pixel, the most a
+  min/max reduction can distinguish — rather than a flat 20,000. On a
+  measured run that is 2,728 points instead of 20,000: a 7x cut in what has
+  to be stroked on every frame, which is what a constrained machine feels.
+
+### New
+
+- **`crates/waveform-store`** — the reduction as one Rust implementation,
+  compiled natively for a server and to WebAssembly for the viewer, so both
+  answer "this window of these signals, in at most this many points" the
+  same way. Measured on an 11-signal, 25,000-sample result: parses in
+  19 ms, full extent in 1.1 ms, a 2% window exact in 0.3 ms. Scales
+  linearly to 100 M samples (763 MB per signal) at 102 ms for the full
+  extent and 1.2 ms per zoom.
+- `tests/properties.rs` establishes what survives a reduction: max, min and
+  peak-to-peak exactly; every sample inside the drawn band, guaranteed; the
+  mean within 0.03% while buckets stay finer than the waveform's period,
+  and structurally wrong once they span many. Hence the rule it pins down —
+  **a measurement is computed on the samples, never on the reduction the
+  chart is drawn from.**
+
+### Format
+
+- `.gsim_sim_result` v2 separates metadata from samples: `data.kind` is
+  `inline` (self-contained, as before) or `hdf5` (pointing at the file
+  holding the samples and the LOD pyramid). v1 documents still open.
+
+---
+
+## 2026-11-06 — Results you can keep, and a viewer you can read (0.3.0)
+
+### Waveform viewer
+
+- **The plot fills its panel.** It was built at a fixed 800×300 whatever it
+  sat in, so a maximised VS Code panel left roughly two thirds of the surface
+  empty grey and a narrow one clipped the chart. It now measures its cell and
+  resizes in place rather than rebuilding on every frame of a splitter drag.
+- **Cursors and annotations land where their values are.** They were
+  positioned with uPlot's device-pixel coordinates but laid out in CSS
+  pixels, so above dpr 1 — every retina display, and VS Code at any zoom
+  above 100% — each one was drawn at twice its distance from the origin and
+  fell outside the plot. `overlayPx` returns what a CSS overlay needs.
+- **Axes say what they show.** A rotated bare "V" became "Voltage (V)", with
+  the SI prefix on the ticks. Tick labels chose precision per value, so an
+  evenly spaced axis read "5.00ms 10.0ms 15.0ms"; there is now one precision
+  per axis, taken from the step. A log axis labels decades instead of all
+  nine minor ticks of each.
+- **Stacked axes share an x origin**, so a figure can be read down a moment
+  in time. An axes with one quantity has no right-hand gutter and was
+  therefore wider than its neighbour by the width of a whole axis.
+- **A real dark theme.** The chart was forced white under a near-black
+  legend. Both halves now read one set of `--wave-*` tokens; `theme.ts`
+  hands them to the canvas, which CSS cannot reach.
+- **Measurements are reachable.** RMS, mean, min, max, peak-to-peak,
+  frequency, period, rise and fall time, duty cycle and integral existed,
+  were tested, and were mounted nowhere. They are now a strip above each
+  plot — a few as columns, a row per trace, the rest one menu away, over the
+  full run or between cursors A and B — computed in a worker that keeps the
+  samples rather than copying them per request.
+- **Per-trace display gain.** A 2 A current next to a 48 V rail is a flat
+  line. Scaling it is display-only — measurements, cursors and exports read
+  the real samples — and the legend shows "×10" permanently.
+- **Past runs.** Up to four previous runs are kept and drawn behind the
+  current one, each in its signal's colour at falling contrast and labelled
+  with how old it is ("V(out) [1]"). A run on a different time base is left
+  out rather than resampled.
+- **The signal browser lists what is there.** It read only the live kernel's
+  last manifest, so a saved result showed "No simulation results available"
+  beside three populated charts. Each signal now has a checkbox, and the bar
+  names the axes it adds to; a differing quantity gets its own y-axis.
+
+### New file format
+
+- **`.gsim_sim_result`** — a simulation result as one self-contained file:
+  sweep axis, signals with units and quantities, and the layout they were
+  shown in. Double-clicking it in the Explorer opens the viewer, with no
+  kernel running. Until now a result lived only in the kernel's private
+  cache under a session-scoped id, so it could not be committed, attached to
+  a review, reopened next week, or compared against one from another branch.
+  Samples are base64 little-endian doubles, so a round trip is exact.
+  Spec: `docs/specs/gsim-sim-result-format-spec.md`.
+- The editor is read-only: a result is derived data, so there is no phantom
+  dirty dot and no Ctrl+S that rewrites a measurement. It does reload when
+  the file changes on disk.
+
+### Export
+
+- One axes **or a whole figure**, as an **image or as data**: PNG, JPEG,
+  SVG, PDF, CSV, and `.gsim_sim_result`. A figure exports as one stacked
+  image rather than its first pane. Each format states what it costs before
+  it is chosen — CSV drops the units and the last bits; the result file
+  keeps both.
+
+### Fixed
+
+- `.gitignore` carried a bare `results/` under "Simulation output", which
+  matches a directory of that name at any depth. It silently swallowed the
+  result format's whole implementation and schema, with `git add -A`
+  reporting nothing wrong.
+- The three formats this extension owns now open as JSON in the text
+  editor, so the raw file has highlighting and folding.
+
+### Tooling
+
+- `scripts/render-waveform.mjs` renders the viewer to a PNG, the way
+  `render-schematic.mjs` does for the schematic: no assertion notices that a
+  grid out-weighs the data.
+- `scripts/stress-waveform.mjs` loads a real `.gsim_sim_result` through the
+  production path and reports open time and worst-frame interval under zoom
+  and pan — worst, not mean, because one 300 ms frame is what "it froze"
+  means.
+
+---
+
 ## 2026-05-31 — Canvas algorithm adoption (phase P21)
 
 ### Frontend

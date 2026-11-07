@@ -34,6 +34,12 @@ target/
 # Simulation output
 *.h5
 results/
+# ...but not these two, which are source. The pattern above matches a
+# directory named `results` at *any* depth, and it silently swallowed the
+# whole .gsim_sim_result implementation and its schema — `git add -A`
+# reported nothing wrong and the commit simply did not contain them.
+!apps/frontend/src/results/
+!packages/schemas/definitions/results/
 
 # Test artifacts
 playwright-report/
@@ -59,3 +65,8 @@ apps/vscode-extension/.vscode-test/
 apps/vscode-extension/media/frontend/
 *.vsix
 render-out/
+
+# Rust build output and generated wasm packages
+crates/*/target/
+crates/*/pkg/
+crates/*/pkg-node/

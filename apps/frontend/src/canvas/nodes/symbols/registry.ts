@@ -4,6 +4,7 @@ import absDrawing from "./abs";
 import ammeterDrawing from "./ammeter";
 import bjtNpnDrawing from "./bjtNpn";
 import bjtPnpDrawing from "./bjtPnp";
+import { inportDrawing, outportDrawing } from "./boundaryPort";
 import comparatorDrawing from "./comparator";
 import controlledCurrentSourceDrawing from "./controlledCurrentSource";
 import controlledVoltageSourceDrawing from "./controlledVoltageSource";
@@ -103,6 +104,8 @@ export const SYMBOL_DRAWINGS: Record<string, SymbolDrawing> = {
   // wire across it. Both were blank rectangles, which defeats the point:
   // the value of a tag is reading where the signal goes without following
   // a line, and a tag you cannot read is not a tag.
+  "hierarchy.inport": inportDrawing,
+  "hierarchy.outport": outportDrawing,
   "routing.goto": gotoDrawing,
   "routing.from": fromDrawing,
 

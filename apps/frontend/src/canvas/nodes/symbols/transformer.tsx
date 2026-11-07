@@ -8,24 +8,27 @@
  */
 import type { ReactNode } from "react";
 
-import {
-  type DrawContext,
-  FILL,
-  STROKE,
-  SW,
-  SymbolLabel,
-  type SymbolDrawing,
-} from "../symbol-drawing";
+import { type DrawContext, STROKE, SW, type SymbolDrawing } from "../symbol-drawing";
 
 function draw(_ctx: DrawContext): ReactNode {
   return (
     <g>
       <line x1={0} y1={20} x2={16} y2={20} stroke={STROKE} strokeWidth={SW} />
       <line x1={0} y1={40} x2={16} y2={40} stroke={STROKE} strokeWidth={SW} />
-      <path d="M 16 20 C 22 20 22 25 16 25 C 22 25 22 30 16 30 C 22 30 22 35 16 35 C 22 35 22 40 16 40" fill="none" stroke={STROKE} strokeWidth={SW} />
+      <path
+        d="M 16 20 C 22 20 22 25 16 25 C 22 25 22 30 16 30 C 22 30 22 35 16 35 C 22 35 22 40 16 40"
+        fill="none"
+        stroke={STROKE}
+        strokeWidth={SW}
+      />
       <line x1={44} y1={20} x2={60} y2={20} stroke={STROKE} strokeWidth={SW} />
       <line x1={44} y1={40} x2={60} y2={40} stroke={STROKE} strokeWidth={SW} />
-      <path d="M 44 20 C 38 20 38 25 44 25 C 38 25 38 30 44 30 C 38 30 38 35 44 35 C 38 35 38 40 44 40" fill="none" stroke={STROKE} strokeWidth={SW} />
+      <path
+        d="M 44 20 C 38 20 38 25 44 25 C 38 25 38 30 44 30 C 38 30 38 35 44 35 C 38 35 38 40 44 40"
+        fill="none"
+        stroke={STROKE}
+        strokeWidth={SW}
+      />
       {/* core */}
       <line x1={28} y1={8} x2={28} y2={52} stroke={STROKE} strokeWidth={SW} />
       <line x1={32} y1={8} x2={32} y2={52} stroke={STROKE} strokeWidth={SW} />

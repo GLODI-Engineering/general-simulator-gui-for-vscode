@@ -24,6 +24,7 @@ export default defineConfig({
         schematic: path.resolve(__dirname, "schematic.html"),
         library: path.resolve(__dirname, "library.html"),
         waveform: path.resolve(__dirname, "waveform.html"),
+        results: path.resolve(__dirname, "results.html"),
       },
     },
   },

@@ -3,6 +3,7 @@ import { createBlockFromMetadata } from "../library/insert";
 import type { ParamValue } from "../model/types";
 import { Btn, Icon, Sep } from "../shell/ToolbarControls";
 import { useGraphStore, useLibraryStore, useToastStore, useUiStore } from "../store";
+import { DND_BLOCK_TYPE, encodeBlockPayload, setActiveDragBlock } from "./dnd";
 import { WireColorsDialog } from "./edges/WireColorsPanel";
 import { BlockSymbol } from "./nodes/BlockSymbol";
 
@@ -137,12 +138,38 @@ function ComponentBtn({ type, label, title }: { type: string; label: string; tit
     });
   }
 
+  // The canvas has accepted drops since it was written — `resolveDroppedBlock`
+  // reads the same payload the library sidebar sends. These buttons simply
+  // never offered a drag, so the only way to get a component out of the
+  // toolbar was a click, which drops it at the default position. Every insert
+  // therefore landed on the same point. The e2e suite inserts by clicking, so
+  // nothing caught it.
+  function handleDragStart(event: React.DragEvent<HTMLButtonElement>) {
+    if (!metadata) return;
+    setActiveDragBlock(metadata.name, metadata.label ?? label);
+    event.dataTransfer.setData(DND_BLOCK_TYPE, encodeBlockPayload(metadata.name));
+    event.dataTransfer.setData("text/plain", metadata.name);
+    event.dataTransfer.effectAllowed = "copy";
+
+    const dragImage = document.createElement("span");
+    dragImage.textContent = title;
+    dragImage.style.cssText =
+      "position:absolute;top:-9999px;left:-9999px;padding:4px 8px;background:#333;" +
+      "color:#fff;border-radius:4px;font-size:12px;pointer-events:none;";
+    document.body.appendChild(dragImage);
+    event.dataTransfer.setDragImage(dragImage, 0, 0);
+    setTimeout(() => dragImage.remove(), 0);
+  }
+
   return (
     <button
       type="button"
       className="schematic-toolbar__component"
-      title={`Insert ${title}`}
+      title={`Insert ${title} — click, or drag onto the sheet`}
       aria-label={`Insert ${title}`}
+      draggable={Boolean(metadata)}
+      onDragStart={handleDragStart}
+      onDragEnd={() => setActiveDragBlock(null)}
       onClick={handleClick}
     >
       {metadata ? (

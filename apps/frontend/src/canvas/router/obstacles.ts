@@ -61,10 +61,28 @@ export function compBBox(c: RouterComponent, pad = 0): ObstacleBox {
   return { x: minX, y: minY, w: Math.max(...xs) - minX, h: Math.max(...ys) - minY };
 }
 
+/** Is `(x, y)` strictly inside `box`? */
+function inside(box: ObstacleBox, x: number, y: number): boolean {
+  return x > box.x && x < box.x + box.w && y > box.y && y < box.y + box.h;
+}
+
 /**
- * Padded obstacle boxes for every component except the two whose ports sit at
- * the wire endpoints (within 2px). Those two are excluded so a wire is never
- * blocked by the components it is connecting.
+ * Padded obstacle boxes for every component, except one the wire could not
+ * otherwise reach.
+ *
+ * This used to drop *both* components a wire connects to, so that a wire was
+ * never blocked by the parts it joins. The intent is right and the rule was
+ * too broad: dropping a component does not only let the wire reach its port,
+ * it lets the wire run clean across that component's body on the way there --
+ * which is what put a wire through the face of a switch whose port sits on
+ * the far side.
+ *
+ * A wire endpoint is a port's *stub tip*, a lead-length outside the body,
+ * while the padding here is a few units -- so the endpoint is already outside
+ * the padded box, and the component can be an obstacle like any other. The
+ * exclusion is kept only for the case it was written for: an endpoint that
+ * really does fall inside the box, where keeping the obstacle would make the
+ * port unreachable.
  */
 export function getObstacles(
   comps: RouterComponent[],
@@ -75,12 +93,11 @@ export function getObstacles(
 ): ObstacleBox[] {
   const boxes: ObstacleBox[] = [];
   for (const c of comps) {
-    const atA = c.ports.some((p) => Math.hypot(p.x - ax, p.y - ay) < 2);
-    const atB = c.ports.some((p) => Math.hypot(p.x - bx, p.y - by) < 2);
-    if (atA || atB) {
+    const box = compBBox(c, PAD);
+    if (inside(box, ax, ay) || inside(box, bx, by)) {
       continue;
     }
-    boxes.push(compBBox(c, PAD));
+    boxes.push(box);
   }
   return boxes;
 }

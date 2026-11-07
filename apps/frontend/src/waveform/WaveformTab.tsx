@@ -20,7 +20,7 @@ export function WaveformTab() {
           alignItems: "center",
           justifyContent: "center",
           height: "100%",
-          color: "#64748b",
+          color: "var(--wave-text-muted)",
           fontSize: "0.9rem",
         }}
       >
@@ -37,13 +37,7 @@ export function WaveformTab() {
       {/* Left panel: signal browser lists available signals by sim */}
       <div
         className="waveform-tab__sidebar"
-        style={{
-          width: "200px",
-          flexShrink: 0,
-          borderRight: "1px solid #e2e8f0",
-          overflowY: "auto",
-          background: "#ffffff",
-        }}
+        style={{ width: "210px", flexShrink: 0, overflowY: "auto" }}
       >
         <SignalBrowser />
       </div>

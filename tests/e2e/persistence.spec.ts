@@ -37,10 +37,7 @@ async function buildSimpleModel(page: Parameters<typeof test>[1]["appPage"]) {
 }
 
 test.describe("Persistence — web (IndexedDB)", () => {
-  test("save → reload → StartupModal lists model → open → byte-equivalent", async ({
-    appPage,
-  }) => {
-
+  test("save → reload → StartupModal lists model → open → byte-equivalent", async ({ appPage }) => {
     await buildSimpleModel(appPage);
 
     // Set a known model name
@@ -97,7 +94,6 @@ test.describe("Persistence — export (.gsim file)", () => {
   test.skip(!validateGsim, "gsim.schema.json not yet authored");
 
   test("Ctrl+Shift+E downloads a valid .gsim file", async ({ appPage }) => {
-
     await buildSimpleModel(appPage);
 
     const [download] = await Promise.all([
@@ -118,5 +114,4 @@ test.describe("Persistence — export (.gsim file)", () => {
   });
 });
 
-test.describe("Persistence — desktop (Tauri)", () => {
-});
+test.describe("Persistence — desktop (Tauri)", () => {});

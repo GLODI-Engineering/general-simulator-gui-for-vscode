@@ -1,5 +1,7 @@
 import type uPlot from "uplot";
 
+import { overlayPx } from "./axes-config";
+
 /** Bode stability margins provided by the simulator backend (BE-51). */
 export interface BodeMargins {
   gainCrossoverHz: number;
@@ -57,7 +59,7 @@ export function buildBodeAnnotations(
   const lines: AnnotationSpec[] = [];
 
   // Vertical dashed line at gain-crossover frequency.
-  const gcPx = u.valToPos(margins.gainCrossoverHz, "x", true);
+  const gcPx = overlayPx(u, margins.gainCrossoverHz, "x", "x");
   lines.push({
     kind: "vline",
     px: gcPx,
@@ -67,7 +69,7 @@ export function buildBodeAnnotations(
   });
 
   // Vertical dashed line at phase-crossover frequency (where phase = -180°).
-  const pcPx = u.valToPos(margins.phaseCrossoverHz, "x", true);
+  const pcPx = overlayPx(u, margins.phaseCrossoverHz, "x", "x");
   lines.push({
     kind: "vline",
     px: pcPx,
@@ -77,7 +79,7 @@ export function buildBodeAnnotations(
   });
 
   // Horizontal dashed line at 0 dB — the gain-margin reference.
-  const zeroPx = u.valToPos(0, magScaleKey, true);
+  const zeroPx = overlayPx(u, 0, magScaleKey, "y");
   lines.push({
     kind: "hline",
     px: zeroPx,

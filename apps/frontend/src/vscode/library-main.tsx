@@ -11,17 +11,19 @@ import ReactDOM from "react-dom/client";
 import { installCrossWebviewDnd } from "../canvas/dnd";
 import { initKernelFromVsCode } from "../ipc/transport";
 import { getWebviewInit, onHostMessage, postToHost } from "../ipc/vscode-host";
+import { followVsCodeTheme } from "../ipc/vscode-theme";
 import { LibraryActivity } from "../library/LibraryActivity";
 import { loadCatalogFromManifest } from "../library/catalog";
-import { mergeUserSymbols } from "../symbol-editor/save";
 import { setRemoteInsertHandler } from "../library/insert";
 import { ErrorBoundary } from "../shell/ErrorBoundary";
 import { useLibraryStore } from "../store";
+import { mergeUserSymbols } from "../symbol-editor/save";
 import { installTestHooks } from "./test-hooks";
 
 import "../styles/app.css";
 
 function boot(): void {
+  followVsCodeTheme();
   initKernelFromVsCode();
 
   // Publishes library drags to the extension host, which relays the payload to

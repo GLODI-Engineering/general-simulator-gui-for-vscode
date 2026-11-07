@@ -4,7 +4,6 @@ test.describe("Subsystem navigation — web build", () => {
   test("e2e subsystem-navigation: 2-level down/up keeps state and breadcrumb path", async ({
     appPage,
   }) => {
-
     const hasHierarchyHooks = await appPage.evaluate(() => {
       const win = window as unknown as {
         __gensim_hierarchy_buildTwoLevel?: () => void;

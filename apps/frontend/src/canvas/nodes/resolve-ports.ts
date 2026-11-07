@@ -24,7 +24,7 @@
  * height.
  */
 
-import type { BlockMetadata, BlockPort, ParamValue } from "../../model/types";
+import type { BlockMetadata, BlockPort, ParamValue, PortKindDomain } from "../../model/types";
 
 /** How many ports a `count_from` param value implies. */
 export function variadicCount(value: ParamValue | undefined): number {
@@ -72,6 +72,34 @@ export interface ResolvedPorts {
  * variadic group — which is every type but `control.sum` and the `extensibility.*`
  * family — so this is a no-op for the overwhelming majority of blocks.
  */
+/**
+ * Applies a port's `domain_from`: the name of a param that selects its kind
+ * domain at runtime.
+ *
+ * A boundary port's paradigm is the author's choice, not the component's —
+ * `hierarchy.inport` offers five domains in its `kind` param — but the port
+ * could only declare one domain statically, and declared `signal`. So a
+ * physical boundary port carried a signal kind: it drew the causal arrowhead
+ * instead of the acausal terminal, and the wire leaving it took the signal
+ * colour into a physical net.
+ */
+function applyDomainFrom(ports: BlockPort[], params: Record<string, ParamValue>): BlockPort[] {
+  // Returns the *same array* when nothing is overridden. Not an optimisation:
+  // `BlockNode` memoises on metadata identity, so allocating a fresh array for
+  // every block on every resolve would defeat that for the whole catalog, and
+  // `resolve-ports`' own test pins the identity for exactly that reason.
+  let changed = false;
+  const resolved = ports.map((port) => {
+    const source = port.domain_from;
+    if (!source) return port;
+    const chosen = params[source];
+    if (typeof chosen !== "string" || chosen.length === 0) return port;
+    changed = true;
+    return { ...port, kind: { ...port.kind, domain: chosen as PortKindDomain } };
+  });
+  return changed ? resolved : ports;
+}
+
 export function resolveBlockPorts(
   metadata: BlockMetadata,
   params: Record<string, ParamValue> = {},
@@ -80,7 +108,10 @@ export function resolveBlockPorts(
   const variadicIn = declared?.variadic_inputs;
   const variadicOut = declared?.variadic_outputs;
   if (!variadicIn && !variadicOut) {
-    return { inputs: declared?.inputs ?? [], outputs: declared?.outputs ?? [] };
+    return {
+      inputs: applyDomainFrom(declared?.inputs ?? [], params),
+      outputs: applyDomainFrom(declared?.outputs ?? [], params),
+    };
   }
 
   const bbox = resolveBlockBbox(metadata, params);
@@ -111,7 +142,7 @@ export function resolveBlockPorts(
       outputs = merge(outputs, expand(variadicOut.template, count, bbox, source));
     }
   }
-  return { inputs, outputs };
+  return { inputs: applyDomainFrom(inputs, params), outputs: applyDomainFrom(outputs, params) };
 }
 
 /**
@@ -157,7 +188,11 @@ export function resolveBlockBbox(
       // Static ports on the same side share the extent.
       const statics = (group === variadicIn ? metadata.ports.inputs : metadata.ports.outputs)
         .filter((p) => (p.side ?? "left") === side)
-        .filter((p) => !p.id.startsWith(group.template.id) || Number.isNaN(Number(p.id.slice(group.template.id.length))));
+        .filter(
+          (p) =>
+            !p.id.startsWith(group.template.id) ||
+            Number.isNaN(Number(p.id.slice(group.template.id.length))),
+        );
       most = Math.max(most, count + statics.length);
     }
     return most;

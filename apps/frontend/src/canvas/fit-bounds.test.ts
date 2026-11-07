@@ -86,11 +86,7 @@ describe("schematicBounds", () => {
   });
 
   it("spans every block on the sheet", () => {
-    const bounds = schematicBounds(
-      [block("a", [0, 0]), block("b", [500, 300])],
-      [],
-      resolve,
-    );
+    const bounds = schematicBounds([block("a", [0, 0]), block("b", [500, 300])], [], resolve);
     const b = bounds as NonNullable<typeof bounds>;
     expect(b.x).toBe(-STUB_LEN - FIT_PADDING);
     expect(b.x + b.width).toBe(500 + 60 * SYMBOL_SCALE + STUB_LEN + FIT_PADDING);

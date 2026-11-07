@@ -194,6 +194,54 @@ In both cases, you use the same canvas, library, inspector, and run controls.
 
 ---
 
+## 3.12 Reading results
+
+A finished run opens in the waveform viewer. What is there, and the two
+rules behind it:
+
+**The plot shows an envelope, not a sample of the data.** A run can hold
+millions of points and a plot is a couple of thousand pixels wide, so what
+you see is reduced. The reduction keeps each interval's minimum *and*
+maximum for every trace, which means a transient one sample wide is still
+drawn — the overshoot that destroys a device does not disappear because the
+run was long. Zooming re-reduces for the window you are in, so detail comes
+back as you go in, and the view becomes exact once the window holds fewer
+samples than the plot can draw.
+
+**Measurements are computed on the samples, never on the plot.** The strip
+above each axes shows mean, RMS and peak-to-peak by default, with the rest
+of the library — min, max, frequency, period, rise and fall time, duty
+cycle, integral — behind *Measurements*. `Full` measures the whole run;
+`A–B` measures between the cursors, which is how you get the RMS of a
+steady state rather than of a waveform that includes its own start-up.
+
+| | |
+|---|---|
+| plot a signal | tick it in the browser on the left; the **Add to** box says which axes it lands on |
+| a second quantity | a signal whose unit differs gets its own y-axis automatically |
+| scale a trace | **×1** in the legend. Display only — the legend then reads "×10" permanently, and measurements and exports still use the real values |
+| compare with earlier runs | **Past runs** in the axes header draws up to four previous runs behind the current one, labelled `[1]`, `[2]` by age |
+| cursors | place A and B, then switch the measurement window to `A–B` |
+| export | **Export** for one axes, **Export figure** for all of them: PNG, JPEG, SVG, PDF, CSV, or a `.gsim_sim_result` |
+
+### Saving a result
+
+`.gsim_sim_result` is a run as one file. Double-click it in the Explorer and
+it opens in this same viewer with no kernel running, so a result can be
+committed, attached to a review, reopened next week, or compared against one
+from another branch. Export it from the dialog above.
+
+It is read-only on purpose: a result is derived from the schematic and its
+analysis, so there is nothing to edit and no `Ctrl+S` that could quietly
+rewrite a measurement. Change it by re-running and exporting again. If the
+file changes on disk — a re-run, a branch switch — the open view reloads.
+
+CSV is the other half of that pair and is deliberately lossy: one column per
+signal against the sweep, opens anywhere, and drops the units and the last
+bits. Use CSV to cross-check; use `.gsim_sim_result` to keep.
+
+---
+
 ## 4) Notes and caveats
 
 - Single `Ctrl+.` opens command palette; **double-tap** opens quick insert.
@@ -206,5 +254,6 @@ In both cases, you use the same canvas, library, inspector, and run controls.
 ## 5) Where to go next
 
 - Keyboard spec (authoritative): `docs/specs/keyboard-map.md`
+- Result file format: `docs/specs/gsim-sim-result-format-spec.md`
 - Frontend behavior spec: `docs/specs/frontend-spec.md`
 - Main project overview: `README.md`
