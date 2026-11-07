@@ -3369,3 +3369,52 @@ textarea:focus-visible {
 .measurements-bar__table th[scope="row"] .measurements-bar__swatch {
   margin-right: 6px;
 }
+
+/* ── Axes header controls ─────────────────────────────────────────────────
+ * Fit (horizontal and vertical), minimize and close, beside the existing
+ * maximize. Fit used to live only on the main toolbar, acting on whichever
+ * axes was active, so fitting one plot in a figure of six meant selecting
+ * it first.
+ */
+.axes-header__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 80ms, color 80ms, border-color 80ms;
+}
+.axes-header__btn:hover {
+  background: #eef2f7;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+.axes-header__btn--close:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+.axes-header__btn:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+}
+
+/* Minimized: the header keeps its place in the grid, the rest folds away.
+ * Distinct from closing — a figure laid out over several axes loses its
+ * shape if the only way to get one out of the way is to delete it. */
+.axes-container--collapsed {
+  min-height: 0;
+  height: auto;
+  align-self: start;
+}
+.axes-container--collapsed > *:not(.axes-header) {
+  display: none;
+}

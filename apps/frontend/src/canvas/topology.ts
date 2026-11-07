@@ -57,11 +57,7 @@ function getJunctionPortRef(block: Block, portId: string): TopologyPortRef | nul
   return { blockId: block.id, portId, direction: "inout", kind: block.domain };
 }
 
-function getPortRef(
-  metadata: BlockMetadata,
-  block: Block,
-  portId: string,
-): TopologyPortRef | null {
+function getPortRef(metadata: BlockMetadata, block: Block, portId: string): TopologyPortRef | null {
   const blockId = block.id;
   const resolved = resolveBlockPorts(metadata, block.params);
   const input = resolved.inputs.find((port) => port.id === portId);

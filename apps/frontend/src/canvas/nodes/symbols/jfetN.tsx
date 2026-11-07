@@ -8,14 +8,7 @@
  */
 import type { ReactNode } from "react";
 
-import {
-  type DrawContext,
-  FILL,
-  STROKE,
-  SW,
-  SymbolLabel,
-  type SymbolDrawing,
-} from "../symbol-drawing";
+import { type DrawContext, STROKE, SW, type SymbolDrawing } from "../symbol-drawing";
 
 function draw(_ctx: DrawContext): ReactNode {
   return (

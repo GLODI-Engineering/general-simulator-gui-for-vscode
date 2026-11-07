@@ -13,8 +13,8 @@ import {
   FILL,
   STROKE,
   SW,
-  SymbolLabel,
   type SymbolDrawing,
+  SymbolLabel,
 } from "../symbol-drawing";
 
 function draw(_ctx: DrawContext): ReactNode {

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
-import { getMetadataPortCenters, SYMBOL_SCALE } from "../canvas/nodes/port-hit-test";
+import { netOf } from "../canvas/edges/junctions";
+import { SYMBOL_SCALE, getMetadataPortCenters } from "../canvas/nodes/port-hit-test";
 import { resolveBlockBbox } from "../canvas/nodes/resolve-ports";
 import { rerouteEndSegment } from "../canvas/router/attachment";
 import { type RouterComponent, getObstacles } from "../canvas/router/obstacles";
@@ -9,11 +10,10 @@ import {
   type RouteSegment,
   pointsToSegments,
   routeBlocked,
-  simplifyPts,
   routeOrtho,
   routeOverlap,
+  simplifyPts,
 } from "../canvas/router/ortho-route";
-import { netOf } from "../canvas/edges/junctions";
 import { resolveBlockMetadata } from "../canvas/subckt-metadata";
 import { emit as emitAutosave } from "../file/autosave";
 import { type SwapResult, swap as swapFidelity } from "../library/fidelity-swap";

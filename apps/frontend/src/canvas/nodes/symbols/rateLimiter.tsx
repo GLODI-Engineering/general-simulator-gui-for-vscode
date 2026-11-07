@@ -8,14 +8,7 @@
  */
 import type { ReactNode } from "react";
 
-import {
-  type DrawContext,
-  FILL,
-  STROKE,
-  SW,
-  SymbolLabel,
-  type SymbolDrawing,
-} from "../symbol-drawing";
+import { type DrawContext, FILL, STROKE, SW, type SymbolDrawing } from "../symbol-drawing";
 
 /** An instance parameter as display text, for a drawing that shows a value. */
 function param(ctx: DrawContext, key: string, fallback: string): string {
@@ -36,7 +29,14 @@ const LEADS_1 = (
   </>
 );
 const curve = (pts: string) => (
-  <polyline points={pts} fill="none" stroke={STROKE} strokeWidth={SW} strokeLinejoin="round" strokeLinecap="round" />
+  <polyline
+    points={pts}
+    fill="none"
+    stroke={STROKE}
+    strokeWidth={SW}
+    strokeLinejoin="round"
+    strokeLinecap="round"
+  />
 );
 
 function draw(ctx: DrawContext): ReactNode {
