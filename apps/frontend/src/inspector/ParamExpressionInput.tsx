@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { paramValueFrom } from "../netlist/spice-number";
 
 // The parser in param_expression implements exactly the grammar the format
 // spec defines for these strings (§5.2), and evaluates it without generating
@@ -44,10 +45,17 @@ function resolveDisplay(raw: string, params: Record<string, number>): number | n
  * - Looks like a finite number → return as number
  * - Otherwise → return as string (identifier or expression)
  */
-function parseCommit(raw: string): string | number {
-  const n = Number(raw);
-  if (raw.trim().length > 0 && Number.isFinite(n)) return n;
-  return raw;
+/**
+ * A number when it is one, the text when it is an expression.
+ *
+ * `Number()` used to decide this, so every engineering suffix — `10u`,
+ * `2.2k` — was treated as an expression and stored as text. The netlist
+ * emits text verbatim and the solver parses it, so it ran; but the value
+ * was a string in the document, unlike the same quantity typed without a
+ * suffix. A genuine parameter reference like `{Rload}` still stays text.
+ */
+function parseCommit(raw: string): string | number | null {
+  return paramValueFrom(raw);
 }
 
 /**
@@ -64,9 +72,11 @@ export function ParamExpressionInput({ id, ariaLabel, value, params = {}, onChan
   const resolved = resolveDisplay(draft, params);
 
   const commit = () => {
-    if (draft.length > 0 && onChange) {
-      onChange(parseCommit(draft));
-    }
+    if (draft.length === 0 || !onChange) return;
+    const next = parseCommit(draft);
+    // null means "a number with a suffix the solver cannot read" — leave the
+    // stored value alone rather than saving something a run will choke on.
+    if (next !== null) onChange(next);
   };
 
   return (

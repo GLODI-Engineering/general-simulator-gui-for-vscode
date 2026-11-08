@@ -631,6 +631,32 @@ export class SchematicPage {
     await this.page.waitForTimeout(300);
   }
 
+  /**
+   * The netlist this document compiles to, right now.
+   *
+   * The Netlist tab only fills after a run, so "is the value I typed really
+   * *used*?" could not be asked without a solver. This asks the compiler
+   * directly, which is where the answer lives.
+   */
+  async netlist(): Promise<{ text: string; errors: string[] }> {
+    return this.page.evaluate(() => {
+      const door = (
+        window as unknown as { __gensim_netlist?: () => { text: string; errors: string[] } }
+      ).__gensim_netlist;
+      if (!door) throw new Error("__gensim_netlist is not installed");
+      return door();
+    });
+  }
+
+  /** The netlist line for a block, by its refdes/label. */
+  async netlistLineFor(label: string): Promise<string | null> {
+    const { text } = await this.netlist();
+    for (const line of text.split("\n")) {
+      if (line.trim().startsWith(label)) return line.trim();
+    }
+    return null;
+  }
+
   /** A parameter as the saved document records it. */
   async paramOf(ref: BlockRef, name: string): Promise<unknown> {
     return (await this.blockState(ref)).params?.[name];

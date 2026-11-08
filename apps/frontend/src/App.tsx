@@ -11,6 +11,7 @@ import { loadCatalogFromManifest } from "./library/catalog";
 import { createBlockFromMetadata } from "./library/insert";
 import { registerLibraryActivity } from "./library/register";
 import type { ModelDocument, ParamValue } from "./model/types";
+import { generateNetlist } from "./netlist/generate";
 import { registerNetlistTab } from "./netlist/register";
 import { CommandPalette } from "./palette/CommandPalette";
 import { registerProblemsSurface } from "./problems/register";
@@ -1003,6 +1004,14 @@ export default function App() {
       __gensim_load_document?: (doc: unknown) => void;
       /** Harness door: what the Problems panel would show, without opening it. */
       __gensim_problems?: () => Array<{ id: string; severity: string; message: string }>;
+      /**
+       * Harness door: the netlist this document compiles to, right now.
+       *
+       * The Netlist tab only fills after a run, so "is the value I typed
+       * really used?" could not be asked without a solver. This answers it
+       * from the document, which is where the question actually lives.
+       */
+      __gensim_netlist?: () => { text: string; errors: string[] };
       __gensim_setModelMetadata?: (metadata: Record<string, ParamValue>) => void;
       __gensim_insertBlock?: (type: string) => void;
       __gensim_wire?: (fromType: string, toType: string) => void;
@@ -1032,6 +1041,14 @@ export default function App() {
         ...current,
         model: { ...current.model, name },
       });
+    };
+    windowRef.__gensim_netlist = () => {
+      const result = generateNetlist(useGraphStore.getState().document.model, {
+        type: "tran",
+        tEnd: 1e-3,
+        tStep: 1e-6,
+      });
+      return { text: result.netlist ?? "", errors: result.errors ?? [] };
     };
     windowRef.__gensim_problems = () =>
       useIpcStore.getState().problems.map((problem) => ({
@@ -1191,6 +1208,7 @@ export default function App() {
       windowRef.__gensim_load_fixture = undefined;
       windowRef.__gensim_load_document = undefined;
       windowRef.__gensim_problems = undefined;
+      windowRef.__gensim_netlist = undefined;
       windowRef.__gensim_setModelMetadata = undefined;
       windowRef.__gensim_insertBlock = undefined;
       windowRef.__gensim_wire = undefined;
