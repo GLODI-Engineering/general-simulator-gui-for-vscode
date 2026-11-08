@@ -7,7 +7,9 @@
 
 import { expect, test } from "./fixtures/build";
 
-async function loadTwoAxes(page: Parameters<typeof test>[0] extends never ? never : any) {
+type AppPage = Parameters<Parameters<typeof test>[1]>[0]["appPage"];
+
+async function loadTwoAxes(page: AppPage) {
   await page.evaluate(() => {
     const x: number[] = [];
     const a: number[] = [];
@@ -56,7 +58,8 @@ test.describe("figure grid resize", () => {
     expect(before).toBeGreaterThan(0);
 
     const splitter = appPage.locator(".figure-grid__splitter--row");
-    const handle = (await splitter.boundingBox())!;
+    const handle = await splitter.boundingBox();
+    if (!handle) throw new Error("no splitter on screen");
     await appPage.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2);
     await appPage.mouse.down();
     await appPage.mouse.move(handle.x + handle.width / 2, handle.y + 120, { steps: 10 });
@@ -74,7 +77,8 @@ test.describe("figure grid resize", () => {
   test("a drag past the edge stops rather than collapsing an axes", async ({ appPage }) => {
     await loadTwoAxes(appPage);
     const splitter = appPage.locator(".figure-grid__splitter--row");
-    const handle = (await splitter.boundingBox())!;
+    const handle = await splitter.boundingBox();
+    if (!handle) throw new Error("no splitter on screen");
     await appPage.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2);
     await appPage.mouse.down();
     await appPage.mouse.move(handle.x + handle.width / 2, handle.y + 5000, { steps: 10 });

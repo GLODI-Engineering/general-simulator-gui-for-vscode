@@ -96,9 +96,7 @@ export function parseMatrixLiteral(raw: string): MatrixParse {
   if (ragged >= 0) {
     return {
       ok: false,
-      reason:
-        `Row ${ragged + 1} has ${rows[ragged]?.length} entries but row 1 has ${width} — ` +
-        "every row must be the same length",
+      reason: `Row ${ragged + 1} has ${rows[ragged]?.length} entries but row 1 has ${width} — every row must be the same length`,
     };
   }
   if (width === 0) return { ok: false, reason: "A row needs at least one entry" };
