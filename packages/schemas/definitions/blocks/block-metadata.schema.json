@@ -5,12 +5,7 @@
   "description": "Catalog entry for one functional block. One file per block under packages/blocks/src/blocks/<family>/<block_dir>/metadata.yaml. Shared contract: the frontend reads visual + search fields; the simulator reads behavior + equation_template. See docs/specs/frontend-spec.md \u00a79 and progress.yaml FE-23.",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "label",
-    "paradigm",
-    "domain",
-    "fidelities"
-  ],
+  "required": ["label", "paradigm", "domain", "fidelities"],
   "properties": {
     "name": {
       "type": "string",
@@ -110,9 +105,7 @@
     "ports": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "inputs"
-      ],
+      "required": ["inputs"],
       "properties": {
         "inputs": {
           "type": "array",
@@ -129,10 +122,7 @@
         "variadic_inputs": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "count_from",
-            "template"
-          ],
+          "required": ["count_from", "template"],
           "description": "Optional: input ports whose count is determined by a parameter (e.g. the Sum block's signs string). The frontend instantiates one port per element of the controlling param.",
           "properties": {
             "count_from": {
@@ -147,10 +137,7 @@
         "variadic_outputs": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "count_from",
-            "template"
-          ],
+          "required": ["count_from", "template"],
           "description": "Optional: output ports whose count is determined by a parameter (e.g. a script block's output_names vector). The frontend instantiates one port per element of the controlling param, exactly as for variadic_inputs.",
           "properties": {
             "count_from": {
@@ -175,10 +162,7 @@
     "symbol": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "bbox",
-        "shape"
-      ],
+      "required": ["bbox", "shape"],
       "properties": {
         "bbox": {
           "type": "array",
@@ -192,13 +176,7 @@
         },
         "shape": {
           "type": "string",
-          "enum": [
-            "rect",
-            "circle",
-            "triangle",
-            "custom",
-            "primitives"
-          ],
+          "enum": ["rect", "circle", "triangle", "custom", "primitives"],
           "description": "Symbol geometry. `rect` is the default block; `circle` for summing junctions; `triangle` for gain/amplifier; `custom` uses `path`; `primitives` (GSF) uses a literal `primitives` array for multi-shape drawings."
         },
         "path": {
@@ -241,9 +219,7 @@
                 "type": "string"
               }
             },
-            "required": [
-              "path"
-            ]
+            "required": ["path"]
           }
         },
         {
@@ -261,9 +237,7 @@
                 "minItems": 1
               }
             },
-            "required": [
-              "primitives"
-            ]
+            "required": ["primitives"]
           }
         }
       ],
@@ -272,34 +246,16 @@
     "behavior": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "causality",
-        "domain",
-        "state_count",
-        "equation_template"
-      ],
+      "required": ["causality", "domain", "state_count", "equation_template"],
       "properties": {
         "causality": {
           "type": "string",
-          "enum": [
-            "source",
-            "causal",
-            "acausal",
-            "sink",
-            "reference"
-          ],
+          "enum": ["source", "causal", "acausal", "sink", "reference"],
           "description": "`source`: 0 inputs, n outputs. `causal`: inputs determine outputs. `acausal`: equation-based (no fixed direction). `sink`: n inputs, 0 outputs."
         },
         "domain": {
           "type": "string",
-          "enum": [
-            "signal",
-            "electrical",
-            "thermal",
-            "mechanical",
-            "event",
-            "mixed"
-          ],
+          "enum": ["signal", "electrical", "thermal", "mechanical", "event", "mixed"],
           "description": "Primary modelling domain. `mixed` blocks bridge two domains (e.g. a current sensor with electrical pins and a signal output)."
         },
         "state_count": {
@@ -344,9 +300,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "main_param"
-        ]
+        "required": ["main_param"]
       },
       "then": {}
     }
@@ -358,13 +312,7 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "type",
-            "x1",
-            "y1",
-            "x2",
-            "y2"
-          ],
+          "required": ["type", "x1", "y1", "x2", "y2"],
           "properties": {
             "type": {
               "const": "line"
@@ -392,13 +340,7 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "type",
-            "x",
-            "y",
-            "w",
-            "h"
-          ],
+          "required": ["type", "x", "y", "w", "h"],
           "properties": {
             "type": {
               "const": "rect"
@@ -433,13 +375,7 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "type",
-            "x",
-            "y",
-            "w",
-            "h"
-          ],
+          "required": ["type", "x", "y", "w", "h"],
           "properties": {
             "type": {
               "const": "rectf"
@@ -468,12 +404,7 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "type",
-            "cx",
-            "cy",
-            "r"
-          ],
+          "required": ["type", "cx", "cy", "r"],
           "properties": {
             "type": {
               "const": "circle"
@@ -505,14 +436,7 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "type",
-            "cx",
-            "cy",
-            "r",
-            "a0",
-            "a1"
-          ],
+          "required": ["type", "cx", "cy", "r", "a0", "a1"],
           "properties": {
             "type": {
               "const": "arc"
@@ -546,10 +470,7 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "type",
-            "pts"
-          ],
+          "required": ["type", "pts"],
           "properties": {
             "type": {
               "const": "polygon"
@@ -579,10 +500,7 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "type",
-            "pts"
-          ],
+          "required": ["type", "pts"],
           "properties": {
             "type": {
               "const": "polyline"
@@ -609,12 +527,7 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "type",
-            "x",
-            "y",
-            "text"
-          ],
+          "required": ["type", "x", "y", "text"],
           "properties": {
             "type": {
               "const": "text"
@@ -633,19 +546,11 @@
             },
             "align": {
               "type": "string",
-              "enum": [
-                "start",
-                "center",
-                "end"
-              ]
+              "enum": ["start", "center", "end"]
             },
             "baseline": {
               "type": "string",
-              "enum": [
-                "top",
-                "middle",
-                "bottom"
-              ]
+              "enum": ["top", "middle", "bottom"]
             },
             "bold": {
               "type": "boolean"
@@ -688,19 +593,11 @@
     "FidelityEntry": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "tier",
-        "doc"
-      ],
+      "required": ["tier", "doc"],
       "properties": {
         "tier": {
           "type": "string",
-          "enum": [
-            "ideal",
-            "behavioral",
-            "spice",
-            "n_a"
-          ]
+          "enum": ["ideal", "behavioral", "spice", "n_a"]
         },
         "ports": {
           "type": "array",
@@ -723,11 +620,7 @@
     "FidelityPort": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "kind",
-        "direction"
-      ],
+      "required": ["id", "kind", "direction"],
       "properties": {
         "id": {
           "type": "string",
@@ -738,23 +631,14 @@
         },
         "direction": {
           "type": "string",
-          "enum": [
-            "in",
-            "out",
-            "inout"
-          ]
+          "enum": ["in", "out", "inout"]
         },
         "label": {
           "type": "string"
         },
         "side": {
           "type": "string",
-          "enum": [
-            "left",
-            "right",
-            "top",
-            "bottom"
-          ]
+          "enum": ["left", "right", "top", "bottom"]
         },
         "offset": {
           "type": "integer",
@@ -765,10 +649,7 @@
     "FidelityParam": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "type"
-      ],
+      "required": ["id", "type"],
       "properties": {
         "id": {
           "type": "string",
@@ -776,16 +657,7 @@
         },
         "type": {
           "type": "string",
-          "enum": [
-            "number",
-            "integer",
-            "vector",
-            "matrix",
-            "string",
-            "bool",
-            "enum",
-            "list"
-          ]
+          "enum": ["number", "integer", "vector", "matrix", "string", "bool", "enum", "list"]
         },
         "default": {},
         "unit": {
@@ -817,9 +689,7 @@
                 "const": "enum"
               }
             },
-            "required": [
-              "type"
-            ]
+            "required": ["type"]
           },
           "then": {
             "properties": {
@@ -827,9 +697,7 @@
                 "type": "array"
               }
             },
-            "required": [
-              "choices"
-            ]
+            "required": ["choices"]
           }
         }
       ]
@@ -837,11 +705,7 @@
     "Port": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "label",
-        "kind"
-      ],
+      "required": ["id", "label", "kind"],
       "properties": {
         "id": {
           "type": "string",
@@ -855,9 +719,7 @@
         "kind": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "domain"
-          ],
+          "required": ["domain"],
           "properties": {
             "domain": {
               "$ref": "#/$defs/PortKindDomain"
@@ -866,17 +728,12 @@
               "oneOf": [
                 {
                   "type": "string",
-                  "enum": [
-                    "scalar",
-                    "matrix"
-                  ]
+                  "enum": ["scalar", "matrix"]
                 },
                 {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "vector"
-                  ],
+                  "required": ["vector"],
                   "properties": {
                     "vector": {
                       "type": "integer",
@@ -890,12 +747,7 @@
         },
         "side": {
           "type": "string",
-          "enum": [
-            "left",
-            "right",
-            "top",
-            "bottom"
-          ],
+          "enum": ["left", "right", "top", "bottom"],
           "description": "Which side of the bbox the port emerges from in the unrotated, unmirrored block. Rotation/mirror are applied by the renderer."
         },
         "offset": {
@@ -920,11 +772,7 @@
     "Param": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "name",
-        "label",
-        "type"
-      ],
+      "required": ["name", "label", "type"],
       "properties": {
         "name": {
           "type": "string",
@@ -938,16 +786,7 @@
         },
         "type": {
           "type": "string",
-          "enum": [
-            "number",
-            "integer",
-            "vector",
-            "matrix",
-            "string",
-            "bool",
-            "enum",
-            "list"
-          ],
+          "enum": ["number", "integer", "vector", "matrix", "string", "bool", "enum", "list"],
           "description": "Param value type. The inspector renders one editor per type (NumberInput, VectorInput, Dropdown, etc. \u2014 see FE-26)."
         },
         "default": {
@@ -983,9 +822,7 @@
                 "const": "enum"
               }
             },
-            "required": [
-              "type"
-            ]
+            "required": ["type"]
           },
           "then": {
             "properties": {
@@ -993,9 +830,7 @@
                 "type": "array"
               }
             },
-            "required": [
-              "choices"
-            ]
+            "required": ["choices"]
           }
         }
       ]

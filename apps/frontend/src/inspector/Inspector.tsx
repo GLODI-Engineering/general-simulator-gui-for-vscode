@@ -7,6 +7,7 @@ import { resolveModelParams } from "../store/model";
 import { FidelitySwap } from "./FidelitySwap";
 import { ParamExpressionInput } from "./ParamExpressionInput";
 import { Dropdown } from "./editors/Dropdown";
+import { ListInput } from "./editors/ListInput";
 import { MatrixInput } from "./editors/MatrixInput";
 import { StringInput } from "./editors/StringInput";
 import { VectorInput } from "./editors/VectorInput";
@@ -71,6 +72,25 @@ function renderEditor(
         </div>
       );
     }
+    case "list":
+      return (
+        <div key={key} data-param-name={param.name}>
+          <ListInput
+            label={param.label}
+            value={
+              Array.isArray(value)
+                ? (value as string[])
+                : typeof value === "string"
+                  ? value
+                      .split(",")
+                      .map((part) => part.trim())
+                      .filter(Boolean)
+                  : undefined
+            }
+            onCommit={(next) => commitParam(blockIds, param.name, next)}
+          />
+        </div>
+      );
     case "matrix":
       return (
         <div key={key} data-param-name={param.name}>
