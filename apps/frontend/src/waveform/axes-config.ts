@@ -578,6 +578,37 @@ export function makePanAwareMousedown(
 }
 
 /** Return [t_start, t_end] from the union of all loaded signals for a set of refs. */
+/**
+ * How much one wheel event should change the visible span.
+ *
+ * The chart used a fixed `1 / 0.85` per *event* — 17.6% wider per notch,
+ * whatever the gesture. Escaping a 0.3 ms window on a 250 ms run therefore
+ * took about forty notches, which does not read as a slow zoom; it reads as
+ * a plot that is ignoring the wheel.
+ *
+ * Two things change. The factor is exponential in the scroll distance, so
+ * zooming composes — ten small events do what one large one does, which is
+ * what a trackpad and a mouse respectively produce for the same intent. And
+ * `deltaY` is finally read, rather than only its sign: a flick and a nudge
+ * no longer zoom by the same amount.
+ *
+ * One notch of a typical mouse (deltaY 120 in pixel mode) doubles or halves
+ * the span, which is the ratio map interfaces have settled on. The result is
+ * clamped so a single large event cannot leap further than a few notches
+ * would — some mice report a whole page of delta at once.
+ */
+const PIXELS_PER_DOUBLING = 120;
+const MAX_FACTOR_PER_EVENT = 4;
+
+export function wheelZoomFactor(deltaY: number, deltaMode = 0): number {
+  if (!Number.isFinite(deltaY) || deltaY === 0) return 1;
+  // deltaMode: 0 pixels, 1 lines, 2 pages. Firefox reports lines by default.
+  const perUnit = deltaMode === 1 ? 16 : deltaMode === 2 ? 400 : 1;
+  const pixels = deltaY * perUnit;
+  const factor = 2 ** (pixels / PIXELS_PER_DOUBLING);
+  return Math.min(MAX_FACTOR_PER_EVENT, Math.max(1 / MAX_FACTOR_PER_EVENT, factor));
+}
+
 export function dataExtents(
   refs: SignalRef[],
   cache: Map<string, WaveformSignal>,
