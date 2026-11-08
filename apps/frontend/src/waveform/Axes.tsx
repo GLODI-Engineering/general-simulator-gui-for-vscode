@@ -20,6 +20,7 @@ import {
   overlayPx,
   spinesChanged,
   valueExtents,
+  wheelZoomFactor,
   xAxisDomain,
 } from "./axes-config";
 import type { SpineSpec } from "./axes-config";
@@ -452,7 +453,7 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
               (e: WheelEvent) => {
                 e.preventDefault();
                 const rect = u.over.getBoundingClientRect();
-                const factorY = e.deltaY < 0 ? 0.85 : 1 / 0.85;
+                const factorY = wheelZoomFactor(e.deltaY, e.deltaMode);
 
                 // Shift+wheel zooms the value axis. Without it the wheel only
                 // ever zoomed time, so a trace too small to read vertically
@@ -474,7 +475,7 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
                 const cursorVal = u.posToVal(e.clientX - rect.left, "x");
                 const curMin = u.scales.x?.min ?? 0;
                 const curMax = u.scales.x?.max ?? 1;
-                const factor = e.deltaY < 0 ? 0.85 : 1 / 0.85;
+                const factor = wheelZoomFactor(e.deltaY, e.deltaMode);
                 let newMin = cursorVal - (cursorVal - curMin) * factor;
                 let newMax = cursorVal + (curMax - cursorVal) * factor;
                 const ext = dataExtents(latestRef.current.refs, latestRef.current.signalCache);
