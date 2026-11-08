@@ -46,6 +46,7 @@ import {
 } from "./file/file-ops";
 import { handleHostFileAction } from "./file/host-file-actions";
 import { recordRecentNetlist } from "./file/recent-netlists";
+import { getWebviewInit } from "./ipc/vscode-host";
 import { BottomPanel } from "./shell/BottomPanel";
 import { listEditorTabs } from "./shell/EditorTabRegistry";
 import { ErrorBoundary } from "./shell/ErrorBoundary";
@@ -1259,11 +1260,25 @@ export default function App() {
     };
   }, [setStatus, setWorkspaceVariables]);
 
-  // Inside VS Code this webview hosts exactly one editor surface: the
-  // schematic. The other registered tabs (waveforms, netlist) become their own
-  // VS Code panels rather than an in-app tab strip.
-  const schematicTab = listEditorTabs().find((tab) => tab.id === "core.schematic");
-  const SchematicSurface = schematicTab?.component ?? null;
+  // Which editor surface this shell shows.
+  //
+  // Inside VS Code the webview hosts exactly one: the schematic. The other
+  // registered tabs become their own VS Code panels rather than an in-app
+  // tab strip, so the active-tab state must not move this one.
+  //
+  // Outside VS Code — the browser harness and the desktop shell — there are
+  // no separate panels, and this was still pinned to the schematic. So
+  // `file.switch-tab` cycled `activeEditorTabId` with nothing to show for
+  // it, a finished run set the active tab to the waveform and the schematic
+  // stayed on screen, and the waveform viewer was simply unreachable. The
+  // registry had the tabs the whole time; nothing rendered them.
+  const hostedByVsCode = getWebviewInit() !== null;
+  const activeEditorTabId = useIpcStore((state) => state.activeEditorTabId);
+  const surfaceId = hostedByVsCode ? "core.schematic" : activeEditorTabId;
+  const tabs = listEditorTabs();
+  const ActiveSurface =
+    (tabs.find((tab) => tab.id === surfaceId) ?? tabs.find((tab) => tab.id === "core.schematic"))
+      ?.component ?? null;
 
   return (
     <KeymapProvider
@@ -1286,9 +1301,7 @@ export default function App() {
         <div className="app-main">
           <main className="canvas-slot" aria-label="Canvas">
             <div className="canvas-surface">
-              <div className="canvas-surface__body">
-                {SchematicSurface ? <SchematicSurface /> : null}
-              </div>
+              <div className="canvas-surface__body">{ActiveSurface ? <ActiveSurface /> : null}</div>
             </div>
             {modalStack.includes("quick-insert") ? (
               <QuickInsert position={{ x: 120, y: 120 }} onClose={popModal} />

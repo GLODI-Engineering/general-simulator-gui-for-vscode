@@ -11,7 +11,7 @@
  */
 import { getActiveDragBlock, setActiveDragBlock } from "../canvas/dnd";
 import { serialize } from "../file/serializer";
-import { getWebviewInit, postToHost } from "../ipc/vscode-host";
+import { getWebviewInit, postToHost, requestSource } from "../ipc/vscode-host";
 import { useGraphStore, useLibraryStore } from "../store";
 
 type Probe = (args: Record<string, unknown>) => unknown;
@@ -115,6 +115,20 @@ function dispatchToolbarDrag(args: Record<string, unknown>): unknown {
   };
 }
 
+/**
+ * Ask the extension host for a workspace file, the way the inspector does
+ * when it offers to read a scripted block's ports from its source.
+ *
+ * Exists so the host half of that round trip can be tested at all: the
+ * browser suite has no extension host, so without this the file read, the
+ * workspace confinement and the reply are covered by nothing.
+ */
+async function readSourceProbe(args: Record<string, unknown>): Promise<unknown> {
+  const path = typeof args.path === "string" ? args.path : "";
+  const text = await requestSource(path, 10_000);
+  return { ok: text !== null, length: text?.length ?? 0, text: text?.slice(0, 400) ?? null };
+}
+
 const PROBES: Record<string, Probe> = {
   /** Proof the React app actually mounted and painted inside this webview. */
   mounted: () => {
@@ -156,6 +170,7 @@ const PROBES: Record<string, Probe> = {
 
   dispatchCanvasDrop,
   dispatchToolbarDrag,
+  readSource: readSourceProbe,
 
   /**
    * Click a real MainToolbar button by its accessible name, so the whole
@@ -210,12 +225,22 @@ export function installTestHooks(): void {
       if (!probe) {
         throw new Error(`unknown probe: ${String(data.op)}`);
       }
-      postToHost({
-        type: "gsim/test/report",
-        requestId,
-        ok: true,
-        result: probe(data.args ?? {}),
-      });
+      // Awaited, because a probe may be async — asking the extension host
+      // for a file is. Posting the Promise itself fails at the boundary
+      // with "[object Promise] could not be cloned", which reads as a
+      // broken probe rather than a missing `await`.
+      void Promise.resolve(probe(data.args ?? {}))
+        .then((result) => {
+          postToHost({ type: "gsim/test/report", requestId, ok: true, result });
+        })
+        .catch((error: unknown) => {
+          postToHost({
+            type: "gsim/test/report",
+            requestId,
+            ok: false,
+            result: String(error instanceof Error ? error.message : error),
+          });
+        });
     } catch (error) {
       postToHost({
         type: "gsim/test/report",

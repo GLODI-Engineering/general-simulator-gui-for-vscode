@@ -97,8 +97,9 @@ describe("formatSiValue", () => {
   });
 
   it("shows the trap: 1M in the box is one milliohm", () => {
-    const parsed = parseSpiceNumber("1M")!;
-    expect(formatSiValue(parsed.value, "Ω")).toBe("1 mΩ");
+    const parsed = parseSpiceNumber("1M");
+    expect(parsed).not.toBeNull();
+    expect(formatSiValue(parsed?.value ?? Number.NaN, "Ω")).toBe("1 mΩ");
   });
 
   it("uses the micro sign rather than a letter u", () => {

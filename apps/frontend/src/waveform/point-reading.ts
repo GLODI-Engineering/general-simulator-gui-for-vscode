@@ -51,7 +51,7 @@ export function nearestSampleIndex(time: ArrayLike<number>, x: number): number {
 }
 
 /** Read one trace at the x nearest the one asked for. */
-export function readingFor(ref: SignalRef, signal: WaveformSignal, x: number): PointReading | null {
+export function readingFor(signal: WaveformSignal, x: number): PointReading | null {
   const index = nearestSampleIndex(signal.time, x);
   if (index < 0) return null;
   const xv = signal.time[index];
@@ -81,7 +81,7 @@ export function pickNearestTrace(
   for (const ref of refs) {
     const signal = cache.get(`${ref.simId}::${ref.signalName}`);
     if (!signal) continue;
-    const reading = readingFor(ref, signal, x);
+    const reading = readingFor(signal, x);
     if (!reading) continue;
     const dx = toPixels(reading.x, "x", ref) - clickX;
     const dy = toPixels(reading.y, "y", ref) - toPixels(y, "y", ref);

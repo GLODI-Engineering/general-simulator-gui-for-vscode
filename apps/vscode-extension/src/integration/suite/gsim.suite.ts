@@ -274,6 +274,37 @@ suite("General Simulator — VS Code integration", () => {
      * after #3 was fixed and shipped, so it is pinned here, in real VS Code,
      * rather than only in a browser where it already passed.
      */
+    /**
+     * The host half of "read ports from source".
+     *
+     * The browser suite has no extension host, so without this the file
+     * read, the workspace confinement and the reply are covered by nothing.
+     */
+    test("the host hands the webview a workspace file", async () => {
+      const dir = process.env.GSIM_TEST_WORKSPACE;
+      assert.ok(dir, "the test workspace path is published to the suite");
+      const source = "function [y1, y2] = ctrl(u1, u2)\n  y1 = u1;\n  y2 = u2;\nend\n";
+      fs.writeFileSync(path.join(dir as string, "ctrl.m"), source, "utf8");
+
+      const got = await api.probe<{ ok: boolean; text: string | null }>("schematic", "readSource", {
+        path: "ctrl.m",
+      });
+      assert.equal(got.ok, true, "the file was read");
+      assert.ok(got.text?.includes("function [y1, y2] = ctrl"), "and it is the file we wrote");
+    });
+
+    /**
+     * The path comes from a block parameter, which is to say from a document
+     * that may have been opened from anywhere. An unchecked read is an
+     * invitation to walk out of the project.
+     */
+    test("and refuses a path outside the workspace", async () => {
+      const got = await api.probe<{ ok: boolean }>("schematic", "readSource", {
+        path: "../../../../etc/passwd",
+      });
+      assert.equal(got.ok, false, "a traversal is refused rather than served");
+    });
+
     test("dragging a component out of the toolbar drops it on the sheet", async () => {
       const startCount = await api.probe<number>("schematic", "blockCount");
       const drag = await api.probe<{

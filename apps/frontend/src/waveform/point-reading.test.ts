@@ -51,22 +51,23 @@ describe("nearestSampleIndex", () => {
 });
 
 describe("readingFor", () => {
-  /** The rule: report the signal, not the picture. */
-  it("reports the real sample, unscaled by display gain", () => {
+  /**
+   * The rule: report the signal, not the picture. `readingFor` cannot see a
+   * ref at all, which is how that is enforced rather than remembered — a
+   * gain has no way to reach a reported value.
+   */
+  it("reports the stored sample", () => {
     const sig = signal("I(L1)", [0, 1, 2], [0, 2, 4]);
-    const plain = readingFor(ref("I(L1)"), sig, 1);
-    const gained = readingFor(ref("I(L1)", 10), sig, 1);
-    expect(plain?.y).toBe(2);
-    expect(gained?.y).toBe(2);
+    expect(readingFor(sig, 1)?.y).toBe(2);
   });
 
   it("returns the sample's own x, not the x that was asked for", () => {
     const sig = signal("V(a)", [0, 1, 2], [5, 6, 7]);
-    expect(readingFor(ref("V(a)"), sig, 1.2)?.x).toBe(1);
+    expect(readingFor(sig, 1.2)?.x).toBe(1);
   });
 
   it("has nothing to say about an empty signal", () => {
-    expect(readingFor(ref("V(a)"), signal("V(a)", [], []), 1)).toBeNull();
+    expect(readingFor(signal("V(a)", [], []), 1)).toBeNull();
   });
 });
 
