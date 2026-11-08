@@ -22,6 +22,7 @@ import { registerSymbolEditorTab } from "./symbol-editor/register";
 import { saveSymbolToLibrary } from "./symbol-editor/save";
 import { useSymbolEditorStore } from "./symbol-editor/store";
 import { registerWaveformTab } from "./waveform/register";
+import { installWaveformRenderHook } from "./waveform/render-hook";
 import { registerWorkspaceTab } from "./workspace/register";
 
 import { KeymapProvider } from "./canvas/KeymapProvider";
@@ -82,6 +83,11 @@ function bootRegistries() {
   // A wire naming a port its block does not have is drawn anyway; without
   // this nothing ever says so.
   installPortValidation();
+  // Harness door, same role as `__gensim_load_document`. It was installed
+  // only from the VS Code waveform entry, so the browser e2e suite could
+  // not reach the waveform viewer at all — every test of it had to go
+  // through the packaged extension.
+  installWaveformRenderHook();
   registriesBooted = true;
 }
 
