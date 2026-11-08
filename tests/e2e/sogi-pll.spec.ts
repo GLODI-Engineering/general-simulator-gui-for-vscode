@@ -29,6 +29,27 @@ test.describe("SOGI-PLL", () => {
     const fromWsum = wires.filter((w) => w.from.block === pll.wsum.id);
     expect(fromWsum).toHaveLength(3);
 
+    /**
+     * Every integrator is strictly proper.
+     *
+     * This is asserted because it once was not. In an earlier render, three
+     * of the four read `1/s` and `Transfer_function2` read `1/(s+1)` — the
+     * default — from four identical `setParam(..., "den", "1, 0")` calls.
+     * The likely cause was `VectorInput` seeding its draft with `useState`,
+     * which reads its argument once: selecting the next block reused the
+     * component, the box kept the previous draft, and the commit that
+     * followed wrote that stale text back.
+     *
+     * A wrong denominator here is not a visual defect. `1/(s+1)` is a
+     * low-pass, not an integrator, and the loop silently stops being the
+     * system that was drawn.
+     */
+    for (const integrator of [pll.intA, pll.intB, pll.inti, pll.intTh]) {
+      const den = await sheet.paramOf(integrator, "den");
+      expect(den, `${integrator.id} must be 1/s, not the default 1/(s+1)`).toEqual([1, 0]);
+      expect(await sheet.paramOf(integrator, "num")).toEqual([1]);
+    }
+
     // And each integrator's output is read through its delay, not directly.
     for (const [integrator, delay] of [
       [pll.intA, pll.da],
