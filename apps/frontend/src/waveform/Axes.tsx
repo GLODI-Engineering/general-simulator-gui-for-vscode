@@ -26,9 +26,11 @@ import {
 import type { SpineSpec } from "./axes-config";
 import { buildBodeAnnotations } from "./bode-annotations";
 import type { AnnotationSpec, BodeMargins, MarginBadgeSpec } from "./bode-annotations";
+import { copyText } from "./copy-text";
 import { axesExportSubject } from "./export-subjects";
 import { withHistory } from "./history";
-import { readChartTheme } from "./theme";
+import { type PointReading, formatReading, pickNearestTrace } from "./point-reading";
+import { formatValue, readChartTheme } from "./theme";
 import type { SignalRef, WaveformSignal } from "./types";
 
 export type { BodeMargins };
@@ -175,6 +177,10 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
   const axesEntryRef = useRef(axesEntry);
   axesEntryRef.current = axesEntry;
 
+  /** What a click on a trace reported, and where to pin the badge. */
+  const [reading, setReading] = useState<{ point: PointReading; left: number; top: number } | null>(
+    null,
+  );
   const [annotationLines, setAnnotationLines] = useState<AnnotationSpec[]>([]);
   const [marginBadge, setMarginBadge] = useState<MarginBadgeSpec | null>(null);
   const [exportSubject, setExportSubject] = useState<ExportSubject | null>(null);
@@ -437,6 +443,63 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
               setMarginBadge(result.badge);
             }
             setCursorLines(_buildCursorLines(axesEntryRef.current, u, spines[0]?.scaleKey ?? "y"));
+
+            // Click a trace to read the sample under the pointer.
+            //
+            // Bound on mousedown/mouseup rather than "click" so a box-zoom
+            // drag, which also ends in a click, does not leave a reading
+            // behind every time someone zooms.
+            let downAt: { x: number; y: number } | null = null;
+            u.over.addEventListener("mousedown", (e: MouseEvent) => {
+              downAt = { x: e.clientX, y: e.clientY };
+            });
+            u.over.addEventListener("mouseup", (e: MouseEvent) => {
+              const start = downAt;
+              downAt = null;
+              if (!start) return;
+              if (Math.abs(e.clientX - start.x) > 3 || Math.abs(e.clientY - start.y) > 3) return;
+
+              const rect = u.over.getBoundingClientRect();
+              const offsetX = e.clientX - rect.left;
+              const offsetY = e.clientY - rect.top;
+              const xVal = u.posToVal(offsetX, "x");
+              const refs = latestRef.current.refs;
+              const firstKey = spinesRef.current[0]?.scaleKey ?? "y";
+              const yVal = u.posToVal(offsetY, firstKey);
+
+              const point = pickNearestTrace(
+                refs,
+                latestRef.current.signalCache,
+                xVal,
+                yVal,
+                (value, axis, ref) => {
+                  if (axis === "x") return u.valToPos(value, "x", false);
+                  // A spine is identified by the quantity it carries, not
+                  // by a list of refs — so a trace finds its axis through
+                  // its own signal's quantity.
+                  const quantity = latestRef.current.signalCache.get(
+                    `${ref.simId}::${ref.signalName}`,
+                  )?.quantity;
+                  const key =
+                    spinesRef.current.find((spine) => spine.quantity === quantity)?.scaleKey ??
+                    firstKey;
+                  // Gain scales the picture, so the *pixel* position of a
+                  // real sample includes it even though the reported value
+                  // does not.
+                  const shown = ref.gain === undefined ? value : value * ref.gain;
+                  return u.valToPos(shown, key, false);
+                },
+              );
+              if (!point) {
+                setReading(null);
+                return;
+              }
+              setReading({
+                point,
+                left: u.over.offsetLeft + u.valToPos(point.x, "x", false),
+                top: offsetY + u.over.offsetTop,
+              });
+            });
 
             // Double-click resets the x-range to the full data extent —
             // matches the toolbar's "Fit" button (mirrors common
@@ -709,6 +772,17 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
 
   const isCollapsed = axesEntry?.collapsed === true;
 
+  /** The unit the clicked value is quoted in: the clicked trace's own. */
+  const readingUnit = (() => {
+    if (!reading) return "";
+    for (const ref of axesEntry?.signals ?? []) {
+      if (ref.signalName === reading.point.name) {
+        return signalCache.get(`${ref.simId}::${ref.signalName}`)?.unit ?? "";
+      }
+    }
+    return "";
+  })();
+
   // The same two fits the main toolbar performs on the active axes, bound
   // here to this axes so they need no selection first.
   function handleFitX() {
@@ -890,6 +964,48 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
               <div>GM: {marginBadge.gainMarginDb.toFixed(1)} dB</div>
               <div>PM: {marginBadge.phaseMarginDeg.toFixed(1)}°</div>
               <div>BW: {_formatHz(marginBadge.bandwidth3dbHz)}</div>
+            </div>
+          )}
+          {/* What a click on a trace reported. Pinned to the sample's own x,
+              not to the click, so the badge marks the value it quotes. */}
+          {reading && (
+            <div
+              className="point-reading"
+              style={{ left: reading.left, top: reading.top }}
+              role="status"
+            >
+              <span className="point-reading__name">{reading.point.name}</span>
+              <span className="point-reading__value">
+                {formatValue(reading.point.x, bodeMode ? "Hz" : "s")}
+              </span>
+              <span className="point-reading__value">
+                {formatValue(reading.point.y, readingUnit)}
+              </span>
+              {reading.point.phase !== undefined && (
+                <span className="point-reading__value">
+                  {formatValue(reading.point.phase, "\u00b0")}
+                </span>
+              )}
+              <button
+                type="button"
+                className="point-reading__btn"
+                title="Copy this point"
+                aria-label="Copy this point"
+                onClick={() =>
+                  void copyText(formatReading(reading.point, bodeMode ? "Hz" : "s", readingUnit))
+                }
+              >
+                Copy
+              </button>
+              <button
+                type="button"
+                className="point-reading__btn point-reading__btn--close"
+                title="Dismiss"
+                aria-label="Dismiss reading"
+                onClick={() => setReading(null)}
+              >
+                x
+              </button>
             </div>
           )}
         </div>

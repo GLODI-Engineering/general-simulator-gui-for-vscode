@@ -3435,3 +3435,53 @@ textarea:focus-visible {
 .axes-container--collapsed > *:not(.axes-header) {
   display: none;
 }
+
+/* ── Point reading ────────────────────────────────────────────────────────
+ * What a click on a trace reported, pinned to the sample's own x so the
+ * badge marks the value it quotes rather than wherever the pointer landed.
+ */
+.point-reading {
+  position: absolute;
+  z-index: 6;
+  transform: translate(-50%, -140%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 4px 3px 9px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.18);
+  pointer-events: auto;
+}
+.point-reading__name {
+  font-weight: 700;
+}
+.point-reading__value {
+  color: #334155;
+}
+.point-reading__btn {
+  padding: 2px 7px;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 11px;
+  cursor: pointer;
+}
+.point-reading__btn:hover {
+  background: #eef2f7;
+  border-color: #94a3b8;
+}
+.point-reading__btn--close {
+  padding: 2px 6px;
+  color: #64748b;
+}
+.point-reading__btn:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+}
