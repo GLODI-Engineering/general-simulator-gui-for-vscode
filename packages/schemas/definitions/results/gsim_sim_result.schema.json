@@ -5,13 +5,7 @@
   "description": "A .gsim_sim_result: the metadata of one simulation run \u2014 what it was, which signals it holds with their units and quantities, and how they were laid out \u2014 plus where the samples live. They can be inline in this file, or in an HDF5 file it points at.",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "schema_version",
-    "run",
-    "data",
-    "sweep",
-    "signals"
-  ],
+  "required": ["schema_version", "run", "data", "sweep", "signals"],
   "properties": {
     "schema_version": {
       "type": "integer",
@@ -21,10 +15,7 @@
     "run": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "analysis"
-      ],
+      "required": ["id", "analysis"],
       "properties": {
         "id": {
           "type": "string",
@@ -63,21 +54,14 @@
       "type": "object",
       "additionalProperties": false,
       "description": "How the viewer had these signals arranged. Optional: a file without it opens with one axes per quantity.",
-      "required": [
-        "figures"
-      ],
+      "required": ["figures"],
       "properties": {
         "figures": {
           "type": "array",
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": [
-              "name",
-              "rows",
-              "cols",
-              "axes"
-            ],
+            "required": ["name", "rows", "cols", "axes"],
             "properties": {
               "name": {
                 "type": "string"
@@ -97,11 +81,7 @@
                 "items": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "row",
-                    "col",
-                    "signals"
-                  ],
+                  "required": ["row", "col", "signals"],
                   "properties": {
                     "row": {
                       "type": "integer",
@@ -137,17 +117,12 @@
     "data": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "kind"
-      ],
+      "required": ["kind"],
       "description": "Where the samples are.",
       "properties": {
         "kind": {
           "type": "string",
-          "enum": [
-            "inline",
-            "hdf5"
-          ],
+          "enum": ["inline", "hdf5"],
           "description": "inline: every vector carries its own `encoding` and `data`, and the file stands alone \u2014 it can be committed, attached to a review or emailed. hdf5: the samples, and the LOD pyramid over them, live in the file `path` points at, and each vector names its `dataset`."
         },
         "path": {
@@ -164,19 +139,13 @@
   "$defs": {
     "encoding": {
       "type": "string",
-      "enum": [
-        "f64-base64",
-        "json"
-      ],
+      "enum": ["f64-base64", "json"],
       "description": "f64-base64 is base64 of little-endian IEEE-754 doubles: exact, and about half the size of decimal text. json is a plain array of numbers, for a small result someone wants to read or diff."
     },
     "vector": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "name",
-        "unit"
-      ],
+      "required": ["name", "unit"],
       "properties": {
         "name": {
           "type": "string",
@@ -190,11 +159,7 @@
         },
         "domain": {
           "type": "string",
-          "enum": [
-            "time",
-            "frequency",
-            "parameter"
-          ],
+          "enum": ["time", "frequency", "parameter"],
           "description": "Decides the x-axis name and whether it is logarithmic."
         },
         "encoding": {
@@ -223,10 +188,7 @@
     "signal": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "name",
-        "unit"
-      ],
+      "required": ["name", "unit"],
       "properties": {
         "name": {
           "type": "string",
