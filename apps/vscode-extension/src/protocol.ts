@@ -52,6 +52,11 @@ export type HostBoundMessage =
   | { type: "gsim/simulationFinished"; simId: string }
   /** Persist an authored component to the workspace. */
   | { type: "gsim/saveSymbol"; name: string; metadata: unknown }
+  /**
+   * Read a scripted block's source, so the editor can show what ports it
+   * looks like it expects. Confined to the workspace folder by the host.
+   */
+  | { type: "gsim/readSource"; requestId: string; path: string }
   | { type: "gsim/showWaveforms" }
   | { type: "gsim/log"; level: "info" | "warn" | "error"; message: string }
   | { type: "gsim/test/report"; requestId: string; ok: boolean; result: unknown };
@@ -67,6 +72,8 @@ export type WebviewBoundMessage =
   /** The workspace's user components changed — on save, or on an edit on disk. */
   | { type: "gsim/userSymbols"; metadata: unknown[] }
   | { type: "gsim/symbolSaved"; name: string; path: string }
+  /** Answer to `gsim/readSource`: the file's text, or why it could not be read. */
+  | { type: "gsim/sourceContent"; requestId: string; text?: string; error?: string }
   | { type: "gsim/symbolSaveFailed"; name: string; reason: string }
   | { type: "gsim/test/exec"; requestId: string; op: string; args?: Record<string, unknown> };
 

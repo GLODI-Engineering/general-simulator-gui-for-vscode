@@ -3552,3 +3552,52 @@ textarea:focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: -1px;
 }
+
+/* ── What a scripted block's source expects ───────────────────────────────
+ * Its ports live on the schematic and are handed to the code, so the two
+ * can disagree with nothing noticing. Adopting what the source says is a
+ * click, never automatic: the parse reads a signature, and the person
+ * editing knows things it does not.
+ */
+.source-ports {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+}
+.source-ports__read,
+.source-ports__adopt {
+  padding: 4px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 12px;
+  cursor: pointer;
+}
+.source-ports__adopt {
+  margin-top: 6px;
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-weight: 600;
+}
+.source-ports__read:hover,
+.source-ports__adopt:hover {
+  border-color: #94a3b8;
+}
+.source-ports__note {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+.source-ports__row {
+  margin: 4px 0 0;
+  font-size: 11.5px;
+  color: #334155;
+  font-variant-numeric: tabular-nums;
+}
+.source-ports__row.is-different {
+  color: #92400e;
+  font-weight: 600;
+}

@@ -72,3 +72,46 @@ test.describe("code block ports follow the schematic", () => {
     expect(after, "changing the source path must not change the ports").toBe(before);
   });
 });
+
+/**
+ * The control that reads the source is *mounted*. Said as its own test
+ * because this codebase has a habit of building things nothing renders —
+ * the measurements bar, RunButton, deriveTopologyIssues, the waveform
+ * render hook — and a unit test on the component proves only that the
+ * component works.
+ */
+test.describe("reading ports from the source", () => {
+  test("a scripted block with a path offers to read it", async ({ appPage }) => {
+    const sheet = new SchematicPage(appPage);
+    const block = await sheet.add("extensibility.pyfunc", 0.4, 0.4);
+
+    await sheet.setParam(block, "path", "./model.py");
+    await sheet.selectBlock(block);
+    await sheet.openInspector();
+
+    await expect(appPage.getByRole("button", { name: /Read ports from source/ })).toBeVisible();
+  });
+
+  test("and says so when there is no workspace to read from", async ({ appPage }) => {
+    const sheet = new SchematicPage(appPage);
+    const block = await sheet.add("extensibility.pyfunc", 0.4, 0.4);
+    await sheet.setParam(block, "path", "./model.py");
+    await sheet.selectBlock(block);
+    await sheet.openInspector();
+
+    await appPage.getByRole("button", { name: /Read ports from source/ }).click();
+
+    // In the browser there is no extension host, which the control states
+    // rather than failing silently or pretending it read something.
+    await expect(appPage.getByText(/only be read inside the editor/)).toBeVisible();
+  });
+
+  test("a block with no source path does not offer it", async ({ appPage }) => {
+    const sheet = new SchematicPage(appPage);
+    const block = await sheet.add("control.gain", 0.4, 0.4);
+    await sheet.selectBlock(block);
+    await sheet.openInspector();
+
+    await expect(appPage.getByRole("button", { name: /Read ports from source/ })).toHaveCount(0);
+  });
+});
