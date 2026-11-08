@@ -90,3 +90,30 @@ export function applyKernelConfig(kernel: { port: number; token: string }): void
   globals.__KERNEL_PORT__ = kernel.port;
   globals.__KERNEL_TOKEN__ = kernel.token;
 }
+
+/**
+ * Ask the extension host for a workspace file's text.
+ *
+ * Used to show what ports a scripted block's source looks like it expects.
+ * Resolves to `null` outside VS Code, where there is no host to ask and no
+ * filesystem to read — the caller shows nothing rather than an error, since
+ * "this only works in the editor" is not news worth interrupting for.
+ */
+export function requestSource(path: string, timeoutMs = 5_000): Promise<string | null> {
+  if (getWebviewInit() === null) return Promise.resolve(null);
+
+  const requestId = `src-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  return new Promise((resolve) => {
+    const done = (value: string | null) => {
+      clearTimeout(timer);
+      stop();
+      resolve(value);
+    };
+    const timer = setTimeout(() => done(null), timeoutMs);
+    const stop = onHostMessage((message) => {
+      if (message.type !== "gsim/sourceContent" || message.requestId !== requestId) return;
+      done(typeof message.text === "string" ? message.text : null);
+    });
+    postToHost({ type: "gsim/readSource", requestId, path });
+  });
+}

@@ -23,6 +23,8 @@
  * every other webview; the schematic webview's drop handler falls back to that
  * value when `getData()` comes back empty (see `resolveDroppedBlock`).
  */
+import path from "node:path";
+
 import * as vscode from "vscode";
 
 import { KernelSidecar } from "./kernel";
@@ -127,6 +129,44 @@ export class GsimHost implements vscode.Disposable {
    * and a failure has to be visible or the user believes a component is saved
    * that is not.
    */
+  /**
+   * Hand the webview a scripted block's source, so it can show what ports
+   * the code looks like it expects.
+   *
+   * Confined to the workspace folder on purpose. The path comes from a
+   * block parameter, which is to say from a document that may have been
+   * opened from anywhere, so an unchecked read is an invitation to walk
+   * out of the project with `../../..`. Resolution is done by the host
+   * rather than trusted from the message.
+   */
+  private async readSource(requestId: string, requested: string): Promise<void> {
+    const reply = (payload: { text?: string; error?: string }) =>
+      this.broadcast({ type: "gsim/sourceContent", requestId, ...payload });
+
+    const workspace = symbolWorkspace();
+    if (!workspace) {
+      reply({ error: "No workspace folder is open, so there is nothing to read from." });
+      return;
+    }
+
+    const target = vscode.Uri.joinPath(workspace, requested);
+    const root = workspace.fsPath.endsWith(path.sep)
+      ? workspace.fsPath
+      : `${workspace.fsPath}${path.sep}`;
+    if (!target.fsPath.startsWith(root)) {
+      this.log.appendLine(`[source] refused to read outside the workspace: ${requested}`);
+      reply({ error: "That path is outside the workspace folder." });
+      return;
+    }
+
+    try {
+      const bytes = await vscode.workspace.fs.readFile(target);
+      reply({ text: new TextDecoder().decode(bytes) });
+    } catch (error) {
+      reply({ error: `Could not read ${requested}: ${String(error)}` });
+    }
+  }
+
   private async persistSymbol(name: string, metadata: unknown): Promise<void> {
     const workspace = symbolWorkspace();
     if (!workspace) {
@@ -204,6 +244,10 @@ export class GsimHost implements vscode.Disposable {
       // --- user-authored components --------------------------------------
       case "gsim/saveSymbol":
         void this.persistSymbol(message.name, message.metadata);
+        return true;
+
+      case "gsim/readSource":
+        void this.readSource(message.requestId, message.path);
         return true;
 
       // --- in-app File buttons -> the workbench's own commands -----------
