@@ -2359,10 +2359,27 @@ textarea:focus-visible {
 }
 
 /* Scale the SVG symbol to fit the small preview card */
+/* Fit each symbol to the button, rather than scaling every one by the same
+ * constant.
+ *
+ * `transform: scale(0.47)` was applied to all eight components whatever
+ * their size. Measured in the browser, the rendered SVG is 120x80 for the
+ * passives and 120x120 for the transistors — twice the bbox the catalog
+ * declares, because a symbol draws its port stubs *outside* that bbox. At
+ * 0.47 those become 56x38 and 56x56 inside a 48x36 preview, so
+ * `overflow: hidden` cut 4px from each side of everything and 10px from the
+ * top and bottom of the transistors, which is why they looked beheaded.
+ *
+ * A viewBox plus width/height does the scaling the element actually needs:
+ * `preserveAspectRatio` defaults to `xMidYMid meet`, so each symbol is
+ * scaled down until it fits and centred in whatever room is left. No
+ * constant to retune when a symbol's size changes, and nothing to clip. */
 .schematic-toolbar__component-preview .block-symbol {
-  transform: scale(0.47);
-  transform-origin: center;
-  flex-shrink: 0;
+  width: 100%;
+  height: 100%;
+  flex-shrink: 1;
+  min-width: 0;
+  min-height: 0;
 }
 
 /* Fallback letter when catalog not loaded */
