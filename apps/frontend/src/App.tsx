@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { installPortValidation } from "./canvas/port-validation";
 import { registerCanvasTab } from "./canvas/register";
 import { serialize } from "./file/serializer";
 import { ComponentParamsPanel } from "./inspector/ComponentParamsPanel";
@@ -78,6 +79,9 @@ function bootRegistries() {
   registerWorkspaceTab();
   registerSymbolEditorTab();
   registerProblemsSurface();
+  // A wire naming a port its block does not have is drawn anyway; without
+  // this nothing ever says so.
+  installPortValidation();
   registriesBooted = true;
 }
 
@@ -991,6 +995,8 @@ export default function App() {
       __gensim_rename?: (name: string) => void;
       __gensim_load_fixture?: (name: string) => void;
       __gensim_load_document?: (doc: unknown) => void;
+      /** Harness door: what the Problems panel would show, without opening it. */
+      __gensim_problems?: () => Array<{ id: string; severity: string; message: string }>;
       __gensim_setModelMetadata?: (metadata: Record<string, ParamValue>) => void;
       __gensim_insertBlock?: (type: string) => void;
       __gensim_wire?: (fromType: string, toType: string) => void;
@@ -1021,6 +1027,12 @@ export default function App() {
         model: { ...current.model, name },
       });
     };
+    windowRef.__gensim_problems = () =>
+      useIpcStore.getState().problems.map((problem) => ({
+        id: problem.id,
+        severity: problem.severity,
+        message: problem.message,
+      }));
     windowRef.__gensim_load_document = (doc: unknown) => {
       useGraphStore.getState().loadDocument(doc as ModelDocument);
       useGraphStore.getState().clearHistory();
@@ -1172,6 +1184,7 @@ export default function App() {
       windowRef.__gensim_rename = undefined;
       windowRef.__gensim_load_fixture = undefined;
       windowRef.__gensim_load_document = undefined;
+      windowRef.__gensim_problems = undefined;
       windowRef.__gensim_setModelMetadata = undefined;
       windowRef.__gensim_insertBlock = undefined;
       windowRef.__gensim_wire = undefined;
