@@ -62,11 +62,32 @@ export default defineConfig({
     video: "retain-on-failure",
   },
 
-  projects: [
-    project("chromium", "Desktop Chrome"),
-    project("firefox", "Desktop Firefox", /Perf budgets/),
-    project("webkit", "Desktop Safari", /Perf budgets/),
-  ],
+  /**
+   * Chromium by default; the others only when asked for.
+   *
+   * Chromium is not an arbitrary default — the VS Code webview this app
+   * ships inside *is* Chromium, so it is the engine that matters most.
+   *
+   * Firefox and WebKit stay available but opt-in, because Playwright has no
+   * Firefox build for every host it runs on (Ubuntu 26.04 among them) and a
+   * project that cannot launch fails the whole run with "Executable doesn't
+   * exist", which reads as a broken suite rather than a missing download.
+   *
+   *     GSIM_E2E_BROWSERS=all pnpm e2e
+   *
+   * Note what this cannot cover: the Tauri shell runs on WebKitGTK, which
+   * Playwright's "webkit" is not, and `canvas/dnd.ts` documents real
+   * drag-and-drop differences there. That gap is covered by neither project
+   * and is worth knowing rather than assuming away.
+   */
+  projects:
+    process.env.GSIM_E2E_BROWSERS === "all"
+      ? [
+          project("chromium", "Desktop Chrome"),
+          project("firefox", "Desktop Firefox", /Perf budgets/),
+          project("webkit", "Desktop Safari", /Perf budgets/),
+        ]
+      : [project("chromium", "Desktop Chrome")],
 
   /* Start the Vite preview server for the harness */
   webServer: {

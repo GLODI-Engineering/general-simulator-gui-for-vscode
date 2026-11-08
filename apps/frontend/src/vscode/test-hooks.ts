@@ -55,6 +55,66 @@ function dispatchCanvasDrop(args: Record<string, unknown>): unknown {
   };
 }
 
+/**
+ * Drag a component out of the *toolbar* and drop it on the canvas, inside
+ * this one webview.
+ *
+ * Distinct from `dispatchCanvasDrop`, which models the cross-webview case
+ * with an empty DataTransfer and the payload arriving through the host. Here
+ * source and target are in the same document, so the whole gesture —
+ * `dragstart`, `dragover`, `drop` — shares one DataTransfer, which is what a
+ * hand produces and what the toolbar had no handler for until #3.
+ */
+function dispatchToolbarDrag(args: Record<string, unknown>): unknown {
+  const button = el(".schematic-toolbar__component") as HTMLElement | null;
+  const target = el(".canvas-flow") as HTMLElement | null;
+  if (!button) throw new Error("no toolbar component button present");
+  if (!target) throw new Error("canvas-flow element not present");
+
+  const rect = target.getBoundingClientRect();
+  const clientX = typeof args.clientX === "number" ? args.clientX : rect.left + 200;
+  const clientY = typeof args.clientY === "number" ? args.clientY : rect.top + 160;
+
+  const before = useGraphStore.getState().document.model.blocks.length;
+  const transfer = new DataTransfer();
+
+  button.dispatchEvent(
+    new DragEvent("dragstart", { bubbles: true, cancelable: true, dataTransfer: transfer }),
+  );
+  const draggedAfterStart = getActiveDragBlock();
+
+  target.dispatchEvent(
+    new DragEvent("dragover", {
+      bubbles: true,
+      cancelable: true,
+      clientX,
+      clientY,
+      dataTransfer: transfer,
+    }),
+  );
+  target.dispatchEvent(
+    new DragEvent("drop", {
+      bubbles: true,
+      cancelable: true,
+      clientX,
+      clientY,
+      dataTransfer: transfer,
+    }),
+  );
+
+  const after = useGraphStore.getState().document.model.blocks.length;
+  return {
+    before,
+    after,
+    inserted: after - before,
+    lastBlockType: useGraphStore.getState().document.model.blocks.at(-1)?.type ?? null,
+    // Proof the fix is in this build at all, rather than the drag merely
+    // failing for some other reason.
+    draggableAttr: button.getAttribute("draggable"),
+    draggedAfterStart,
+  };
+}
+
 const PROBES: Record<string, Probe> = {
   /** Proof the React app actually mounted and painted inside this webview. */
   mounted: () => {
@@ -95,6 +155,7 @@ const PROBES: Record<string, Probe> = {
   },
 
   dispatchCanvasDrop,
+  dispatchToolbarDrag,
 
   /**
    * Click a real MainToolbar button by its accessible name, so the whole

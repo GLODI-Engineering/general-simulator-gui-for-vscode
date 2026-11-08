@@ -2359,10 +2359,27 @@ textarea:focus-visible {
 }
 
 /* Scale the SVG symbol to fit the small preview card */
+/* Fit each symbol to the button, rather than scaling every one by the same
+ * constant.
+ *
+ * `transform: scale(0.47)` was applied to all eight components whatever
+ * their size. Measured in the browser, the rendered SVG is 120x80 for the
+ * passives and 120x120 for the transistors — twice the bbox the catalog
+ * declares, because a symbol draws its port stubs *outside* that bbox. At
+ * 0.47 those become 56x38 and 56x56 inside a 48x36 preview, so
+ * `overflow: hidden` cut 4px from each side of everything and 10px from the
+ * top and bottom of the transistors, which is why they looked beheaded.
+ *
+ * A viewBox plus width/height does the scaling the element actually needs:
+ * `preserveAspectRatio` defaults to `xMidYMid meet`, so each symbol is
+ * scaled down until it fits and centred in whatever room is left. No
+ * constant to retune when a symbol's size changes, and nothing to clip. */
 .schematic-toolbar__component-preview .block-symbol {
-  transform: scale(0.47);
-  transform-origin: center;
-  flex-shrink: 0;
+  width: 100%;
+  height: 100%;
+  flex-shrink: 1;
+  min-width: 0;
+  min-height: 0;
 }
 
 /* Fallback letter when catalog not loaded */
@@ -3417,4 +3434,94 @@ textarea:focus-visible {
 }
 .axes-container--collapsed > *:not(.axes-header) {
   display: none;
+}
+
+/* ── Point reading ────────────────────────────────────────────────────────
+ * What a click on a trace reported, pinned to the sample's own x so the
+ * badge marks the value it quotes rather than wherever the pointer landed.
+ */
+.point-reading {
+  position: absolute;
+  z-index: 6;
+  transform: translate(-50%, -140%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 4px 3px 9px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.18);
+  pointer-events: auto;
+}
+.point-reading__name {
+  font-weight: 700;
+}
+.point-reading__value {
+  color: #334155;
+}
+.point-reading__btn {
+  padding: 2px 7px;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 11px;
+  cursor: pointer;
+}
+.point-reading__btn:hover {
+  background: #eef2f7;
+  border-color: #94a3b8;
+}
+.point-reading__btn--close {
+  padding: 2px 6px;
+  color: #64748b;
+}
+.point-reading__btn:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+}
+
+/* What the active simulator will and will not honour, in the parameter
+ * panel. Without this the panel silently offers fewer model levels on one
+ * simulator than another, with no reason given. */
+.params-modal__contract {
+  margin: 0 0 10px;
+  padding: 7px 10px;
+  border: 1px solid #cbd5e1;
+  border-left-width: 3px;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.params-modal__contract--error {
+  border-color: #fca5a5;
+  border-left-color: #dc2626;
+  background: #fef2f2;
+  color: #7f1d1d;
+}
+
+/* What the solver will read, echoed under a parameter box.
+ * The netlist number grammar is surprising in one expensive place: `M` is
+ * milli and mega is `MEG`, so `1M` entered for a megohm is a factor of 10^9
+ * out, with a value that stays legal the whole way down. */
+.inspector-field__hint {
+  display: block;
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.inspector-field__hint.is-warning {
+  color: #92400e;
+  font-weight: 600;
+}
+.inspector-field__hint.is-invalid {
+  color: #b91c1c;
 }

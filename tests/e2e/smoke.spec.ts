@@ -17,8 +17,8 @@
  * regression.
  */
 
-import { expect, test } from "./fixtures/build";
 import { SchematicPage } from "./actions/schematic";
+import { expect, test } from "./fixtures/build";
 
 test.describe("Smoke — web build", () => {
   test("insert three blocks and wire them, with no console errors", async ({ appPage }) => {

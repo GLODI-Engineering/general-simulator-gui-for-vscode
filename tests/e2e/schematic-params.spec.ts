@@ -7,8 +7,8 @@
  * cannot be wired at all, and nothing on screen explains why.
  */
 
-import { expect, test } from "./fixtures/build";
 import { SchematicPage } from "./actions/schematic";
+import { expect, test } from "./fixtures/build";
 
 test.describe("the inspector", () => {
   test("shows a selected component's parameters", async ({ appPage }) => {
@@ -45,10 +45,9 @@ test.describe("parameters that change the ports", () => {
     await sheet.setParam(sum, "signs", "+++");
 
     const after = (await sheet.portsOf(sum)).filter((p) => p.direction === "in");
-    expect(
-      after,
-      "a three-input adder that still draws two inputs cannot be wired",
-    ).toHaveLength(3);
+    expect(after, "a three-input adder that still draws two inputs cannot be wired").toHaveLength(
+      3,
+    );
   });
 
   test("and the third input can be wired", async ({ appPage }) => {
@@ -58,10 +57,7 @@ test.describe("parameters that change the ports", () => {
     const source = await sheet.add("source.const", 0.15, 0.75);
 
     const third = await sheet.inputPort(sum, 2);
-    const wire = await sheet.wire(
-      { block: source, port: "out" },
-      { block: sum, port: third },
-    );
+    const wire = await sheet.wire({ block: source, port: "out" }, { block: sum, port: third });
     expect(wire.to.port).toBe(third);
   });
 

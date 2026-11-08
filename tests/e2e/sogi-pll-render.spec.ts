@@ -12,8 +12,8 @@
  *     --project=chromium
  */
 
-import { test } from "./fixtures/build";
 import { SchematicPage } from "./actions/schematic";
+import { test } from "./fixtures/build";
 import { buildSogiPll } from "./scenarios/sogi-pll";
 
 test.use({ viewport: { width: 1800, height: 1100 } });

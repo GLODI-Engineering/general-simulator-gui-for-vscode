@@ -6,13 +6,9 @@
  * connects to what. This file is what to check once it is drawn.
  */
 
-import { expect, test } from "./fixtures/build";
 import { SchematicPage } from "./actions/schematic";
-import {
-  SOGI_PLL_BLOCK_COUNT,
-  SOGI_PLL_WIRE_COUNT,
-  buildSogiPll,
-} from "./scenarios/sogi-pll";
+import { expect, test } from "./fixtures/build";
+import { SOGI_PLL_BLOCK_COUNT, SOGI_PLL_WIRE_COUNT, buildSogiPll } from "./scenarios/sogi-pll";
 
 test.describe("SOGI-PLL", () => {
   test("draws complete, by mouse", async ({ appPage }) => {

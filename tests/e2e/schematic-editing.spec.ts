@@ -5,8 +5,8 @@
  * is the editor rather than the store actions underneath it.
  */
 
-import { expect, test } from "./fixtures/build";
 import { SchematicPage } from "./actions/schematic";
+import { expect, test } from "./fixtures/build";
 
 const RESISTOR = "physical_electrical.passive.resistor";
 
