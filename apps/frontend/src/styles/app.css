@@ -3485,3 +3485,43 @@ textarea:focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 1px;
 }
+
+/* What the active simulator will and will not honour, in the parameter
+ * panel. Without this the panel silently offers fewer model levels on one
+ * simulator than another, with no reason given. */
+.params-modal__contract {
+  margin: 0 0 10px;
+  padding: 7px 10px;
+  border: 1px solid #cbd5e1;
+  border-left-width: 3px;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.params-modal__contract--error {
+  border-color: #fca5a5;
+  border-left-color: #dc2626;
+  background: #fef2f2;
+  color: #7f1d1d;
+}
+
+/* What the solver will read, echoed under a parameter box.
+ * The netlist number grammar is surprising in one expensive place: `M` is
+ * milli and mega is `MEG`, so `1M` entered for a megohm is a factor of 10^9
+ * out, with a value that stays legal the whole way down. */
+.inspector-field__hint {
+  display: block;
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.inspector-field__hint.is-warning {
+  color: #92400e;
+  font-weight: 600;
+}
+.inspector-field__hint.is-invalid {
+  color: #b91c1c;
+}
