@@ -72,6 +72,11 @@ export type HostBoundMessage =
    * running catalog and was lost on reload.
    */
   | { type: "gsim/saveSymbol"; name: string; metadata: unknown }
+  /**
+   * Read a scripted block's source, so the editor can show what ports it
+   * looks like it expects. The host confines the path to the workspace.
+   */
+  | { type: "gsim/readSource"; requestId: string; path: string }
   /** Open the waveform panel. */
   | { type: "gsim/showWaveforms" }
   | { type: "gsim/log"; level: "info" | "warn" | "error"; message: string }
@@ -105,6 +110,8 @@ export type WebviewBoundMessage =
   | { type: "gsim/userSymbols"; metadata: unknown[] }
   /** A component was written to disk; carries the file it landed in. */
   | { type: "gsim/symbolSaved"; name: string; path: string }
+  /** Answer to `gsim/readSource`: the file's text, or why it could not be read. */
+  | { type: "gsim/sourceContent"; requestId: string; text?: string; error?: string }
   | { type: "gsim/symbolSaveFailed"; name: string; reason: string }
   /** Integration-harness only: run a probe inside this webview. */
   | { type: "gsim/test/exec"; requestId: string; op: string; args?: Record<string, unknown> };

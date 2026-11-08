@@ -183,6 +183,13 @@ class VariadicInputs(BaseModel):
     template: BlockPort
 
 
+class VariadicOutputs(BaseModel):
+    """Same shape as VariadicInputs, for outputs whose count comes from a param."""
+
+    count_from: str
+    template: BlockPort
+
+
 class BlockParam(BaseModel):
     name: str
     label: str
@@ -239,6 +246,7 @@ class BlockPorts(BaseModel):
     inputs: list[BlockPort]
     outputs: list[BlockPort]
     variadic_inputs: VariadicInputs | None = None
+    variadic_outputs: VariadicOutputs | None = None
 
 
 class BlockMetadata(BaseModel):

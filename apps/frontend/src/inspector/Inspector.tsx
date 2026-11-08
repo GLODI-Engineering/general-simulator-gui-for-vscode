@@ -6,6 +6,7 @@ import { useGraphStore, useLibraryStore, useToastStore, useUiStore } from "../st
 import { resolveModelParams } from "../store/model";
 import { FidelitySwap } from "./FidelitySwap";
 import { ParamExpressionInput } from "./ParamExpressionInput";
+import { SourcePorts } from "./SourcePorts";
 import { Dropdown } from "./editors/Dropdown";
 import { ListInput } from "./editors/ListInput";
 import { MatrixInput } from "./editors/MatrixInput";
@@ -272,6 +273,38 @@ export function Inspector() {
         ) : (
           <p>Metadata unavailable for this block.</p>
         )}
+
+        {/* For a scripted block, what its source looks like it expects.
+            Its ports live here and are handed to the code, so the two can
+            disagree with nothing noticing. */}
+        {(() => {
+          const sourcePath = block.params.path;
+          if (!/extensibility\.(cscript|py|oct)/.test(block.type)) return null;
+          if (typeof sourcePath !== "string" || sourcePath.trim() === "") return null;
+          const asList = (value: unknown): string[] =>
+            Array.isArray(value)
+              ? (value as string[])
+              : typeof value === "string"
+                ? value
+                    .split(",")
+                    .map((part) => part.trim())
+                    .filter(Boolean)
+                : [];
+          const fn = block.params.function;
+          return (
+            <SourcePorts
+              blockType={block.type}
+              sourcePath={sourcePath}
+              {...(typeof fn === "string" && fn !== "" ? { functionName: fn } : {})}
+              currentInputs={asList(block.params.input_names)}
+              currentOutputs={asList(block.params.output_names)}
+              onAdopt={(ports) => {
+                if (ports.inputs) commitParam([block.id], "input_names", ports.inputs);
+                if (ports.outputs) commitParam([block.id], "output_names", ports.outputs);
+              }}
+            />
+          );
+        })()}
       </div>
     </section>
   );
