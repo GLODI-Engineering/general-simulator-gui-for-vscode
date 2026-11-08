@@ -236,6 +236,13 @@ export interface BlockPort {
   svg_x?: number;
   /** Y coordinate in the symbol SVG viewBox space. */
   svg_y?: number;
+  /**
+   * Name of a parameter that selects this port's kind domain at runtime,
+   * overriding \`kind.domain\`. For a port whose paradigm the user chooses
+   * rather than the component fixing it — a subsystem boundary port, which
+   * may carry a signal or any physical domain.
+   */
+  domain_from?: string;
 }
 
 export interface VariadicInputs {
@@ -243,10 +250,16 @@ export interface VariadicInputs {
   template: BlockPort;
 }
 
+/** Same shape as VariadicInputs, for output ports whose count comes from a param. */
+export interface VariadicOutputs {
+  count_from: string;
+  template: BlockPort;
+}
+
 export interface BlockParam {
   name: string;
   label: string;
-  type: "number" | "integer" | "vector" | "matrix" | "string" | "bool" | "enum";
+  type: "number" | "integer" | "vector" | "matrix" | "string" | "bool" | "enum" | "list";
   default?: unknown;
   min?: number;
   max?: number;
@@ -265,7 +278,7 @@ export interface FidelityPortDef {
 
 export interface FidelityParamDef {
   id: string;
-  type: "number" | "integer" | "vector" | "matrix" | "string" | "bool" | "enum";
+  type: "number" | "integer" | "vector" | "matrix" | "string" | "bool" | "enum" | "list";
   default?: unknown;
   unit?: string;
   doc?: string;
@@ -372,6 +385,7 @@ export interface BlockMetadata {
     inputs: BlockPort[];
     outputs: BlockPort[];
     variadic_inputs?: VariadicInputs;
+    variadic_outputs?: VariadicOutputs;
   };
   params: BlockParam[];
   symbol: {
@@ -581,6 +595,13 @@ class VariadicInputs(BaseModel):
     template: BlockPort
 
 
+class VariadicOutputs(BaseModel):
+    """Same shape as VariadicInputs, for outputs whose count comes from a param."""
+
+    count_from: str
+    template: BlockPort
+
+
 class BlockParam(BaseModel):
     name: str
     label: str
@@ -637,6 +658,7 @@ class BlockPorts(BaseModel):
     inputs: list[BlockPort]
     outputs: list[BlockPort]
     variadic_inputs: VariadicInputs | None = None
+    variadic_outputs: VariadicOutputs | None = None
 
 
 class BlockMetadata(BaseModel):

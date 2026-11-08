@@ -1279,7 +1279,6 @@ export default function App() {
   const ActiveSurface =
     (tabs.find((tab) => tab.id === surfaceId) ?? tabs.find((tab) => tab.id === "core.schematic"))
       ?.component ?? null;
-  const showingSchematic = surfaceId === "core.schematic";
 
   return (
     <KeymapProvider
