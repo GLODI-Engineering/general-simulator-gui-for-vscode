@@ -1,5 +1,8 @@
+import { useRef } from "react";
+
 import { useWaveformStore } from "../store/waveform";
 import { Axes } from "./Axes";
+import { MIN_TRACK_PX, normalizeSizes, resizeTracks, trackTemplate } from "./grid-sizing";
 
 interface GridLayoutProps {
   figureId: string;
@@ -14,12 +17,64 @@ interface GridLayoutProps {
  */
 const MIN_ROW = 260;
 
+/** Thickness of the draggable gap between tracks. */
+const SPLITTER_PX = 6;
+
 export function GridLayout({ figureId, rows, cols }: GridLayoutProps) {
   const axes = useWaveformStore((s) => s.axes);
   const figureEntry = useWaveformStore((s) => s.figures.get(figureId));
   const figureAxesIds = figureEntry?.axesIds ?? [];
   const createAxes = useWaveformStore((s) => s.createAxes);
   const addSignalToAxes = useWaveformStore((s) => s.addSignalToAxes);
+  const setFigureTrackSizes = useWaveformStore((s) => s.setFigureTrackSizes);
+  const gridRef = useRef<HTMLDivElement | null>(null);
+
+  const rowSizes = normalizeSizes(figureEntry?.rowSizes, rows);
+  const colSizes = normalizeSizes(figureEntry?.colSizes, cols);
+
+  /**
+   * Drag the gap between two tracks to rebalance them.
+   *
+   * Pointer capture rather than window listeners: the drag must keep
+   * following the pointer when it leaves the thin splitter, which it does
+   * immediately, and capture is what guarantees the release arrives even if
+   * the pointer ends up over a canvas that would otherwise swallow it.
+   */
+  function startResize(
+    event: React.PointerEvent<HTMLDivElement>,
+    axis: "rows" | "cols",
+    index: number,
+  ) {
+    event.preventDefault();
+    const handle = event.currentTarget;
+    handle.setPointerCapture(event.pointerId);
+
+    const box = gridRef.current?.getBoundingClientRect();
+    if (!box) return;
+    const startAt = axis === "rows" ? event.clientY : event.clientX;
+    const totalPx = axis === "rows" ? box.height : box.width;
+    const startSizes = axis === "rows" ? rowSizes : colSizes;
+
+    const onMove = (move: PointerEvent) => {
+      const delta = (axis === "rows" ? move.clientY : move.clientX) - startAt;
+      const next = resizeTracks(
+        startSizes,
+        index,
+        delta,
+        totalPx,
+        axis === "rows" ? MIN_ROW : MIN_TRACK_PX,
+      );
+      setFigureTrackSizes(figureId, axis === "rows" ? { rows: next } : { cols: next });
+    };
+    const onUp = () => {
+      handle.removeEventListener("pointermove", onMove);
+      handle.removeEventListener("pointerup", onUp);
+      handle.removeEventListener("pointercancel", onUp);
+    };
+    handle.addEventListener("pointermove", onMove);
+    handle.addEventListener("pointerup", onUp);
+    handle.addEventListener("pointercancel", onUp);
+  }
 
   // FE-167: only honor maximizedAxesId if that axes still exists in this
   // figure (it may have been deleted while maximized).
@@ -78,6 +133,7 @@ export function GridLayout({ figureId, rows, cols }: GridLayoutProps) {
   return (
     <div
       className="figure-grid"
+      ref={gridRef}
       style={{
         display: "grid",
         // A floor on row height, and a scrollbar rather than squashing.
@@ -87,10 +143,14 @@ export function GridLayout({ figureId, rows, cols }: GridLayoutProps) {
         // chart itself was a sliver — three unreadable plots instead of two
         // readable ones you scroll between. MIN_ROW is the height below
         // which a plot stops being worth drawing.
-        gridTemplateRows: `repeat(${rows}, minmax(${MIN_ROW}px, 1fr))`,
-        gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+        // Splitter tracks are interleaved between the content tracks rather
+        // than overlaid on a gap, so the draggable strip *is* the gap and
+        // the browser does the positioning. `gap` is therefore 0 — the
+        // splitter track is the spacing.
+        gridTemplateRows: trackTemplate(rowSizes, MIN_ROW, SPLITTER_PX),
+        gridTemplateColumns: trackTemplate(colSizes, MIN_TRACK_PX, SPLITTER_PX),
         flex: 1,
-        gap: "6px",
+        gap: 0,
         padding: "6px",
         minHeight: 0,
         overflowX: "hidden",
@@ -105,8 +165,14 @@ export function GridLayout({ figureId, rows, cols }: GridLayoutProps) {
           return ax?.row === row && ax?.col === col;
         });
 
+        // Track n of the template is at CSS line 2n+1, because every odd
+        // track is a splitter.
+        const place = { gridRow: row * 2 + 1, gridColumn: col * 2 + 1 };
+
         return axesId ? (
-          <Axes key={axesId} axesId={axesId} />
+          <div key={axesId} style={{ ...place, minHeight: 0, minWidth: 0 }}>
+            <Axes axesId={axesId} />
+          </div>
         ) : (
           <div
             key={`empty-${row}-${col}`}
@@ -116,6 +182,7 @@ export function GridLayout({ figureId, rows, cols }: GridLayoutProps) {
             onDragOver={handleCellDragOver}
             onDrop={(e) => handleCellDrop(e, row, col)}
             style={{
+              ...place,
               minHeight: "120px",
               display: "flex",
               alignItems: "center",
@@ -127,6 +194,37 @@ export function GridLayout({ figureId, rows, cols }: GridLayoutProps) {
           </div>
         );
       })}
+
+      {/* The gaps, made draggable. One per boundary; a row splitter spans
+          every column and vice versa. */}
+      {rowSizes.slice(0, -1).map((_, index) => (
+        <div
+          key={`row-splitter-${index}`}
+          className="figure-grid__splitter figure-grid__splitter--row"
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label={`Resize row ${index + 1}`}
+          style={{
+            gridRow: index * 2 + 2,
+            gridColumn: `1 / ${Math.max(1, cols * 2)}`,
+          }}
+          onPointerDown={(event) => startResize(event, "rows", index)}
+        />
+      ))}
+      {colSizes.slice(0, -1).map((_, index) => (
+        <div
+          key={`col-splitter-${index}`}
+          className="figure-grid__splitter figure-grid__splitter--col"
+          role="separator"
+          aria-orientation="vertical"
+          aria-label={`Resize column ${index + 1}`}
+          style={{
+            gridColumn: index * 2 + 2,
+            gridRow: `1 / ${Math.max(1, rows * 2)}`,
+          }}
+          onPointerDown={(event) => startResize(event, "cols", index)}
+        />
+      ))}
     </div>
   );
 }
