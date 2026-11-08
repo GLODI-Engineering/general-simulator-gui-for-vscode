@@ -10,6 +10,17 @@ export interface Figure {
   maximizedAxesId?: string;
   /** FE-169: the auto-created X-coupling group id for this figure's own axes (distinct from any user-made explicit group). */
   autoXCouplingGroupId?: string;
+  /**
+   * Relative heights of the grid's rows, and widths of its columns.
+   *
+   * Fractions, one per track, summing to whatever they like — only the
+   * ratios matter. Absent means every track is equal, which is how a figure
+   * starts. Kept per figure because the right split depends on what is
+   * being looked at: a gate drive beside a slow thermal rise wants very
+   * different proportions from two output voltages.
+   */
+  rowSizes?: number[];
+  colSizes?: number[];
 }
 
 export interface SignalRef {

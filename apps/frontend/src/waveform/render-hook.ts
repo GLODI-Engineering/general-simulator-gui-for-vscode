@@ -15,6 +15,7 @@
  * `fetchSignal` for a cache miss, so a pre-seeded cache never reaches the
  * network.
  */
+import { useIpcStore } from "../store";
 import { useWaveformStore } from "../store/waveform";
 import type { WaveformSignal } from "./types";
 
@@ -127,5 +128,11 @@ export function loadWaveformForRender(spec: RenderWaveformSpec): void {
 }
 
 export function installWaveformRenderHook(): void {
-  globalThis.__gensim_load_waveform = loadWaveformForRender;
+  globalThis.__gensim_load_waveform = (spec) => {
+    loadWaveformForRender(spec);
+    // Show it, the way a finished run does. Loading a waveform and leaving
+    // the schematic on screen is not a state the app ever reaches by
+    // itself, and a harness that produces one tests a fiction.
+    useIpcStore.getState().setActiveEditorTab("core.waveform");
+  };
 }

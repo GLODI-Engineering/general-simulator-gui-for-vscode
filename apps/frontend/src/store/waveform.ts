@@ -137,6 +137,11 @@ export interface WaveformState {
   setAxesMeasurements: (axesId: string, measurements: MeasurementKey[]) => void;
   setAxesMeasuredSignals: (axesId: string, signalKeys: string[]) => void;
   setAxesCollapsed: (axesId: string, collapsed: boolean) => void;
+  /** Resize a figure's grid tracks. Pass null for a dimension to leave it alone. */
+  setFigureTrackSizes: (
+    figureId: string,
+    sizes: { rows?: number[] | null; cols?: number[] | null },
+  ) => void;
 
   // Zoom / cursor actions
   setAxesZoom: (axesId: string, xMin: number, xMax: number) => void;
@@ -437,6 +442,19 @@ export const useWaveformStore = create<WaveformState>((set, get) => ({
       if (!entry) return {};
       axesMap.set(axesId, { ...entry, collapsed });
       return { axes: axesMap };
+    });
+  },
+  setFigureTrackSizes: (figureId, sizes) => {
+    set((state) => {
+      const figures = new Map(state.figures);
+      const figure = figures.get(figureId);
+      if (!figure) return {};
+      figures.set(figureId, {
+        ...figure,
+        ...(sizes.rows ? { rowSizes: sizes.rows } : {}),
+        ...(sizes.cols ? { colSizes: sizes.cols } : {}),
+      });
+      return { figures };
     });
   },
 

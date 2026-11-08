@@ -3525,3 +3525,30 @@ textarea:focus-visible {
 .inspector-field__hint.is-invalid {
   color: #b91c1c;
 }
+
+/* ── Figure grid splitters ────────────────────────────────────────────────
+ * The gap between two axes, made draggable. It is a real grid track rather
+ * than an overlay on a `gap`, so the browser positions it and the strip you
+ * see is exactly the strip you can grab.
+ */
+.figure-grid__splitter {
+  background: transparent;
+  border-radius: 3px;
+  transition: background 100ms;
+  touch-action: none;
+  z-index: 2;
+}
+.figure-grid__splitter:hover,
+.figure-grid__splitter:active {
+  background: #93c5fd;
+}
+.figure-grid__splitter--row {
+  cursor: row-resize;
+}
+.figure-grid__splitter--col {
+  cursor: col-resize;
+}
+.figure-grid__splitter:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: -1px;
+}
