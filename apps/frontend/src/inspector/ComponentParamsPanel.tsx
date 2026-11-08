@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { resolveBlockMetadata } from "../canvas/subckt-metadata";
+import { allowedModelLevels, supportsBlock } from "../library/simulator-compat";
 import type { Block, BlockMetadata, ParamValue } from "../model/types";
 import { useGraphStore, useLibraryStore, useUiStore } from "../store";
 import { ADVANCED_MODEL_NOTE, DEVICE_MODELS, getDeviceFamily } from "./device-models";
@@ -155,7 +156,34 @@ export function ComponentParamsPanel({ blockId, onClose }: Props) {
     : undefined;
 
   const family = block ? getDeviceFamily(block.type) : null;
-  const deviceConfig = family ? DEVICE_MODELS[family] : null;
+  const rawDeviceConfig = family ? DEVICE_MODELS[family] : null;
+  const activeSimulator = useLibraryStore((state) => state.activeSimulator);
+
+  /**
+   * The model levels the *active* simulator can actually run.
+   *
+   * Every level of every device used to be offered to every simulator,
+   * labelled with which simulator it belongs to and otherwise unguarded. A
+   * sheet targeting a solver that models switches as ideal was still shown
+   * ngspice's SW and CSW model cards, with a full parameter set that would
+   * be silently dropped on the way to the netlist. Offering a choice that
+   * cannot be honoured is worse than offering none.
+   */
+  const deviceConfig = useMemo(() => {
+    if (!rawDeviceConfig || !family) return null;
+    const allowed = allowedModelLevels(
+      activeSimulator,
+      family,
+      rawDeviceConfig.levels.map((l) => l.level),
+    );
+    const levels = rawDeviceConfig.levels.filter((l) => allowed.includes(l.level));
+    if (levels.length === 0) return null;
+    return { ...rawDeviceConfig, levels };
+  }, [rawDeviceConfig, family, activeSimulator]);
+
+  /** This device exists for the simulator, but only as an ideal element. */
+  const idealOnly = Boolean(rawDeviceConfig) && deviceConfig === null;
+  const unsupported = block ? !supportsBlock(activeSimulator, block.type) : false;
 
   const variantFamily = block ? familyKey(block.type) : null;
   const variants = useMemo(() => {
@@ -283,6 +311,21 @@ export function ComponentParamsPanel({ blockId, onClose }: Props) {
                 </select>
               </label>
             </section>
+          ) : null}
+
+          {/* What this simulator will and will not honour. Said plainly,
+              because the alternative is a panel that quietly offers less
+              than it did yesterday with no reason given. */}
+          {unsupported ? (
+            <p className="params-modal__contract params-modal__contract--error" role="alert">
+              This component is not supported by the active simulator. It can be placed and saved,
+              but a run will not compile it.
+            </p>
+          ) : idealOnly ? (
+            <p className="params-modal__contract">
+              The active simulator models this device as ideal, so it has instance parameters and no
+              model card. Model levels appear here for a simulator that can run them.
+            </p>
           ) : null}
 
           {/* Level selector for device families */}
