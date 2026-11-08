@@ -31,6 +31,23 @@ function renderEditor(
     return null;
   }
 
+  /**
+   * Keyed by the selected block, not only by the parameter name.
+   *
+   * Without the block in the key, React reuses one editor instance as the
+   * selection moves from block to block — same component type, same position
+   * in the tree — so its draft state straddles two different blocks. Select
+   * A, edit, select B, and B's field opens holding A's text; whatever is
+   * committed next writes that text to B.
+   *
+   * This is not hypothetical. Four identical `den = 1, 0` writes across four
+   * transfer functions left one of them at the default `1/(s+1)`, which is a
+   * low-pass rather than an integrator — the loop silently stops being the
+   * system that was drawn. Remounting per block gives each one a draft that
+   * starts from its own value.
+   */
+  const key = `${blockIds.join(",")}:${param.name}`;
+
   switch (param.type) {
     case "number":
     case "integer": {
@@ -39,7 +56,7 @@ function renderEditor(
           ? (value as string | number)
           : undefined;
       return (
-        <div key={param.name} className="inspector-field" data-param-name={param.name}>
+        <div key={key} className="inspector-field" data-param-name={param.name}>
           <span>{param.label}</span>
           <ParamExpressionInput
             value={exprValue}
@@ -55,7 +72,7 @@ function renderEditor(
     }
     case "vector":
       return (
-        <div key={param.name} data-param-name={param.name}>
+        <div key={key} data-param-name={param.name}>
           <VectorInput
             label={param.label}
             value={Array.isArray(value) ? (value as number[]) : undefined}
@@ -65,7 +82,7 @@ function renderEditor(
       );
     case "enum":
       return (
-        <div key={param.name} data-param-name={param.name}>
+        <div key={key} data-param-name={param.name}>
           <Dropdown
             label={param.label}
             value={typeof value === "string" ? value : undefined}
@@ -76,7 +93,7 @@ function renderEditor(
       );
     case "bool":
       return (
-        <div key={param.name} data-param-name={param.name}>
+        <div key={key} data-param-name={param.name}>
           <Dropdown
             label={param.label}
             value={typeof value === "boolean" ? String(value) : undefined}
@@ -87,7 +104,7 @@ function renderEditor(
       );
     default:
       return (
-        <div key={param.name} data-param-name={param.name}>
+        <div key={key} data-param-name={param.name}>
           <StringInput
             label={param.label}
             value={typeof value === "string" ? value : undefined}
