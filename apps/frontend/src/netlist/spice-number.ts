@@ -120,3 +120,33 @@ export function isAmbiguousSuffix(raw: string): boolean {
   if (!parsed || parsed.suffix === "") return false;
   return /^m$/i.test(parsed.suffix) || /^m(?!eg)[a-z]*$/i.test(parsed.suffix);
 }
+
+/**
+ * Was this text *meant* to be a number?
+ *
+ * The distinction matters because a parameter may legitimately hold an
+ * expression or a parameter reference — `{Rload}`, `Vin*2` — which is not a
+ * number and must be kept as written. But `10x` is not an expression; it is
+ * a number with a suffix the solver does not know, and storing it as text
+ * means a run fails later with something unhelpful instead of the field
+ * saying so now.
+ *
+ * The rule: text that starts like a number was meant to be one.
+ */
+export function looksNumeric(raw: string): boolean {
+  return /^[+-]?(\d|\.\d)/.test(raw.trim());
+}
+
+/**
+ * What to store for a typed parameter, or null to refuse the edit.
+ *
+ * - a number the solver can read  -> that number
+ * - an expression or reference    -> the text, unchanged
+ * - a malformed number            -> null, so the previous value survives
+ */
+export function paramValueFrom(raw: string): number | string | null {
+  const parsed = parseSpiceNumber(raw);
+  if (parsed !== null) return parsed.value;
+  if (looksNumeric(raw)) return null;
+  return raw;
+}

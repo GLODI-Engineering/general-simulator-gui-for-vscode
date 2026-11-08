@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { formatSiValue, isAmbiguousSuffix, parseSpiceNumber, spiceValueOf } from "./spice-number";
+import {
+  formatSiValue,
+  isAmbiguousSuffix,
+  looksNumeric,
+  paramValueFrom,
+  parseSpiceNumber,
+  spiceValueOf,
+} from "./spice-number";
 
 /**
  * These mirror `parse_spice_number` in general-mna (`src/expression.rs`).
@@ -138,5 +145,50 @@ describe("isAmbiguousSuffix", () => {
 
   it("does not flag something unparseable", () => {
     expect(isAmbiguousSuffix("abc")).toBe(false);
+  });
+});
+
+describe("looksNumeric", () => {
+  it("recognises text meant as a number", () => {
+    expect(looksNumeric("10u")).toBe(true);
+    expect(looksNumeric("-2.5k")).toBe(true);
+    expect(looksNumeric(".5")).toBe(true);
+    expect(looksNumeric("10x")).toBe(true);
+  });
+
+  it("does not claim an expression or reference", () => {
+    expect(looksNumeric("{Rload}")).toBe(false);
+    expect(looksNumeric("Vin*2")).toBe(false);
+    expect(looksNumeric("DEFAULT")).toBe(false);
+  });
+});
+
+/**
+ * A parameter may legitimately hold an expression — `{Rload}` — so
+ * unparseable text cannot simply be refused. But `10x` is not an
+ * expression; it is a number with a suffix the solver does not know, and
+ * storing it as text means a run fails later with something unhelpful
+ * instead of the field declining now.
+ */
+describe("paramValueFrom", () => {
+  it("stores a number when the text is one", () => {
+    expect(paramValueFrom("2.2k")).toBe(2200);
+    expect(paramValueFrom("1MEG")).toBe(1e6);
+  });
+
+  it("keeps an expression as written", () => {
+    expect(paramValueFrom("{Rload}")).toBe("{Rload}");
+    expect(paramValueFrom("Vin*2")).toBe("Vin*2");
+  });
+
+  it("refuses a malformed number, so the stored value survives", () => {
+    expect(paramValueFrom("10x")).toBeNull();
+    expect(paramValueFrom("5q")).toBeNull();
+  });
+
+  /** The inconsistency this replaces: same field, two stored types. */
+  it("stores the same type whether or not a suffix was used", () => {
+    expect(typeof paramValueFrom("2200")).toBe("number");
+    expect(typeof paramValueFrom("2.2k")).toBe("number");
   });
 });
