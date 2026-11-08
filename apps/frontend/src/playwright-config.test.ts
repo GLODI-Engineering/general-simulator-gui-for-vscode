@@ -1,12 +1,43 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import config from "../../../playwright.config";
 
-describe("playwright matrix", () => {
-  it("declares one project per browser engine and no host-specific target", () => {
-    const names = config.projects?.map((project) => project.name) ?? [];
+/**
+ * This guard exists so nobody quietly deletes an engine from the matrix.
+ * It still does — but the matrix is now opt-in, because Playwright has no
+ * Firefox build for every host (Ubuntu 26.04 among them) and a project that
+ * cannot launch fails the entire run with "Executable doesn't exist", which
+ * reads as a broken suite rather than a missing download.
+ *
+ * So both halves are asserted: the default run targets the engine that
+ * matters most, and the other engines are still declared, one call away.
+ */
+async function projectsWith(value: string | undefined): Promise<string[]> {
+  const previous = process.env.GSIM_E2E_BROWSERS;
+  if (value === undefined) delete process.env.GSIM_E2E_BROWSERS;
+  else process.env.GSIM_E2E_BROWSERS = value;
+  vi.resetModules();
+  const fresh = (await import("../../../playwright.config")).default;
+  if (previous === undefined) delete process.env.GSIM_E2E_BROWSERS;
+  else process.env.GSIM_E2E_BROWSERS = previous;
+  return fresh.projects?.map((project) => project.name as string) ?? [];
+}
 
-    expect(names).toEqual(["chromium", "firefox", "webkit"]);
+afterEach(() => {
+  vi.resetModules();
+});
+
+describe("playwright matrix", () => {
+  it("runs Chromium by default — the engine the VS Code webview is", async () => {
+    expect(await projectsWith(undefined)).toEqual(["chromium"]);
+  });
+
+  it("still declares every engine, one env var away", async () => {
+    expect(await projectsWith("all")).toEqual(["chromium", "firefox", "webkit"]);
+  });
+
+  it("treats any other value as the default rather than silently running nothing", async () => {
+    expect(await projectsWith("firefox")).toEqual(["chromium"]);
   });
 
   it("points every project at the dev harness, not at a second host", () => {
