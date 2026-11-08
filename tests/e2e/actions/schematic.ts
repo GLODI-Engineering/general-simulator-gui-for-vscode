@@ -581,9 +581,7 @@ export class SchematicPage {
       const out: Record<string, string> = {};
       for (const field of document.querySelectorAll(".inspector-field")) {
         const label = field.querySelector("span")?.textContent?.trim();
-        const input = field.querySelector<HTMLInputElement | HTMLSelectElement>(
-          "input, select",
-        );
+        const input = field.querySelector<HTMLInputElement | HTMLSelectElement>("input, select");
         if (label) out[label] = input?.value ?? "";
       }
       return out;
@@ -631,6 +629,32 @@ export class SchematicPage {
       await this.probe.press("Enter");
     }
     await this.page.waitForTimeout(300);
+  }
+
+  /**
+   * The netlist this document compiles to, right now.
+   *
+   * The Netlist tab only fills after a run, so "is the value I typed really
+   * *used*?" could not be asked without a solver. This asks the compiler
+   * directly, which is where the answer lives.
+   */
+  async netlist(): Promise<{ text: string; errors: string[] }> {
+    return this.page.evaluate(() => {
+      const door = (
+        window as unknown as { __gensim_netlist?: () => { text: string; errors: string[] } }
+      ).__gensim_netlist;
+      if (!door) throw new Error("__gensim_netlist is not installed");
+      return door();
+    });
+  }
+
+  /** The netlist line for a block, by its refdes/label. */
+  async netlistLineFor(label: string): Promise<string | null> {
+    const { text } = await this.netlist();
+    for (const line of text.split("\n")) {
+      if (line.trim().startsWith(label)) return line.trim();
+    }
+    return null;
   }
 
   /** A parameter as the saved document records it. */

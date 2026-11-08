@@ -1,7 +1,25 @@
 export interface SimulatorCompat {
   id: string;
   label: string;
+  /** Block types this simulator can compile. */
   supported: string[];
+  /**
+   * Which device-model levels this simulator can actually run, per device
+   * family (the keys of `DEVICE_MODELS`).
+   *
+   * This is the half that was missing. Knowing a simulator supports a
+   * resistor says nothing about whether it can run a semiconductor
+   * resistance model, and the parameter panel was offering every level of
+   * every device to every simulator — so a sheet targeting a solver that
+   * models switches as ideal still presented ngspice's SW and CSW model
+   * cards, with a full set of parameters that would be silently dropped.
+   *
+   * An empty array means "this device exists, but only as its instance
+   * parameters" — an ideal element with no model card. A family absent
+   * from the map means the same thing; it is written out for the families
+   * a simulator actually has, so the intent is visible rather than implied.
+   */
+  deviceLevels: Record<string, number[]>;
 }
 
 export interface SimulatorCompatMap {
@@ -94,9 +112,58 @@ const COMPAT_DATA: SimulatorCompatMap = {
         "extensibility.octfunc",
         "extensibility.octblock",
       ],
+      // General Simulator models every device it has as ideal: its netlist
+      // compiler has no `.MODEL` card concept, so no level of any family is
+      // available. Written out per family rather than left empty, so that
+      // adding a model later is an edit to a line that already exists.
+      deviceLevels: {
+        resistor: [],
+        capacitor: [],
+        inductor: [],
+        switch: [],
+        diode: [],
+      },
     },
   ],
 };
+
+/** The contract for one simulator, or undefined if it is not configured. */
+export function simulatorContract(simulatorId: string): SimulatorCompat | undefined {
+  return COMPAT_DATA.simulators.find((entry) => entry.id === simulatorId);
+}
+
+/**
+ * Whether this simulator can compile a block type.
+ *
+ * "all" is the palette's browse-everything mode rather than a simulator, so
+ * it supports everything by construction.
+ */
+export function supportsBlock(simulatorId: string, blockType: string): boolean {
+  if (simulatorId === "all") return true;
+  const contract = simulatorContract(simulatorId);
+  if (!contract) return true;
+  return contract.supported.includes(blockType);
+}
+
+/**
+ * The model levels this simulator offers for a device family.
+ *
+ * Returns every level when the simulator is unknown or is the browse-all
+ * mode, because hiding levels from someone who has not chosen a target is
+ * worse than showing one they cannot run — they have not said what they are
+ * aiming at yet.
+ */
+export function allowedModelLevels(
+  simulatorId: string,
+  family: string,
+  allLevels: number[],
+): number[] {
+  if (simulatorId === "all") return allLevels;
+  const contract = simulatorContract(simulatorId);
+  if (!contract) return allLevels;
+  const allowed = contract.deviceLevels[family] ?? [];
+  return allLevels.filter((level) => allowed.includes(level));
+}
 
 export function loadSimulatorCompat(): SimulatorCompatMap {
   return COMPAT_DATA;

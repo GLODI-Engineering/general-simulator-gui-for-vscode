@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { resolveBlockMetadata } from "../canvas/subckt-metadata";
+import { allowedModelLevels, supportsBlock } from "../library/simulator-compat";
 import type { Block, BlockMetadata, ParamValue } from "../model/types";
+import { paramValueFrom } from "../netlist/spice-number";
 import { useGraphStore, useLibraryStore, useUiStore } from "../store";
 import { ADVANCED_MODEL_NOTE, DEVICE_MODELS, getDeviceFamily } from "./device-models";
 import type { ModelLevel, ModelParam } from "./device-models";
@@ -72,13 +74,23 @@ function paramValueToString(value: ParamValue | undefined): string {
   return "";
 }
 
-function parseCommit(raw: string, fallback: number | string): ParamValue {
+/**
+ * Turn what was typed into what gets stored.
+ *
+ * `Number()` used to do this, which answers NaN for every engineering
+ * suffix, so `10u` fell through to being stored as the *string* "10u" while
+ * `2200` was stored as a number. Same field, two types, depending only on
+ * whether the value had a suffix. The netlist happened to work — it emits
+ * strings verbatim and the solver parses them — but nothing in the frontend
+ * could compute with, range-check or display such a value.
+ *
+ * A string is still kept when the text is not a number at all, because that
+ * is a legitimate SPICE parameter reference or expression (`{Rload}`), and
+ * flattening those would break a real feature to fix a different one.
+ */
+function parseCommit(raw: string, fallback: number | string): ParamValue | null {
   if (raw.trim() === "") return fallback;
-  if (typeof fallback === "number") {
-    const n = Number(raw);
-    return Number.isFinite(n) ? n : raw;
-  }
-  return raw;
+  return paramValueFrom(raw);
 }
 
 function ParamRow({
@@ -110,10 +122,17 @@ function ParamRow({
         value={draft}
         placeholder={String(param.defaultValue)}
         onChange={(e) => setDraft(e.currentTarget.value)}
-        onBlur={() => onCommit(parseCommit(draft, param.defaultValue))}
+        onBlur={() => {
+          const next = parseCommit(draft, param.defaultValue);
+          // null means "a number with a suffix the solver cannot read" —
+          // leave the stored value alone rather than saving something a run
+          // will choke on later.
+          if (next !== null) onCommit(next);
+        }}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
-            onCommit(parseCommit(draft, param.defaultValue));
+            const next = parseCommit(draft, param.defaultValue);
+            if (next !== null) onCommit(next);
             (e.currentTarget as HTMLInputElement).blur();
           }
         }}
@@ -155,7 +174,34 @@ export function ComponentParamsPanel({ blockId, onClose }: Props) {
     : undefined;
 
   const family = block ? getDeviceFamily(block.type) : null;
-  const deviceConfig = family ? DEVICE_MODELS[family] : null;
+  const rawDeviceConfig = family ? DEVICE_MODELS[family] : null;
+  const activeSimulator = useLibraryStore((state) => state.activeSimulator);
+
+  /**
+   * The model levels the *active* simulator can actually run.
+   *
+   * Every level of every device used to be offered to every simulator,
+   * labelled with which simulator it belongs to and otherwise unguarded. A
+   * sheet targeting a solver that models switches as ideal was still shown
+   * ngspice's SW and CSW model cards, with a full parameter set that would
+   * be silently dropped on the way to the netlist. Offering a choice that
+   * cannot be honoured is worse than offering none.
+   */
+  const deviceConfig = useMemo(() => {
+    if (!rawDeviceConfig || !family) return null;
+    const allowed = allowedModelLevels(
+      activeSimulator,
+      family,
+      rawDeviceConfig.levels.map((l) => l.level),
+    );
+    const levels = rawDeviceConfig.levels.filter((l) => allowed.includes(l.level));
+    if (levels.length === 0) return null;
+    return { ...rawDeviceConfig, levels };
+  }, [rawDeviceConfig, family, activeSimulator]);
+
+  /** This device exists for the simulator, but only as an ideal element. */
+  const idealOnly = Boolean(rawDeviceConfig) && deviceConfig === null;
+  const unsupported = block ? !supportsBlock(activeSimulator, block.type) : false;
 
   const variantFamily = block ? familyKey(block.type) : null;
   const variants = useMemo(() => {
@@ -283,6 +329,21 @@ export function ComponentParamsPanel({ blockId, onClose }: Props) {
                 </select>
               </label>
             </section>
+          ) : null}
+
+          {/* What this simulator will and will not honour. Said plainly,
+              because the alternative is a panel that quietly offers less
+              than it did yesterday with no reason given. */}
+          {unsupported ? (
+            <p className="params-modal__contract params-modal__contract--error" role="alert">
+              This component is not supported by the active simulator. It can be placed and saved,
+              but a run will not compile it.
+            </p>
+          ) : idealOnly ? (
+            <p className="params-modal__contract">
+              The active simulator models this device as ideal, so it has instance parameters and no
+              model card. Model levels appear here for a simulator that can run them.
+            </p>
           ) : null}
 
           {/* Level selector for device families */}

@@ -239,6 +239,89 @@ export function deriveTopology(
   return { nodes, nets, issues: deriveTopologyIssues(nets) };
 }
 
+/**
+ * Wire endpoints that name a port their block does not have.
+ *
+ * This is not refused anywhere: the renderer falls back to a position and
+ * draws the wire somewhere plausible, so the sheet looks connected. Whether
+ * the result leaves a diagonal — and therefore shows as an invalid wire — is
+ * luck. On a 68-block converter this hid twenty-seven bad endpoints and
+ * eighteen wires that were never drawn at all; the output filter looked like
+ * loose components sitting beside the circuit, and read as a cosmetic
+ * routing problem rather than as a quarter of the connections being absent.
+ *
+ * Checked against the ports a block *declares*, with one exception that
+ * matters: several components generate their ports from a parameter —
+ * `control.sum` from `signs`, `extensibility.octfunc` from its input and
+ * output counts — and declare only the first in their metadata. Reporting
+ * those would bury the real findings under dozens of false ones, so a block
+ * whose port count is parameter-driven is skipped rather than guessed at.
+ * A subcircuit instance takes its ports from its own sheet, which is not
+ * available here, and is skipped for the same reason.
+ */
+export function findUnknownPortRefs(
+  model: { blocks: Array<{ id: string; type: string }>; wires: Wire[] },
+  catalog: Catalog,
+): TopologyIssue[] {
+  const byId = new Map(model.blocks.map((block) => [block.id, block]));
+  const issues: TopologyIssue[] = [];
+
+  for (const wire of model.wires) {
+    for (const side of ["from", "to"] as const) {
+      const end = wire[side];
+      const block = byId.get(end.block);
+      if (!block) {
+        issues.push({
+          id: `unknown-block:${wire.id}:${side}`,
+          severity: "error",
+          summary: `Wire ${wire.id} ${side} names block "${end.block}", which is not on the sheet`,
+        });
+        continue;
+      }
+      const metadata = catalog[block.type];
+      if (!metadata || hasGeneratedPorts(metadata, block.type)) continue;
+
+      const declared = declaredPortIds(metadata);
+      if (declared.size === 0 || declared.has(end.port)) continue;
+
+      issues.push({
+        id: `unknown-port:${wire.id}:${side}`,
+        severity: "error",
+        summary:
+          `Wire ${wire.id} ${side} names port "${end.port}" on ${end.block} ` +
+          `(${block.type}), which has no such port — it has: ${[...declared].join(", ")}`,
+        blockId: end.block,
+        portId: end.port,
+      });
+    }
+  }
+
+  return issues.sort((left, right) => left.id.localeCompare(right.id));
+}
+
+function declaredPortIds(metadata: BlockMetadata): Set<string> {
+  const ports = metadata.ports ?? { inputs: [], outputs: [] };
+  return new Set([...(ports.inputs ?? []), ...(ports.outputs ?? [])].map((port) => port.id));
+}
+
+/**
+ * True when this component's ports come from a parameter rather than from
+ * its metadata, so the declared list is a lower bound and not a contract.
+ *
+ * The schema says so itself: `variadic_inputs`/`variadic_outputs` carry a
+ * `count_from` naming the parameter that decides how many there are, and a
+ * template for each. `control.sum` counts from `signs`,
+ * `extensibility.octfunc` from its input and output counts. Reporting those
+ * would bury the real findings under dozens of false ones.
+ */
+function hasGeneratedPorts(metadata: BlockMetadata, type: string): boolean {
+  // A subcircuit instance takes its ports from its own sheet, which is not
+  // available here.
+  if (type.includes("instance")) return true;
+  const ports = metadata.ports;
+  return Boolean(ports?.variadic_inputs ?? ports?.variadic_outputs);
+}
+
 export function deriveTopologyIssues(nets: TopologyNet[]): TopologyIssue[] {
   const issues: TopologyIssue[] = [];
   for (const net of nets) {

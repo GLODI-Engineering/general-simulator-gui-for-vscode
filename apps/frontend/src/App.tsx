@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { installPortValidation } from "./canvas/port-validation";
 import { registerCanvasTab } from "./canvas/register";
 import { serialize } from "./file/serializer";
 import { ComponentParamsPanel } from "./inspector/ComponentParamsPanel";
@@ -10,6 +11,7 @@ import { loadCatalogFromManifest } from "./library/catalog";
 import { createBlockFromMetadata } from "./library/insert";
 import { registerLibraryActivity } from "./library/register";
 import type { ModelDocument, ParamValue } from "./model/types";
+import { generateNetlist } from "./netlist/generate";
 import { registerNetlistTab } from "./netlist/register";
 import { CommandPalette } from "./palette/CommandPalette";
 import { registerProblemsSurface } from "./problems/register";
@@ -21,6 +23,7 @@ import { registerSymbolEditorTab } from "./symbol-editor/register";
 import { saveSymbolToLibrary } from "./symbol-editor/save";
 import { useSymbolEditorStore } from "./symbol-editor/store";
 import { registerWaveformTab } from "./waveform/register";
+import { installWaveformRenderHook } from "./waveform/render-hook";
 import { registerWorkspaceTab } from "./workspace/register";
 
 import { KeymapProvider } from "./canvas/KeymapProvider";
@@ -78,6 +81,14 @@ function bootRegistries() {
   registerWorkspaceTab();
   registerSymbolEditorTab();
   registerProblemsSurface();
+  // A wire naming a port its block does not have is drawn anyway; without
+  // this nothing ever says so.
+  installPortValidation();
+  // Harness door, same role as `__gensim_load_document`. It was installed
+  // only from the VS Code waveform entry, so the browser e2e suite could
+  // not reach the waveform viewer at all — every test of it had to go
+  // through the packaged extension.
+  installWaveformRenderHook();
   registriesBooted = true;
 }
 
@@ -991,6 +1002,16 @@ export default function App() {
       __gensim_rename?: (name: string) => void;
       __gensim_load_fixture?: (name: string) => void;
       __gensim_load_document?: (doc: unknown) => void;
+      /** Harness door: what the Problems panel would show, without opening it. */
+      __gensim_problems?: () => Array<{ id: string; severity: string; message: string }>;
+      /**
+       * Harness door: the netlist this document compiles to, right now.
+       *
+       * The Netlist tab only fills after a run, so "is the value I typed
+       * really used?" could not be asked without a solver. This answers it
+       * from the document, which is where the question actually lives.
+       */
+      __gensim_netlist?: () => { text: string; errors: string[] };
       __gensim_setModelMetadata?: (metadata: Record<string, ParamValue>) => void;
       __gensim_insertBlock?: (type: string) => void;
       __gensim_wire?: (fromType: string, toType: string) => void;
@@ -1021,6 +1042,20 @@ export default function App() {
         model: { ...current.model, name },
       });
     };
+    windowRef.__gensim_netlist = () => {
+      const result = generateNetlist(useGraphStore.getState().document.model, {
+        type: "tran",
+        tEnd: 1e-3,
+        tStep: 1e-6,
+      });
+      return { text: result.netlist ?? "", errors: result.errors ?? [] };
+    };
+    windowRef.__gensim_problems = () =>
+      useIpcStore.getState().problems.map((problem) => ({
+        id: problem.id,
+        severity: problem.severity,
+        message: problem.message,
+      }));
     windowRef.__gensim_load_document = (doc: unknown) => {
       useGraphStore.getState().loadDocument(doc as ModelDocument);
       useGraphStore.getState().clearHistory();
@@ -1172,6 +1207,8 @@ export default function App() {
       windowRef.__gensim_rename = undefined;
       windowRef.__gensim_load_fixture = undefined;
       windowRef.__gensim_load_document = undefined;
+      windowRef.__gensim_problems = undefined;
+      windowRef.__gensim_netlist = undefined;
       windowRef.__gensim_setModelMetadata = undefined;
       windowRef.__gensim_insertBlock = undefined;
       windowRef.__gensim_wire = undefined;
