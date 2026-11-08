@@ -766,8 +766,51 @@ export class SchematicPage {
   }
 
   /** Click a block to select it. */
+  /**
+   * Select a block, and make sure it really is the selected one.
+   *
+   * The click alone is not enough to trust. With the inspector open it
+   * covers part of the canvas, so a block underneath it receives nothing and
+   * the previous selection stands — after which `setParam` happily writes to
+   * whichever block *was* selected. That is how a signal-flow PLL ended up
+   * with three integrators at `1/s` and a fourth left at the default
+   * `1/(s+1)`: one write went to a block that had already been set, and the
+   * intended block was never touched. Nothing failed; the sheet was simply
+   * wrong, and a low-pass sat where an integrator belonged.
+   *
+   * So: click, check, and if the selection did not take, get the block into
+   * clear space and try once more before giving up loudly.
+   */
   async selectBlock(ref: BlockRef): Promise<void> {
-    await this.probe.click(this.canvas.locator(`[data-block-id="${idOf(ref)}"]`));
+    const id = idOf(ref);
+    await this.probe.click(this.canvas.locator(`[data-block-id="${id}"]`));
+    if (await this.isSelected(id)) return;
+
+    await this.closeInspector();
+    await this.fitView();
+    await this.probe.click(this.canvas.locator(`[data-block-id="${id}"]`));
+    if (await this.isSelected(id)) return;
+
+    throw new Error(
+      `clicking ${id} did not select it — it is probably covered by a panel. ` +
+        `Selection is: ${JSON.stringify(await this.selection())}`,
+    );
+  }
+
+  /** Block ids the editor currently has selected. */
+  async selection(): Promise<string[]> {
+    return this.page.evaluate(() =>
+      [
+        ...document.querySelectorAll(
+          "[data-block-id].is-selected, [data-block-id][data-selected='true']",
+        ),
+      ].map((el) => el.getAttribute("data-block-id") ?? ""),
+    );
+  }
+
+  private async isSelected(id: string): Promise<boolean> {
+    await this.page.waitForTimeout(80);
+    return (await this.selection()).includes(id);
   }
 
   /** The block as the document records it — position, rotation, mirror, params. */
