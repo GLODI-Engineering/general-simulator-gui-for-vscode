@@ -234,7 +234,7 @@ export interface VariadicOutputs {
 export interface BlockParam {
   name: string;
   label: string;
-  type: "number" | "integer" | "vector" | "matrix" | "string" | "bool" | "enum";
+  type: "number" | "integer" | "vector" | "matrix" | "string" | "bool" | "enum" | "list";
   default?: unknown;
   min?: number;
   max?: number;
@@ -253,7 +253,7 @@ export interface FidelityPortDef {
 
 export interface FidelityParamDef {
   id: string;
-  type: "number" | "integer" | "vector" | "matrix" | "string" | "bool" | "enum";
+  type: "number" | "integer" | "vector" | "matrix" | "string" | "bool" | "enum" | "list";
   default?: unknown;
   unit?: string;
   doc?: string;
