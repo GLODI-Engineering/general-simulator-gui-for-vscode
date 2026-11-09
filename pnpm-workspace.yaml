@@ -2,5 +2,6 @@ packages:
   - "apps/frontend"
   - "apps/vscode-extension"
   - "packages/schemas"
+  - "packages/webview-protocol"
   - "tests/schemas"
   - "tests/blocks"

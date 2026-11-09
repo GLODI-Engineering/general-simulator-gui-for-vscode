@@ -2,83 +2,40 @@
  * Message protocol between the General Simulator webviews and this extension
  * host.
  *
- * Mirrors `apps/frontend/src/ipc/vscode-protocol.ts`. The two apps build
- * separately (Vite bundle vs. plain `tsc` for the Node extension host), so the
- * shapes are duplicated rather than shared through a workspace package. Keep
- * both copies in sync.
+ * The message shapes are declared once, in `@gensim/webview-protocol`, and
+ * re-exported here as **types only**. That matters: this extension is packaged
+ * with `vsce package --no-dependencies`, so nothing from `node_modules` ships
+ * in the `.vsix`. A value import would compile to a `require` that resolves on
+ * this machine and throws `Cannot find module` the moment the extension is
+ * installed anywhere else — a failure no build, test or typecheck here would
+ * have caught. A `type` import is erased, so nothing is required at runtime.
+ *
+ * The two runtime values below are therefore defined locally rather than
+ * imported. They are the stable part — a constant and a shape check — while
+ * the message union is the part that actually changes and is now declared in
+ * exactly one place. `protocol.test.ts` asserts these copies still agree with
+ * the package.
  */
 
-export type WebviewRole = "schematic" | "library" | "waveform" | "results";
+export type {
+  HostBoundMessage,
+  KernelConfig,
+  WebviewBoundMessage,
+  WebviewInit,
+  WebviewRole,
+} from "@gensim/webview-protocol";
 
-export interface KernelConfig {
-  port: number;
-  token: string;
-}
+import type { HostBoundMessage } from "@gensim/webview-protocol";
 
-export interface WebviewInit {
-  role: WebviewRole;
-  documentUri?: string;
-  documentText?: string;
-  kernel?: KernelConfig;
-  /**
-   * User-authored components read from `.gsim/symbols/*.gsim_sym`, so the
-   * library has them before React mounts rather than popping in afterwards.
-   */
-  userSymbols?: unknown[];
-  /**
-   * Set only by the @vscode/test-electron integration harness (gated on the
-   * GSIM_INTEGRATION_TEST env var). Installs `gsim/test/exec` probes in the
-   * webview so an integration test can assert on its real DOM and stores.
-   */
-  testMode?: boolean;
-}
-
-export type HostBoundMessage =
-  | { type: "gsim/ready"; role: WebviewRole }
-  | { type: "gsim/restartKernel" }
-  /**
-   * In-app File actions handed off to the workbench when the frontend runs
-   * inside the schematic Custom Editor. Mirrors `file/host-file-actions.ts`.
-   */
-  | { type: "gsim/newSchematic" }
-  | { type: "gsim/openSchematic" }
-  | { type: "gsim/saveDocument"; as?: boolean }
-  | { type: "gsim/closeDocument" }
-  | { type: "gsim/documentChanged"; text: string; label: string }
-  | { type: "gsim/documentContent"; requestId: string; text: string }
-  | { type: "gsim/dragStart"; blockName: string; label: string }
-  | { type: "gsim/dragEnd" }
-  | { type: "gsim/insertBlock"; blockName: string }
-  | { type: "gsim/simulationFinished"; simId: string }
-  /** Persist an authored component to the workspace. */
-  | { type: "gsim/saveSymbol"; name: string; metadata: unknown }
-  /**
-   * Read a scripted block's source, so the editor can show what ports it
-   * looks like it expects. Confined to the workspace folder by the host.
-   */
-  | { type: "gsim/readSource"; requestId: string; path: string }
-  | { type: "gsim/showWaveforms" }
-  | { type: "gsim/log"; level: "info" | "warn" | "error"; message: string }
-  | { type: "gsim/test/report"; requestId: string; ok: boolean; result: unknown };
-
-export type WebviewBoundMessage =
-  | { type: "gsim/kernelConfig"; kernel: KernelConfig }
-  | { type: "gsim/kernelStopped" }
-  | { type: "gsim/setDocument"; text: string }
-  | { type: "gsim/requestDocument"; requestId: string }
-  | { type: "gsim/dragState"; blockName: string | null; label?: string }
-  | { type: "gsim/insertBlock"; blockName: string }
-  | { type: "gsim/showSimulation"; simId: string }
-  /** The workspace's user components changed — on save, or on an edit on disk. */
-  | { type: "gsim/userSymbols"; metadata: unknown[] }
-  | { type: "gsim/symbolSaved"; name: string; path: string }
-  /** Answer to `gsim/readSource`: the file's text, or why it could not be read. */
-  | { type: "gsim/sourceContent"; requestId: string; text?: string; error?: string }
-  | { type: "gsim/symbolSaveFailed"; name: string; reason: string }
-  | { type: "gsim/test/exec"; requestId: string; op: string; args?: Record<string, unknown> };
-
+/** Injected into every webview as `window.__GSIM_INIT__` before the bundle runs. */
 export const GSIM_INIT_GLOBAL = "__GSIM_INIT__";
 
+/**
+ * Narrow an untrusted `message` from a webview to the protocol.
+ *
+ * Shape only — it asserts the envelope is an object carrying a `gsim/`-prefixed
+ * `type`, not that the payload matches that type's own shape.
+ */
 export function isHostBoundMessage(value: unknown): value is HostBoundMessage {
   return (
     typeof value === "object" &&
