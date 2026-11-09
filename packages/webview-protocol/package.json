@@ -14,7 +14,8 @@
   },
   "scripts": {
     "build": "tsc -p ./ && tsc -p ./tsconfig.esm.json",
-    "typecheck": "tsc -p ./ --noEmit"
+    "typecheck": "tsc -p ./ --noEmit",
+    "prepare": "tsc -p ./ && tsc -p ./tsconfig.esm.json"
   },
   "devDependencies": {
     "typescript": "^5.6.3"
