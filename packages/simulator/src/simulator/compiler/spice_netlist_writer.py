@@ -42,10 +42,23 @@ from simulator.solvers.protocol import AnalysisRequest, SolverOptions
 
 _SUBCKT_INSTANCE_TYPE = "spice-subckt.instance"
 
-# Writer targets. ``"spice"`` covers every backend that honours ``.IC``
-# (ngspice, Xyce); ``"general-simulator"`` parses ``.IC`` and drops it
-# (GLODI-Engineering/general-simulator#11), so node initial conditions are
-# translated onto the capacitors attached to the net instead.
+# Writer targets. Both honour ``.IC`` — general-simulator#11, which dropped it
+# silently, is fixed — but they differ in what happens to a node IC that no
+# state element can hold, and that is why the two paths still exist.
+#
+# Measured against the release CLI (2026-11-09), on an RC with `C1 out 0 1e-6`:
+#
+#   .IC V(out)=5                  -> V(out) starts at 5
+#   C1 ... ic=5                   -> identical output, to the digit
+#   both, disagreeing             -> error: ConflictingConditions
+#   .IC on a net with no capacitor-> accepted, and silently has no effect
+#
+# So for ``"general-simulator"`` a node IC is folded into the ``IC=`` of the
+# capacitors on that net. Not because ``.IC`` would be dropped — it would not —
+# but because folding it makes the one case the engine stays quiet about into
+# something this writer can see: a net with nothing to hold the voltage gets a
+# warning here, where the engine would simply ignore the card. ``"spice"``
+# (ngspice, Xyce) emits the card and leaves that judgement to the backend.
 TARGET_SPICE = "spice"
 TARGET_GENERAL_SIMULATOR = "general-simulator"
 _KNOWN_TARGETS = frozenset({TARGET_SPICE, TARGET_GENERAL_SIMULATOR})
@@ -74,8 +87,13 @@ __all__ = [
 
 class NodeICConflictError(ValueError):
     """A node initial condition disagrees with the ``IC`` already set on a
-    capacitor attached to that net, on a target where the node IC can only
-    be expressed through the capacitor."""
+    capacitor attached to that net.
+
+    The engine rejects this too — ``ConflictingConditions``, naming the element
+    and both values — so this is not a restriction the writer invents. It is the
+    same refusal, raised before a netlist is produced and naming the block the
+    user actually placed rather than the card it compiled to.
+    """
 
 
 # ---------------------------------------------------------------------------
@@ -537,9 +555,10 @@ def _translate_node_ics_to_capacitors(
     the first node).
 
     Raises :class:`NodeICConflictError` when a capacitor already carries its
-    own IC and it disagrees with what the node IC implies. Emits a
-    :class:`UserWarning` for every node IC no capacitor can express, since
-    general-simulator would drop an ``.IC`` card for it silently.
+    own IC and it disagrees with what the node IC implies — the same conflict
+    the engine itself refuses. Emits a :class:`UserWarning` for every node IC no
+    capacitor can express: the engine accepts such an ``.IC`` card and silently
+    does nothing with it, so saying so here is the only place it gets said.
     """
     node_ics: dict[str, Any] = {}
     for ic in ir1.simulation.initial_conditions:
@@ -588,10 +607,11 @@ def _translate_node_ics_to_capacitors(
     for net in node_ics:
         if net not in covered:
             warnings.warn(
-                f"node initial condition V({net})={node_ics[net]} dropped: the "
-                "general-simulator target does not support .IC and no capacitor "
-                f"attached to net {net!r} can carry it; set the IC parameter on a "
-                "capacitor instead",
+                f"node initial condition V({net})={node_ics[net]} has no effect: "
+                f"no capacitor is attached to net {net!r}, so there is no state "
+                "to initialise. general-simulator accepts an .IC card for such a "
+                "net and silently ignores it; this warning is that silence made "
+                "audible. Put the initial condition on a state element instead.",
                 UserWarning,
                 stacklevel=4,
             )
@@ -681,8 +701,10 @@ def _write_netlist_v2(ir1: IR1Graph, request: AnalysisRequest, target: str) -> s
     for card in {**diode_models, **bjt_models, **mosfet_models}.values():
         lines.append(card)
 
-    # Node initial conditions. Only SPICE proper honours .IC; for
-    # general-simulator they were already folded into the capacitor cards.
+    # Node initial conditions. For general-simulator these were already folded
+    # into the capacitor cards above (see the note by TARGET_SPICE for why that
+    # is still the right shape now that .IC works); every other target emits the
+    # card and lets the backend decide.
     if target != TARGET_GENERAL_SIMULATOR:
         for ic in ir1.simulation.initial_conditions:
             if ic.get("kind") == "node":

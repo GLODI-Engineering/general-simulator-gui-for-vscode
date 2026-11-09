@@ -1,10 +1,15 @@
 """Node initial conditions per writer target.
 
-general-simulator parses ``.IC`` and drops it (GLODI-Engineering/general-simulator#11),
-so for that target a ``kind == "node"`` initial condition is folded into the ``IC=``
-field of the capacitor(s) attached to the net, following general-mna's convention
-that a capacitor's ``ic`` is the voltage of its first node minus its second. Every
-other target keeps the ``.IC`` card.
+For the general-simulator target a ``kind == "node"`` initial condition is folded
+into the ``IC=`` field of the capacitor(s) attached to the net, following
+general-mna's convention that a capacitor's ``ic`` is the voltage of its first
+node minus its second. Every other target keeps the ``.IC`` card.
+
+This is **not** because ``.IC`` is unsupported. general-simulator#11, which
+dropped the card silently, is fixed, and `.IC V(out)=5` now gives output
+identical to `C1 ... ic=5`. Folding is kept because it makes the one case the
+engine is quiet about visible: an ``.IC`` on a net with no state element is
+accepted and has no effect, and the fold turns that into a warning here.
 """
 
 from __future__ import annotations
@@ -138,7 +143,9 @@ def test_conflicting_element_ic_names_both_values() -> None:
 def test_net_without_capacitor_warns_instead_of_emitting_ic_card() -> None:
     ir1 = _rc_to_ground([{"kind": "node", "name": "a", "value": 10}])
 
-    with pytest.warns(UserWarning, match=r"V\(a\)=10 .*no capacitor attached to net 'a'"):
+    with pytest.warns(
+        UserWarning, match=r"V\(a\)=10 has no effect.*no capacitor is attached to net 'a'"
+    ):
         netlist = write_netlist(ir1, _TRAN, target=TARGET_GENERAL_SIMULATOR)
 
     assert ".IC" not in netlist
@@ -163,7 +170,7 @@ def test_capacitor_whose_other_terminal_floats_does_not_cover_the_net() -> None:
         ),
     )
 
-    with pytest.warns(UserWarning, match=r"V\(b\)=1 dropped"):
+    with pytest.warns(UserWarning, match=r"V\(b\)=1 has no effect"):
         netlist = write_netlist(ir1, _TRAN, target=TARGET_GENERAL_SIMULATOR)
 
     assert "IC=" not in _capacitor_line(netlist)
@@ -183,3 +190,33 @@ def test_unknown_target_is_rejected() -> None:
 
     with pytest.raises(ValueError, match="Unknown netlist target"):
         write_netlist(ir1, _TRAN, target="not-a-real-target")
+
+
+# ---------------------------------------------------------------------------
+# Why the fold is still right
+# ---------------------------------------------------------------------------
+
+
+def test_the_fold_says_the_same_thing_as_the_card_it_replaces() -> None:
+    """The two targets describe one circuit, spelled two ways.
+
+    Measured against the release CLI, not assumed: on an RC with
+    ``C1 out 0 1e-6``, ``.IC V(out)=5`` and ``C1 ... ic=5`` produce identical
+    transient output to the last digit. So folding a node IC onto the capacitor
+    is a change of spelling, and the general-simulator and spice targets cannot
+    disagree about what they asked for.
+
+    This pins the writer half. The engine half, and the commands that showed it,
+    are recorded beside ``TARGET_SPICE`` in ``spice_netlist_writer.py`` — the
+    point being that the fold is kept for the diagnostics it enables, not
+    because ``.IC`` is unsupported. It is supported.
+    """
+    node_ic = [{"kind": "node", "name": "b", "value": 5}]
+
+    folded = write_netlist(_rc_to_ground(node_ic), _TRAN, target=TARGET_GENERAL_SIMULATOR)
+    assert _capacitor_line(folded) == "Cc1 b 0 1e-06 IC=5"
+    assert ".IC" not in folded
+
+    carded = write_netlist(_rc_to_ground(node_ic), _TRAN, target="spice")
+    assert ".IC V(b)=5" in carded
+    assert "IC=" not in _capacitor_line(carded)
