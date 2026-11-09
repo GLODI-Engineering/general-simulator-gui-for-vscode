@@ -21,8 +21,8 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1(ajv@8.20.0)
       gs-ui-probe:
-        specifier: git+https://github.com/GLODI-Engineering/gs-ui-probe.git#v0.2.2
-        version: git+https://git@github.com:GLODI-Engineering/gs-ui-probe.git#aae62cb0136aac42196b2fcccf6ef237c4c0668f(@playwright/test@1.60.0)
+        specifier: github:GLODI-Engineering/gs-ui-probe#v0.2.2
+        version: https://codeload.github.com/GLODI-Engineering/gs-ui-probe/tar.gz/aae62cb0136aac42196b2fcccf6ef237c4c0668f(@playwright/test@1.60.0)
 
   apps/frontend:
     dependencies:
@@ -1759,8 +1759,8 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
-  gs-ui-probe@git+https://git@github.com:GLODI-Engineering/gs-ui-probe.git#aae62cb0136aac42196b2fcccf6ef237c4c0668f:
-    resolution: {commit: aae62cb0136aac42196b2fcccf6ef237c4c0668f, repo: git@github.com:GLODI-Engineering/gs-ui-probe.git, type: git}
+  gs-ui-probe@https://codeload.github.com/GLODI-Engineering/gs-ui-probe/tar.gz/aae62cb0136aac42196b2fcccf6ef237c4c0668f:
+    resolution: {tarball: https://codeload.github.com/GLODI-Engineering/gs-ui-probe/tar.gz/aae62cb0136aac42196b2fcccf6ef237c4c0668f}
     version: 0.2.2
     peerDependencies:
       '@playwright/test': '>=1.40'
@@ -4636,7 +4636,7 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
-  gs-ui-probe@git+https://git@github.com:GLODI-Engineering/gs-ui-probe.git#aae62cb0136aac42196b2fcccf6ef237c4c0668f(@playwright/test@1.60.0):
+  gs-ui-probe@https://codeload.github.com/GLODI-Engineering/gs-ui-probe/tar.gz/aae62cb0136aac42196b2fcccf6ef237c4c0668f(@playwright/test@1.60.0):
     dependencies:
       '@playwright/test': 1.60.0
 

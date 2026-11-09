@@ -691,10 +691,17 @@ which lives in its own repository so that it stays free of any knowledge of
 this application. `package.json` pins it to a tag:
 
 ```json
-"gs-ui-probe": "git+https://github.com/GLODI-Engineering/gs-ui-probe.git#v0.2.2"
+"gs-ui-probe": "github:GLODI-Engineering/gs-ui-probe#v0.2.2"
 ```
 
 It is public, so CI needs no credentials for it.
+
+The `github:` shorthand rather than a `git+https://` URL on purpose: pnpm
+resolves the shorthand to a codeload tarball over plain HTTPS, while the git
+form makes it record whatever URL *your* git is configured to use — on a
+machine with SSH keys that is `git@github.com:…`, which then fails on a runner
+that has no key, for a public repository. The shorthand cannot pick up a
+machine-specific URL.
 
 **Locally**, a pinned tag means you get the released probe, not your working
 copy. To edit the probe and see the change here without cutting a tag:
