@@ -26,6 +26,9 @@ importers:
 
   apps/frontend:
     dependencies:
+      '@gensim/webview-protocol':
+        specifier: workspace:*
+        version: link:../../packages/webview-protocol
       ajv:
         specifier: ^8.17.1
         version: 8.20.0
@@ -104,6 +107,10 @@ importers:
         version: 2.1.9(@types/node@22.19.19)(jsdom@25.0.1)
 
   apps/vscode-extension:
+    dependencies:
+      '@gensim/webview-protocol':
+        specifier: workspace:*
+        version: link:../../packages/webview-protocol
     devDependencies:
       '@types/glob':
         specifier: ^9.0.0
@@ -141,6 +148,12 @@ importers:
       json-schema-to-typescript:
         specifier: ^15.0.3
         version: 15.0.4
+
+  packages/webview-protocol:
+    devDependencies:
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
 
   tests/blocks:
     devDependencies:

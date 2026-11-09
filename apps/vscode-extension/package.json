@@ -216,5 +216,8 @@
     "circuit",
     "ngspice",
     "control-systems"
-  ]
+  ],
+  "dependencies": {
+    "@gensim/webview-protocol": "workspace:*"
+  }
 }
