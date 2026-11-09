@@ -95,6 +95,33 @@ export async function activate(context: vscode.ExtensionContext): Promise<GsimTe
       }
     }),
     vscode.commands.registerCommand("generalSimulator.showKernelLog", () => log.show()),
+    /**
+     * Hand a keyboard shortcut VS Code claimed to the schematic.
+     *
+     * A webview only receives a keystroke the workbench did not take first, so the 28 chords
+     * VS Code binds at the workbench level never reached the canvas — `Ctrl+R` opened its
+     * recent-files list rather than rotating the selection. `package.json` contributes those
+     * chords, generated from the schematic's own keymap by `scripts/gen-keybindings.mjs`, each
+     * guarded by `activeCustomEditorId` and the `overrideVsCodeKeybindings` setting. This
+     * relays the chord in.
+     *
+     * Broadcast to the schematic role rather than to one webview: the keybinding only fires
+     * with a schematic active, and the webview synthesises a real keydown, so a background
+     * schematic tab drops it at the same focus check a physical keystroke would meet.
+     */
+    vscode.commands.registerCommand("generalSimulator.forwardChord", (args: unknown) => {
+      const chord =
+        args && typeof args === "object" && typeof (args as { chord?: unknown }).chord === "string"
+          ? (args as { chord: string }).chord
+          : null;
+      if (!chord) {
+        // Reachable only from the command palette or a hand-written keybinding with no `args`.
+        // There is no chord to forward, and guessing one would fire an arbitrary action.
+        log.appendLine("forwardChord: ignored, no chord in args");
+        return;
+      }
+      host.broadcast({ type: "gsim/forwardedChord", chord }, { role: "schematic" });
+    }),
     vscode.commands.registerCommand("generalSimulator.newSchematic", async () => {
       const target = await vscode.window.showSaveDialog({
         filters: { "General Simulator schematic": ["gsim_sch"] },

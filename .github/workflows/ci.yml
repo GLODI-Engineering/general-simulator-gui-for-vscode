@@ -201,6 +201,22 @@ jobs:
       - name: engine catalogue drift
         run: GSIM_PYTHON=$(which python) node scripts/gen-engine-catalog.mjs --check
 
+  keybinding-drift:
+    # `package.json`'s keybindings and docs/keyboard-conflicts.md are generated from the
+    # schematic's own keymap. This fails when a chord is added to the keymap and the
+    # contribution is not regenerated — which would leave VS Code quietly winning that chord.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: keybinding drift check
+        run: node scripts/gen-keybindings.mjs --check
+
   schema-drift:
     runs-on: ubuntu-latest
     steps:
