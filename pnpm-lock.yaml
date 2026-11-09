@@ -21,8 +21,8 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1(ajv@8.20.0)
       gs-ui-probe:
-        specifier: link:../gs-ui-probe
-        version: link:../gs-ui-probe
+        specifier: git+https://github.com/Elvis-codeur/gs-ui-probe.git#v0.1.4
+        version: git+https://git@github.com:Elvis-codeur/gs-ui-probe.git#028e70a67918a27b20b9e12d15c2b99de34b847c(@playwright/test@1.60.0)
 
   apps/frontend:
     dependencies:
@@ -1758,6 +1758,12 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+
+  gs-ui-probe@git+https://git@github.com:Elvis-codeur/gs-ui-probe.git#028e70a67918a27b20b9e12d15c2b99de34b847c:
+    resolution: {commit: 028e70a67918a27b20b9e12d15c2b99de34b847c, repo: git@github.com:Elvis-codeur/gs-ui-probe.git, type: git}
+    version: 0.1.4
+    peerDependencies:
+      '@playwright/test': '>=1.40'
 
   has-flag@4.0.0:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
@@ -4629,6 +4635,10 @@ snapshots:
   gopd@1.2.0: {}
 
   graceful-fs@4.2.11: {}
+
+  gs-ui-probe@git+https://git@github.com:Elvis-codeur/gs-ui-probe.git#028e70a67918a27b20b9e12d15c2b99de34b847c(@playwright/test@1.60.0):
+    dependencies:
+      '@playwright/test': 1.60.0
 
   has-flag@4.0.0: {}
 

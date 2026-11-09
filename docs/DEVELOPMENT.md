@@ -684,6 +684,43 @@ runtime — no registration needed on the Python side.
 | `persistence.spec.ts` | Save → reload → StartupModal → open → byte-equivalent | All 3 (web); 1 (Tauri, planned) |
 | `perf.spec.ts` | canvas p95 ≤16ms; Quick Insert ≤50ms; save ≤100ms | Chromium |
 
+#### The `gs-ui-probe` dependency
+
+The specs drive the UI through `gs-ui-probe`, which lives in its **own private
+repository** (`Elvis-codeur/gs-ui-probe`) so that it stays free of any knowledge
+of this application. `package.json` pins it to a tag:
+
+```json
+"gs-ui-probe": "git+https://github.com/Elvis-codeur/gs-ui-probe.git#v0.1.4"
+```
+
+**In CI** that needs a token, because the repository is private. Create a
+fine-grained PAT with read access to it and set it once:
+
+```bash
+gh secret set GS_UI_PROBE_TOKEN --repo GLODI-Engineering/general-simulator-gui-for-vscode
+```
+
+The `e2e` job checks for it first and says exactly this if it is missing, rather
+than letting every spec die on `Cannot find module 'gs-ui-probe'`.
+
+**Locally**, a pinned tag means you get the released probe, not your working
+copy. To edit the probe and see the change here without cutting a tag:
+
+```bash
+pnpm link ../gs-ui-probe      # live edits
+pnpm install                  # back to the pinned tag
+```
+
+**To release a probe change**: commit and tag it in its own repository, push the
+tag, then bump the version in this `package.json` and run `pnpm install`. The
+tag is what makes an e2e run reproducible — without it, a probe edit silently
+changes what this suite tested.
+
+> It used to be `link:../gs-ui-probe`, which worked only on a machine that
+> happened to have the sibling checked out beside this one. CI never could, so
+> the e2e job had never run a single spec.
+
 ---
 
 ## 9. CI gates
