@@ -636,7 +636,13 @@ def _write_netlist_v2(ir1: IR1Graph, request: AnalysisRequest, target: str) -> s
                 params_text = " ".join(f"{k}={v}" for k, v in overrides.items())
                 diode_models[mname] = f".MODEL {mname} D({params_text})"
                 block.params["model"] = mname
-            elif "model" not in block.params or block.params["model"] == "D":
+            elif "model" not in block.params or block.params["model"] == "D":  # noqa: SIM102
+                # Not collapsed into one `and`: the outer test decides *whether this
+                # deck may own a .MODEL D card at all* (and the `# else:` note below
+                # depends on reading its negation), while the inner one is mere
+                # de-duplication across instances. Two separate reasons, each with
+                # its own comment; one `and` would read as a single condition.
+                #
                 # No model specified (or explicitly our own "D" default):
                 # safe to auto-generate, since "D" is our internal
                 # convention, not a real part number a user could be

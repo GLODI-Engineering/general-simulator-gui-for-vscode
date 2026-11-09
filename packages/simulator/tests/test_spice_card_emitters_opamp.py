@@ -20,7 +20,9 @@ from simulator.ir.ir1 import IR1Block, IR1Connection, IR1Graph, IR1Net
 from simulator.solvers.protocol import AnalysisRequest
 
 
-def _pe_block(instance_id: str, block_type: str, fidelity: str = "ideal", **params: object) -> IR1Block:
+def _pe_block(
+    instance_id: str, block_type: str, fidelity: str = "ideal", **params: object
+) -> IR1Block:
     return IR1Block(
         instance_id=instance_id,
         block_type=block_type,
@@ -54,9 +56,7 @@ def test_ideal_opamp_behavioral_tier_also_compiles() -> None:
 
 
 def test_comparator_reuses_hyst_params() -> None:
-    block = _pe_block(
-        "cmp1", "physical-electrical.opamp.comparator", v_hys=0.2, v_oh=5.0, v_ol=0.0
-    )
+    block = _pe_block("cmp1", "physical-electrical.opamp.comparator", v_hys=0.2, v_oh=5.0, v_ol=0.0)
     ir1 = IR1Graph(blocks=[block])
     netlist = write_netlist(ir1, _analysis_request("OP"))
 
@@ -103,11 +103,18 @@ def test_integration_finite_gain_saturates(tmp_path: pathlib.Path) -> None:
 
     src_blocks, src_conns = _grounded_dc_source_blocks(1.0)
     ir1 = IR1Graph(
-        blocks=[*src_blocks, _pe_block("oa1", "physical-electrical.opamp.finite_gain", Av=1000.0, v_sat=2.0)],
+        blocks=[
+            *src_blocks,
+            _pe_block("oa1", "physical-electrical.opamp.finite_gain", Av=1000.0, v_sat=2.0),
+        ],
         connections=[
             *src_conns,
-            IR1Connection(src=("vin", "p"), dst=("oa1", "vp"), kind="physical-electrical", net="vp_net"),
-            IR1Connection(src=("rgnd", "p"), dst=("oa1", "vn"), kind="physical-electrical", net="gnd"),
+            IR1Connection(
+                src=("vin", "p"), dst=("oa1", "vp"), kind="physical-electrical", net="vp_net"
+            ),
+            IR1Connection(
+                src=("rgnd", "p"), dst=("oa1", "vn"), kind="physical-electrical", net="gnd"
+            ),
         ],
         nets=[IR1Net(name="gnd", kind="physical-electrical", scope="model", is_reference=True)],
     )
@@ -143,14 +150,24 @@ def test_integration_band_limited_slew_bounded(tmp_path: pathlib.Path) -> None:
         ],
         connections=[
             *src_conns,
-            IR1Connection(src=("vin", "p"), dst=("oa1", "vp"), kind="physical-electrical", net="vp_net"),
-            IR1Connection(src=("rgnd", "p"), dst=("oa1", "vn"), kind="physical-electrical", net="gnd"),
+            IR1Connection(
+                src=("vin", "p"), dst=("oa1", "vp"), kind="physical-electrical", net="vp_net"
+            ),
+            IR1Connection(
+                src=("rgnd", "p"), dst=("oa1", "vn"), kind="physical-electrical", net="gnd"
+            ),
         ],
         nets=[IR1Net(name="gnd", kind="physical-electrical", scope="model", is_reference=True)],
     )
     netlist = write_netlist(
         ir1,
-        AnalysisRequest(id="tran1", type="TRAN", params={"t_end": 1e-3, "t_step": 1e-6}, sweeps=[], solver_options={}),
+        AnalysisRequest(
+            id="tran1",
+            type="TRAN",
+            params={"t_end": 1e-3, "t_step": 1e-6},
+            sweeps=[],
+            solver_options={},
+        ),
     )
     solver = NgspiceSolver(ngspice_path=ng_path)
     result = solver.solve(netlist, sim_id="opamp-band-limited")

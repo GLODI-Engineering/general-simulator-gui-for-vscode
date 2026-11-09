@@ -25,7 +25,10 @@ def _leaf_def(def_id: str, name: str) -> IR1SubcktDef:
     return IR1SubcktDef(
         id=def_id,
         name=name,
-        ports=[IR1SubcktPort(id="a", kind="physical-electrical"), IR1SubcktPort(id="b", kind="physical-electrical")],
+        ports=[
+            IR1SubcktPort(id="a", kind="physical-electrical"),
+            IR1SubcktPort(id="b", kind="physical-electrical"),
+        ],
         body="R1 a b 1k",
     )
 
@@ -35,7 +38,10 @@ def test_no_cycle_passes_silently() -> None:
     composite = IR1SubcktDef(
         id="composite",
         name="COMPOSITE",
-        ports=[IR1SubcktPort(id="p", kind="physical-electrical"), IR1SubcktPort(id="n", kind="physical-electrical")],
+        ports=[
+            IR1SubcktPort(id="p", kind="physical-electrical"),
+            IR1SubcktPort(id="n", kind="physical-electrical"),
+        ],
         instances=[IR1SubcktInstance(id="X1", def_ref="leaf", connections=["p", "n"])],
     )
     check_no_cyclic_defs([leaf, composite])  # must not raise
@@ -53,10 +59,14 @@ def test_self_reference_raises() -> None:
 
 def test_mutual_cycle_raises() -> None:
     a_def = IR1SubcktDef(
-        id="a_def", name="A", instances=[IR1SubcktInstance(id="X1", def_ref="b_def", connections=[])]
+        id="a_def",
+        name="A",
+        instances=[IR1SubcktInstance(id="X1", def_ref="b_def", connections=[])],
     )
     b_def = IR1SubcktDef(
-        id="b_def", name="B", instances=[IR1SubcktInstance(id="X1", def_ref="a_def", connections=[])]
+        id="b_def",
+        name="B",
+        instances=[IR1SubcktInstance(id="X1", def_ref="a_def", connections=[])],
     )
     with pytest.raises(CyclicSubcktDefError):
         check_no_cyclic_defs([a_def, b_def])
@@ -151,7 +161,10 @@ def test_build_succeeds_with_valid_subckt_defs() -> None:
             {
                 "id": "leaf",
                 "name": "LEAF",
-                "ports": [{"id": "a", "kind": "physical-electrical"}, {"id": "b", "kind": "physical-electrical"}],
+                "ports": [
+                    {"id": "a", "kind": "physical-electrical"},
+                    {"id": "b", "kind": "physical-electrical"},
+                ],
                 "instances": [],
                 "body": "R1 a b 1k",
             }

@@ -46,7 +46,11 @@ def test_connect_to_unknown_block_rejected() -> None:
     b = ModelBuilder.new("m1", "Test")
     r1 = _resistor(b, id="r1", position=(0, 0))
     with pytest.raises(DanglingWireError):
-        b.connect(r1.port("p2"), r1.port("p2").model_copy(update={"block": "ghost"}), kind="physical-electrical")
+        b.connect(
+            r1.port("p2"),
+            r1.port("p2").model_copy(update={"block": "ghost"}),
+            kind="physical-electrical",
+        )
 
 
 def test_remove_block_cascades_to_wires() -> None:

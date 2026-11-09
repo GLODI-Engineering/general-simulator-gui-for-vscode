@@ -157,7 +157,7 @@ async def test_spice_smoke_rc_circuit(e2e_server: dict) -> None:
 # ---------------------------------------------------------------------------
 
 
-async def test_scipy_smoke_unbroken(e2e_server: dict) -> None:
+async def test_scipy_smoke_unbroken(e2e_server: dict, requires_gsim_solve_path: None) -> None:
     """
     After BE-28 wiring, the existing step→pid→integrator→scope scipy path
     must still produce status="ok".

@@ -24,12 +24,17 @@ uv pip install --python <path-to-this-repo's>/.venv/bin/python3.12 \\
     ../../target/wheels/gsim_py-*.whl
 ```
 
-`gsim-tools` (pure Python) *is* declared as an ordinary workspace `path` dependency (see the
-root `pyproject.toml`'s `[tool.uv.sources]`) and needs no separate build step — but note that a
-bare `uv sync` (no `--all-packages`) only syncs the root project's own dependency closure in
-this workspace's configuration, not every workspace member; use `uv sync --all-packages`, or the
-`gsim_py` wheel above will need reinstalling afterward regardless, since it is never tracked in
-the lockfile at all.
+`gsim-tools` (pure Python) needs no build step, but it is **not** a declared dependency either:
+it lives in a private sibling repository, so no CI checkout can resolve a path source to it, and
+an optional extra does not help because uv locks every extra. Install it the same way, once:
+
+```bash
+uv pip install -e <sibling-repos-root>/gsim-tools
+```
+
+`uv sync` prunes whatever it did not lock, so both this and the `gsim_py` wheel above need
+redoing after a sync. Use `uv sync --all-packages` — a bare `uv sync` only syncs the root
+project's own dependency closure in this workspace's configuration, not every member.
 """
 
 from __future__ import annotations

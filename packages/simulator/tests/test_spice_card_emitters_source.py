@@ -76,18 +76,12 @@ def test_voltage_pulse_renders_native_pulse_waveform() -> None:
         PW=500e-9,
         PER=1e-6,
     )
-    assert (
-        _render_single(block)
-        == "Vp1 net2 net1 PULSE(0 5 0 1e-09 1e-09 5e-07 1e-06)"
-    )
+    assert _render_single(block) == "Vp1 net2 net1 PULSE(0 5 0 1e-09 1e-09 5e-07 1e-06)"
 
 
 def test_voltage_pulse_uses_catalog_defaults_when_params_missing() -> None:
     block = _pe_block("p2", "physical-electrical.source.voltage_pulse")
-    assert (
-        _render_single(block)
-        == "Vp2 net2 net1 PULSE(0 1 0 1e-09 1e-09 5e-07 1e-06)"
-    )
+    assert _render_single(block) == "Vp2 net2 net1 PULSE(0 1 0 1e-09 1e-09 5e-07 1e-06)"
 
 
 @pytest.mark.integration
@@ -115,8 +109,12 @@ def test_integration_voltage_pulse_drives_rc_low_pass() -> None:
             _pe_block("c1", "physical-electrical.passive.capacitor", C=1e-6),
         ],
         connections=[
-            IR1Connection(src=("vp", "p"), dst=("r1", "p"), kind="physical-electrical", net="pulse"),
-            IR1Connection(src=("r1", "n"), dst=("c1", "p"), kind="physical-electrical", net="rc_out"),
+            IR1Connection(
+                src=("vp", "p"), dst=("r1", "p"), kind="physical-electrical", net="pulse"
+            ),
+            IR1Connection(
+                src=("r1", "n"), dst=("c1", "p"), kind="physical-electrical", net="rc_out"
+            ),
             IR1Connection(src=("c1", "n"), dst=("vp", "n"), kind="physical-electrical", net="gnd"),
         ],
         nets=[IR1Net(name="gnd", kind="physical-electrical", scope="model", is_reference=True)],
@@ -148,8 +146,12 @@ def test_integration_voltage_ac_transient_sine_matches_frequency() -> None:
             _pe_block("r1", "physical-electrical.passive.resistor", R=1000.0),
         ],
         connections=[
-            IR1Connection(src=("vac1", "p"), dst=("r1", "p"), kind="physical-electrical", net="vac"),
-            IR1Connection(src=("r1", "n"), dst=("vac1", "n"), kind="physical-electrical", net="gnd"),
+            IR1Connection(
+                src=("vac1", "p"), dst=("r1", "p"), kind="physical-electrical", net="vac"
+            ),
+            IR1Connection(
+                src=("r1", "n"), dst=("vac1", "n"), kind="physical-electrical", net="gnd"
+            ),
         ],
         nets=[IR1Net(name="gnd", kind="physical-electrical", scope="model", is_reference=True)],
     )

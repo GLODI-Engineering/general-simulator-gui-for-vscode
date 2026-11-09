@@ -200,7 +200,7 @@ async def _collect_simulate_messages(ws, timeout: float = 30.0) -> list[dict]:  
 # ---------------------------------------------------------------------------
 
 
-async def test_happy_path_simulate(live_server: dict) -> None:
+async def test_happy_path_simulate(live_server: dict, requires_gsim_compile_path: None) -> None:
     import websockets
 
     uri = live_server["uri"]
@@ -242,7 +242,9 @@ async def test_happy_path_simulate(live_server: dict) -> None:
         assert len(result["payload"].get("signals", [])) > 0
 
 
-async def test_algebraic_loop_returns_error(live_server: dict) -> None:
+async def test_algebraic_loop_returns_error(
+    live_server: dict, requires_gsim_compile_path: None
+) -> None:
     import websockets
 
     uri = live_server["uri"]
@@ -330,7 +332,7 @@ async def test_cancel_mid_solve(live_server: dict) -> None:
 
 
 async def test_simulate_forwards_requested_solver(
-    live_server: dict, monkeypatch: pytest.MonkeyPatch
+    live_server: dict, monkeypatch: pytest.MonkeyPatch, requires_gsim_compile_path: None
 ) -> None:
     import websockets
 
@@ -385,7 +387,9 @@ async def test_simulate_forwards_requested_solver(
     assert captured["solver"] == "xyce"
 
 
-async def test_simulate_handler_pick_id(live_server: dict, monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_simulate_handler_pick_id(
+    live_server: dict, monkeypatch: pytest.MonkeyPatch, requires_gsim_compile_path: None
+) -> None:
     import websockets
 
     captured: dict[str, object] = {}

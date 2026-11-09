@@ -17,9 +17,7 @@ from gsim_model import (
 )
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
-SCHEMA_PATH = (
-    REPO_ROOT / "packages" / "schemas" / "definitions" / "model" / "gsim_sch.schema.json"
-)
+SCHEMA_PATH = REPO_ROOT / "packages" / "schemas" / "definitions" / "model" / "gsim_sch.schema.json"
 
 
 def test_add_and_instantiate_subckt_def() -> None:
@@ -60,13 +58,19 @@ def test_nested_subckt_defs_compose() -> None:
     b.add_subckt_def(
         "leaf",
         "LEAF",
-        ports=[SubcktPort(id="a", kind="physical-electrical"), SubcktPort(id="b", kind="physical-electrical")],
+        ports=[
+            SubcktPort(id="a", kind="physical-electrical"),
+            SubcktPort(id="b", kind="physical-electrical"),
+        ],
         body="R1 a b 1k",
     )
     b.add_subckt_def(
         "composite",
         "COMPOSITE",
-        ports=[SubcktPort(id="p", kind="physical-electrical"), SubcktPort(id="n", kind="physical-electrical")],
+        ports=[
+            SubcktPort(id="p", kind="physical-electrical"),
+            SubcktPort(id="n", kind="physical-electrical"),
+        ],
         instances=[SubcktInstance(id="X1", def_ref="leaf", connections=["p", "n"])],
     )
     inst = b.instantiate_subckt("composite", position=(0, 0))
@@ -108,7 +112,10 @@ def test_document_with_subckt_def_validates_against_schema() -> None:
     b.add_subckt_def(
         "leaf",
         "LEAF",
-        ports=[SubcktPort(id="a", kind="physical-electrical"), SubcktPort(id="b", kind="physical-electrical")],
+        ports=[
+            SubcktPort(id="a", kind="physical-electrical"),
+            SubcktPort(id="b", kind="physical-electrical"),
+        ],
         body="R1 a b 1k",
     )
     b.instantiate_subckt("leaf", position=(0, 0), id="x1")
@@ -124,7 +131,10 @@ def test_connectivity_stops_at_subckt_boundary() -> None:
     b.add_subckt_def(
         "leaf",
         "LEAF",
-        ports=[SubcktPort(id="a", kind="physical-electrical"), SubcktPort(id="b", kind="physical-electrical")],
+        ports=[
+            SubcktPort(id="a", kind="physical-electrical"),
+            SubcktPort(id="b", kind="physical-electrical"),
+        ],
         body="R1 a b 1k",
     )
     inst = b.instantiate_subckt("leaf", position=(0, 0), id="x1")

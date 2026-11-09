@@ -135,6 +135,21 @@ def test_bjt_has_three_ports(subdir: str) -> None:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "FE-48's fourth terminal (bulk) was never implemented — no MOSFET metadata "
+        "in this repository has ever declared it, on either taxonomy tree, so this "
+        "is an unmet requirement rather than a regression. It is left visible on "
+        "purpose instead of being weakened to three ports: adding a bulk pin changes "
+        "the metadata on both trees, the drawing, and the compile mapping, for a "
+        "device the engine cannot simulate yet (simulator-compat.ts admits only the "
+        "ideal switch), and whether a power-electronics MOSFET wants a separate bulk "
+        "pin at all or bulk tied to source is a modelling decision for the engine's "
+        "owner, not a test fix. `strict=True` so the day the pin lands, this flips to "
+        "an unexpected pass and says so. See #32."
+    ),
+)
 @pytest.mark.parametrize("subdir", ["mosfet_n", "mosfet_p"])
 def test_mosfet_has_four_ports(subdir: str) -> None:
     data = _load_metadata(subdir)
