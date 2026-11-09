@@ -13,7 +13,8 @@
       "**/target",
       "**/build",
       "generated",
-      "**/catalog-manifest.json"
+      "**/catalog-manifest.json",
+      "**/engine-capabilities.json"
     ]
   },
   "formatter": {

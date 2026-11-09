@@ -171,6 +171,37 @@ jobs:
   # committed generated files. Fails if generated/typescript/index.ts or
   # generated/python/__init__.py are out of sync with the schema sources.
   # ---------------------------------------------------------------------------
+  engine-capabilities-drift:
+    # The engine declares what it can compile; `engine-capabilities.json` is a committed copy
+    # of that answer. This fails when the copy stops matching, which is the only thing keeping
+    # it a cache rather than a second opinion. It needs `gsim_py`, which is built from a
+    # private sibling repository, so the generator exits cleanly when it cannot import it and
+    # this job reports that rather than failing a checkout that never had it.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Built here rather than skipped. The generator exits cleanly when `gsim_py` is absent,
+      # which is right for a developer's checkout and wrong for a gate: a check that cannot
+      # fail is not one. gsim-core is public, so this needs no credentials.
+      - name: build gsim_py from the engine core
+        run: |
+          git clone --depth 1 https://github.com/GLODI-Engineering/gsim-core.git /tmp/gsim-core
+          python -m pip install --upgrade maturin
+          maturin build --release --manifest-path /tmp/gsim-core/crates/gsim-py/Cargo.toml --out /tmp/wheels
+          python -m pip install /tmp/wheels/gsim_py-*.whl
+      - name: engine capabilities drift
+        run: GSIM_PYTHON=$(which python) node scripts/gen-engine-capabilities.mjs --check
+
   schema-drift:
     runs-on: ubuntu-latest
     steps:

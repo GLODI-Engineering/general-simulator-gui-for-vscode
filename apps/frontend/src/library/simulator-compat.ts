@@ -1,3 +1,18 @@
+import engineCapabilities from "./engine-capabilities.json";
+import { engineTypeOf } from "./engine-types";
+
+/**
+ * What the engine says it can compile, read from its own generated manifest.
+ *
+ * `engine-capabilities.json` is written by `scripts/gen-engine-capabilities.mjs` straight
+ * from `gsim_py.capabilities()`, and a CI check fails when the committed copy stops matching.
+ * So this is a cache of the engine's answer rather than a second opinion about it — which is
+ * the whole point, because the second opinion is what drifted.
+ */
+const ENGINE_TYPES: ReadonlySet<string> = new Set(
+  (engineCapabilities as { types: Array<{ type: string }> }).types.map((entry) => entry.type),
+);
+
 export interface SimulatorCompat {
   id: string;
   label: string;
@@ -142,7 +157,31 @@ export function supportsBlock(simulatorId: string, blockType: string): boolean {
   if (simulatorId === "all") return true;
   const contract = simulatorContract(simulatorId);
   if (!contract) return true;
-  return contract.supported.includes(blockType);
+
+  // The engine's own declaration decides, not a list kept here. `blockType` is the
+  // catalogue's spelling and the manifest uses the engine's, so it is translated first —
+  // see `engine-types.ts` for why that bridge is hand-checked rather than derived.
+  //
+  // This used to be `contract.supported.includes(blockType)`, comparing a catalogue type
+  // against engine names directly. It matched none of the catalogue's 143 types, so every
+  // block reported unsupported and the one honest "no" was lost among 143 wrong ones.
+  // Either vocabulary is accepted. A caller holding an engine type — a netlist importer, a
+  // test, the compile path itself — should not have to know it is on the other side of the
+  // bridge to ask a question about it.
+  if (engineDeclaresType(blockType)) return true;
+
+  const engineType = engineTypeOf(blockType);
+  if (engineType === undefined) return false;
+  return engineDeclaresType(engineType);
+}
+
+/** Every type the engine declares it can compile. */
+export function engineSupportedTypes(): ReadonlySet<string> {
+  return ENGINE_TYPES;
+}
+
+function engineDeclaresType(engineType: string): boolean {
+  return ENGINE_TYPES.has(engineType);
 }
 
 /**

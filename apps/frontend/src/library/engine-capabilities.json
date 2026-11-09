@@ -1,0 +1,1700 @@
+{
+  "schema_version": 1,
+  "generator": "gsim-core 0.1.0",
+  "types": [
+    {
+      "type": "routing.ground",
+      "emits": {
+        "card": "nothing"
+      },
+      "node_ports": [],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "spice-subckt.boundary",
+      "emits": {
+        "card": "nothing"
+      },
+      "node_ports": [],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "routing.goto",
+      "emits": {
+        "card": "nothing"
+      },
+      "node_ports": [],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "routing.from",
+      "emits": {
+        "card": "nothing"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "passive.resistor",
+      "emits": {
+        "card": "element",
+        "letter": "R"
+      },
+      "node_ports": [
+        "p1",
+        "p2"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "R",
+          "field": "value",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "passive.capacitor",
+      "emits": {
+        "card": "element",
+        "letter": "C"
+      },
+      "node_ports": [
+        "p1",
+        "p2"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "C",
+          "field": "value",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "passive.inductor",
+      "emits": {
+        "card": "element",
+        "letter": "L"
+      },
+      "node_ports": [
+        "p1",
+        "p2"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "L",
+          "field": "value",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "source.voltage.dc",
+      "emits": {
+        "card": "element",
+        "letter": "V"
+      },
+      "node_ports": [
+        "p",
+        "n"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "V",
+          "field": "value",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "source.current.dc",
+      "emits": {
+        "card": "element",
+        "letter": "I"
+      },
+      "node_ports": [
+        "p",
+        "n"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "I",
+          "field": "value",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "source.voltage.sin",
+      "emits": {
+        "card": "element",
+        "letter": "V"
+      },
+      "node_ports": [
+        "p",
+        "n"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "VO",
+          "field": "SIN.v0",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "VA",
+          "field": "SIN.va",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "FREQ",
+          "field": "SIN.freq",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "TD",
+          "field": "SIN.td",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "THETA",
+          "field": "SIN.theta",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "PHASE",
+          "field": "SIN.phase",
+          "required": true,
+          "form": "source_function_field"
+        }
+      ]
+    },
+    {
+      "type": "source.dependent.vcvs",
+      "emits": {
+        "card": "element",
+        "letter": "E"
+      },
+      "node_ports": [
+        "p",
+        "n",
+        "cp",
+        "cn"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "gain",
+          "field": "value",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "source.dependent.vccs",
+      "emits": {
+        "card": "element",
+        "letter": "G"
+      },
+      "node_ports": [
+        "p",
+        "n",
+        "cp",
+        "cn"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "gain",
+          "field": "value",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "source.dependent.cccs",
+      "emits": {
+        "card": "element",
+        "letter": "F"
+      },
+      "node_ports": [
+        "p",
+        "n"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "control",
+          "field": "control",
+          "required": true,
+          "form": "reference"
+        },
+        {
+          "param": "gain",
+          "field": "gain",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "source.dependent.ccvs",
+      "emits": {
+        "card": "element",
+        "letter": "H"
+      },
+      "node_ports": [
+        "p",
+        "n"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "control",
+          "field": "control",
+          "required": true,
+          "form": "reference"
+        },
+        {
+          "param": "gain",
+          "field": "gain",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "passive.switch.ideal",
+      "emits": {
+        "card": "element_and_block",
+        "letter": "D",
+        "kind": "ideal_switch"
+      },
+      "node_ports": [
+        "d",
+        "s"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "r_on",
+          "field": "r_on",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "g_breakdown",
+          "field": "g_breakdown",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "v_breakdown",
+          "field": "v_breakdown",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "g_off",
+          "field": "g_off",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "v_th",
+          "field": "v_th",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "g_on",
+          "field": "g_on",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "passive.diode.ideal",
+      "emits": {
+        "card": "element_and_block",
+        "letter": "D",
+        "kind": "ideal_diode"
+      },
+      "node_ports": [
+        "a",
+        "k"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "g_breakdown",
+          "field": "g_breakdown",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "v_breakdown",
+          "field": "v_breakdown",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "g_off",
+          "field": "g_off",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "v_th",
+          "field": "v_th",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "g_on",
+          "field": "g_on",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "converter.sig2phys",
+      "emits": {
+        "card": "block",
+        "kind": "sig2phys"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "domain",
+          "field": "domain",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "converter.phys2sig",
+      "emits": {
+        "card": "block",
+        "kind": "phys2sig"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "node",
+          "field": "node",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "branch",
+          "field": "branch",
+          "required": false,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "source.const",
+      "emits": {
+        "card": "block",
+        "kind": "const"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "value",
+          "field": "value",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "source.time",
+      "emits": {
+        "card": "block",
+        "kind": "time"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "power.pwm2",
+      "emits": {
+        "card": "block",
+        "kind": "pspwm"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "main",
+        "comp"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "f_min",
+          "field": "f_min",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "f_max",
+          "field": "f_max",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "red",
+          "field": "red",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "fed",
+          "field": "fed",
+          "required": false,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "power.pwm1",
+      "emits": {
+        "card": "block",
+        "kind": "pwm"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "main",
+        "comp"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "freq",
+          "field": "freq",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "red",
+          "field": "red",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "fed",
+          "field": "fed",
+          "required": false,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "control.gain",
+      "emits": {
+        "card": "block",
+        "kind": "gain"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "k",
+          "field": "k",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "control.saturation",
+      "emits": {
+        "card": "block",
+        "kind": "saturation"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "limit",
+          "field": "limit",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "hi",
+          "field": "limit",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "lo",
+          "field": "limit",
+          "required": false,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "control.vco",
+      "emits": {
+        "card": "block",
+        "kind": "vco"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "f_min",
+          "field": "f_min",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "f_max",
+          "field": "f_max",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "logic.hysteresis",
+      "emits": {
+        "card": "block",
+        "kind": "hysteresis"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "low",
+          "field": "low",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "high",
+          "field": "high",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "control.state_space",
+      "emits": {
+        "card": "block",
+        "kind": "statespace"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out0"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": true,
+      "params": [
+        {
+          "param": "a",
+          "field": "a",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "b",
+          "field": "b",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "c",
+          "field": "c",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "d",
+          "field": "d",
+          "required": false,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "control.discrete_state_space",
+      "emits": {
+        "card": "block",
+        "kind": "discretestatespace"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out0"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": true,
+      "params": [
+        {
+          "param": "a",
+          "field": "a",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "b",
+          "field": "b",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "c",
+          "field": "c",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "d",
+          "field": "d",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "ts",
+          "field": "ts",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "control.transfer_function",
+      "emits": {
+        "card": "block",
+        "kind": "tf"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "num",
+          "field": "num",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "den",
+          "field": "den",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "control.discrete_transfer_function",
+      "emits": {
+        "card": "block",
+        "kind": "discretetf"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "num",
+          "field": "num",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "den",
+          "field": "den",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "ts",
+          "field": "ts",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "control.transform.clarke",
+      "emits": {
+        "card": "block",
+        "kind": "clarke"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "alpha",
+        "beta",
+        "zero"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "control.transform.clarke_inv",
+      "emits": {
+        "card": "block",
+        "kind": "clarkeinv"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "a",
+        "b",
+        "c"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "control.transform.park",
+      "emits": {
+        "card": "block",
+        "kind": "park"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "d",
+        "q",
+        "zero_out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "control.transform.park_inv",
+      "emits": {
+        "card": "block",
+        "kind": "parkinv"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "alpha",
+        "beta",
+        "zero_out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "control.transform.clarke_park",
+      "emits": {
+        "card": "block",
+        "kind": "clarkepark"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "d",
+        "q",
+        "zero"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "control.transform.clarke_park_inv",
+      "emits": {
+        "card": "block",
+        "kind": "clarkeparkinv"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "a",
+        "b",
+        "c"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "machine.pmsm",
+      "emits": {
+        "card": "block",
+        "kind": "pmsm"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "id",
+        "iq",
+        "omega_m",
+        "theta_e"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "r_s",
+          "field": "r_s",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "l_d",
+          "field": "l_d",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "l_q",
+          "field": "l_q",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "lambda_pm",
+          "field": "lambda_pm",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "pole_pairs",
+          "field": "pole_pairs",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "inertia",
+          "field": "inertia",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "friction",
+          "field": "friction",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "extensibility.cscript",
+      "emits": {
+        "card": "block",
+        "kind": "cscript"
+      },
+      "node_ports": [],
+      "output_ports": [],
+      "dynamic_outputs": true,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "lib",
+          "field": "lib",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "ts",
+          "field": "ts",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "xc_count",
+          "field": "xc_count",
+          "required": false,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "extensibility.pyblock",
+      "emits": {
+        "card": "block",
+        "kind": "pyblock"
+      },
+      "node_ports": [],
+      "output_ports": [],
+      "dynamic_outputs": true,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "path",
+          "field": "path",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "ts",
+          "field": "ts",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "xc_count",
+          "field": "xc_count",
+          "required": false,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "extensibility.pyfunc",
+      "emits": {
+        "card": "block",
+        "kind": "pyfunc"
+      },
+      "node_ports": [],
+      "output_ports": [],
+      "dynamic_outputs": true,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "path",
+          "field": "path",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "function",
+          "field": "function",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "ts",
+          "field": "ts",
+          "required": false,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "extensibility.octfunc",
+      "emits": {
+        "card": "block",
+        "kind": "octfunc"
+      },
+      "node_ports": [],
+      "output_ports": [],
+      "dynamic_outputs": true,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "path",
+          "field": "path",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "function",
+          "field": "function",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "ts",
+          "field": "ts",
+          "required": false,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "extensibility.octblock",
+      "emits": {
+        "card": "block",
+        "kind": "octblock"
+      },
+      "node_ports": [],
+      "output_ports": [],
+      "dynamic_outputs": true,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "path",
+          "field": "path",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "function",
+          "field": "function",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "ts",
+          "field": "ts",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "xc_count",
+          "field": "xc_count",
+          "required": false,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "control.sum",
+      "emits": {
+        "card": "block",
+        "kind": "sum"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "signs",
+          "field": "signs",
+          "required": true,
+          "form": "list"
+        }
+      ]
+    },
+    {
+      "type": "control.product",
+      "emits": {
+        "card": "block",
+        "kind": "product"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "control.pid",
+      "emits": {
+        "card": "block",
+        "kind": "pid"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "kp",
+          "field": "kp",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "ki",
+          "field": "ki",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "kd",
+          "field": "kd",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "n",
+          "field": "n",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "clamp_lo",
+          "field": "clamp_lo",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "clamp_hi",
+          "field": "clamp_hi",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "control.integrator",
+      "emits": {
+        "card": "block",
+        "kind": "pid"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "control.derivative",
+      "emits": {
+        "card": "block",
+        "kind": "pid"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "control.delay",
+      "emits": {
+        "card": "block",
+        "kind": "sum"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "math.table_lookup",
+      "emits": {
+        "card": "block",
+        "kind": "table"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "points",
+          "field": "points",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "math.fn1",
+      "emits": {
+        "card": "block",
+        "kind": "abs"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "fn",
+          "field": "kind",
+          "required": true,
+          "form": "choice"
+        }
+      ],
+      "choices": [
+        "abs",
+        "acos",
+        "acosh",
+        "asin",
+        "asinh",
+        "atan",
+        "atanh",
+        "buf",
+        "ceil",
+        "cos",
+        "cosh",
+        "exp",
+        "floor",
+        "int",
+        "inv",
+        "ln",
+        "log10",
+        "round",
+        "sgn",
+        "sin",
+        "sinh",
+        "sqrt",
+        "tan",
+        "tanh",
+        "u",
+        "uramp"
+      ]
+    },
+    {
+      "type": "math.fn2",
+      "emits": {
+        "card": "block",
+        "kind": "atan2"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "fn",
+          "field": "kind",
+          "required": true,
+          "form": "choice"
+        }
+      ],
+      "choices": [
+        "atan2",
+        "anglewrap",
+        "hypot",
+        "max",
+        "min",
+        "pow",
+        "pwr",
+        "pwrs"
+      ]
+    },
+    {
+      "type": "math.fn3",
+      "emits": {
+        "card": "block",
+        "kind": "if"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "fn",
+          "field": "kind",
+          "required": true,
+          "form": "choice"
+        }
+      ],
+      "choices": [
+        "if",
+        "limit"
+      ]
+    },
+    {
+      "type": "logic.gate",
+      "emits": {
+        "card": "block",
+        "kind": "and"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "op",
+          "field": "kind",
+          "required": true,
+          "form": "choice"
+        }
+      ],
+      "choices": [
+        "and",
+        "or",
+        "xor",
+        "nand",
+        "nor",
+        "xnor",
+        "not"
+      ]
+    },
+    {
+      "type": "logic.sr_latch",
+      "emits": {
+        "card": "block",
+        "kind": "srlatch"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "q"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "priority",
+          "field": "priority",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "logic.flip_flop",
+      "emits": {
+        "card": "block",
+        "kind": "dff"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "q"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "kind",
+          "field": "kind",
+          "required": true,
+          "form": "choice"
+        }
+      ],
+      "choices": [
+        "dff",
+        "jkff",
+        "tff"
+      ]
+    },
+    {
+      "type": "control.counter",
+      "emits": {
+        "card": "block",
+        "kind": "counter"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "count"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "modulus",
+          "field": "modulus",
+          "required": false,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "source.sinwave",
+      "emits": {
+        "card": "block",
+        "kind": "sinwave"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "va",
+          "field": "va",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "freq",
+          "field": "freq",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "v0",
+          "field": "v0",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "td",
+          "field": "td",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "theta",
+          "field": "theta",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "phase",
+          "field": "phase",
+          "required": false,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "source.pulsewave",
+      "emits": {
+        "card": "block",
+        "kind": "pulsewave"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "v1",
+          "field": "v1",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "v2",
+          "field": "v2",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "td",
+          "field": "td",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "tr",
+          "field": "tr",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "tf",
+          "field": "tf",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "pw",
+          "field": "pw",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "per",
+          "field": "per",
+          "required": false,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "source.expwave",
+      "emits": {
+        "card": "block",
+        "kind": "expwave"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "v1",
+          "field": "v1",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "v2",
+          "field": "v2",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "td1",
+          "field": "td1",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "tau1",
+          "field": "tau1",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "td2",
+          "field": "td2",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "tau2",
+          "field": "tau2",
+          "required": false,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "source.sffmwave",
+      "emits": {
+        "card": "block",
+        "kind": "sffmwave"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "va",
+          "field": "va",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "fc",
+          "field": "fc",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "fs",
+          "field": "fs",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "v0",
+          "field": "v0",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "mdi",
+          "field": "mdi",
+          "required": false,
+          "form": "scalar"
+        }
+      ]
+    }
+  ]
+}
