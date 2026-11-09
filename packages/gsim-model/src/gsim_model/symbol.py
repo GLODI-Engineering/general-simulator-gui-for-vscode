@@ -123,7 +123,13 @@ class Line(Primitive):
         return replace(self, x1=x1, y1=y1, x2=x2, y2=y2)
 
     def to_dict(self) -> dict[str, object]:
-        d: dict[str, object] = {"type": "line", "x1": self.x1, "y1": self.y1, "x2": self.x2, "y2": self.y2}
+        d: dict[str, object] = {
+            "type": "line",
+            "x1": self.x1,
+            "y1": self.y1,
+            "x2": self.x2,
+            "y2": self.y2,
+        }
         if self.lw is not None:
             d["lw"] = self.lw
         if self.color is not None:
@@ -381,7 +387,9 @@ class SymbolBuilder:
         direction: Literal["input", "output"],
         label: str | None = None,
     ) -> SymbolBuilder:
-        self._ports.append(_PortSpec(id=id, side=side, offset=offset, kind=kind, direction=direction, label=label))
+        self._ports.append(
+            _PortSpec(id=id, side=side, offset=offset, kind=kind, direction=direction, label=label)
+        )
         return self
 
     def port_geometries(self) -> dict[str, PortGeometry]:

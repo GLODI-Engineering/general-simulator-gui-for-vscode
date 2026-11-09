@@ -91,20 +91,32 @@ def test_net_of_survives_a_later_union_reparenting_the_named_root() -> None:
     """
     b = ModelBuilder.new("m1", "Test")
     a = b.add_block(
-        "physical_electrical.passive.resistor", paradigm="physical-network",
-        domain="physical-electrical", id="a", position=(0, 0),
+        "physical_electrical.passive.resistor",
+        paradigm="physical-network",
+        domain="physical-electrical",
+        id="a",
+        position=(0, 0),
     )
     b_blk = b.add_block(
-        "physical_electrical.passive.resistor", paradigm="physical-network",
-        domain="physical-electrical", id="b", position=(10, 0),
+        "physical_electrical.passive.resistor",
+        paradigm="physical-network",
+        domain="physical-electrical",
+        id="b",
+        position=(10, 0),
     )
     c = b.add_block(
-        "physical_electrical.passive.resistor", paradigm="physical-network",
-        domain="physical-electrical", id="c", position=(20, 0),
+        "physical_electrical.passive.resistor",
+        paradigm="physical-network",
+        domain="physical-electrical",
+        id="c",
+        position=(20, 0),
     )
     d = b.add_block(
-        "physical_electrical.passive.resistor", paradigm="physical-network",
-        domain="physical-electrical", id="d", position=(30, 0),
+        "physical_electrical.passive.resistor",
+        paradigm="physical-network",
+        domain="physical-electrical",
+        id="d",
+        position=(30, 0),
     )
     # a.p2-b.p1 unioned first (root becomes the a.p2 endpoint), tagged
     # "gnd" against that root.

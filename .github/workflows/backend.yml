@@ -21,9 +21,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No cache: `uv.lock` is gitignored, so `cache-dependency-glob`'s default
+      # `**/uv.lock` matches nothing in a fresh checkout and setup-uv fails the
+      # job before it runs anything. Same fix as ci.yml's own python job.
       - uses: astral-sh/setup-uv@v3
-        with:
-          enable-cache: true
 
       - name: Install workspace packages
         run: uv sync --all-packages --group dev

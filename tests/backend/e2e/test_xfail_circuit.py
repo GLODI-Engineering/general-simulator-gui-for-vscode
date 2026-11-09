@@ -128,16 +128,21 @@ async def test_circuit_element_result_is_ok_or_no_simulator(e2e_server: dict) ->
             f"status=ok but no sim_id/signals in payload: {payload}"
         )
     elif status == "error":
-        # No SPICE simulator installed — message must say so, not mention Phase 2.
-        error_text = json.dumps(payload)
-        assert "Phase 2" not in error_text and "phase 2" not in error_text, (
+        # No solver installed — the message must name which one is missing, and
+        # must not mention Phase 2.
+        error_text = json.dumps(payload).lower()
+        assert "phase 2" not in error_text, (
             f"Error must not mention 'Phase 2' after BE-28: {error_text}"
         )
-        assert (
-            "spice" in error_text.lower()
-            or "ngspice" in error_text.lower()
-            or "xyce" in error_text.lower()
-            or "simulator" in error_text.lower()
-        ), f"Error message must mention SPICE/ngspice/Xyce/simulator: {error_text}"
+        # `general-simulator` (via gsim-core's `gsim_py` extension) is the default
+        # path now, and its unavailability message names `gsim_py`/`gsim-core`/
+        # `maturin` — none of which contain the words this list originally held.
+        # The assertion's point is that the reply says *which* component is
+        # missing rather than being opaque, so the vocabulary follows the solvers
+        # that actually exist, not just the three SPICE ones.
+        named = ("spice", "ngspice", "xyce", "simulator", "gsim_py", "gsim-core", "gsim")
+        assert any(word in error_text for word in named), (
+            f"Error message names no solver (expected one of {named}): {error_text}"
+        )
     else:
         pytest.fail(f"Unexpected simulate_result status {status!r}: {payload}")

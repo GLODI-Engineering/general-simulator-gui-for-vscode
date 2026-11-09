@@ -34,13 +34,7 @@ import pathlib
 from gsim_model.gsim_sym import merge_into_catalog
 from gsim_model.symbol import Circle, ComponentDefinition, Line, Polygon, SymbolBuilder
 
-BLOCKS_ROOT = (
-    pathlib.Path(__file__).resolve().parents[3]
-    / "packages"
-    / "blocks"
-    / "src"
-    / "blocks"
-)
+BLOCKS_ROOT = pathlib.Path(__file__).resolve().parents[3] / "packages" / "blocks" / "src" / "blocks"
 
 
 def _vertical_stub(x: float, y_from: float, y_to: float) -> Line:

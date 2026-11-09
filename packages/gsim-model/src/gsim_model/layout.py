@@ -114,9 +114,7 @@ def exit_direction(rotation: Rotation, mirror: Mirror, side: Side) -> tuple[int,
     return (dx, dy)
 
 
-def manhattan_waypoints(
-    a: Position, a_dir: tuple[int, int], b: Position
-) -> list[tuple[int, int]]:
+def manhattan_waypoints(a: Position, a_dir: tuple[int, int], b: Position) -> list[tuple[int, int]]:
     """A single-bend orthogonal route from port *a* (leaving along
     *a_dir*) to port *b*. Returns only the intermediate waypoint(s) — the
     wire's own endpoints already supply *a* and *b* — ready to pass as

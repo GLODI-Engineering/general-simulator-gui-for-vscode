@@ -69,17 +69,17 @@ def block(bid, typ, pos, rotation=0, params=None, label=None):
     return b
 
 
-TOP = 140          # input / switch-node / output rail
-BOTTOM = 540       # return rail
+TOP = 140  # input / switch-node / output rail
+BOTTOM = 540  # return rail
 
 # --- placement (every coordinate a multiple of GRID=20) ---
-V1 = (80, 240)     # rot 90, vertical on the left
-S1 = (260, 120)    # rot 0,  on the top rail
-V2 = (260, 320)    # rot 0,  gate drive, directly under the switch
-D1 = (460, 260)    # rot 270, freewheel: cathode up to the switch node
-L1 = (600, 100)    # rot 0,  on the top rail
-C1 = (800, 260)    # rot 90, output filter
-R1 = (980, 260)    # rot 90, load
+V1 = (80, 240)  # rot 90, vertical on the left
+S1 = (260, 120)  # rot 0,  on the top rail
+V2 = (260, 320)  # rot 0,  gate drive, directly under the switch
+D1 = (460, 260)  # rot 270, freewheel: cathode up to the switch node
+L1 = (600, 100)  # rot 0,  on the top rail
+C1 = (800, 260)  # rot 90, output filter
+R1 = (980, 260)  # rot 90, load
 
 v1 = two_terminal(*V1, 90)
 s1 = switch_terminals(*S1)
@@ -92,8 +92,13 @@ r1 = two_terminal(*R1, 90)
 blocks = [
     block("v1", "physical-electrical.source.voltage_dc", V1, 90, {"V": 12}),
     block("s1", "passive.switch.voltage", S1, 0, {"Ron": 1e-3, "Roff": 1e6}),
-    block("v2", "source.voltage.pulse", V2, 0,
-          {"V1": 0, "V2": 5, "TD": 0, "TR": 1e-8, "TF": 1e-8, "PW": 6e-6, "PER": 1e-5}),
+    block(
+        "v2",
+        "source.voltage.pulse",
+        V2,
+        0,
+        {"V1": 0, "V2": 5, "TD": 0, "TR": 1e-8, "TF": 1e-8, "PW": 6e-6, "PER": 1e-5},
+    ),
     block("d1", "physical-electrical.semiconductor.diode", D1, 270),
     block("l1", "passive.inductor", L1, 0, {"L": 1e-4}),
     block("c1", "passive.capacitor", C1, 90, {"C": 1e-4}),
@@ -143,9 +148,7 @@ doc = {
         "lines": [],
         "nets": [],
         "simulation": {
-            "analyses": [
-                {"id": "tran", "type": "TRAN", "tstep": 1e-7, "tstop": 2e-3}
-            ],
+            "analyses": [{"id": "tran", "type": "TRAN", "tstep": 1e-7, "tstop": 2e-3}],
             "default_analysis": "tran",
         },
         "metadata": {},
@@ -158,26 +161,35 @@ for w in wires:
         assert wx % 20 == 0 and wy % 20 == 0, (w["id"], wx, wy)
 
 boxes = {
-    "v1": (80, 240, 80, 120), "s1": (260, 120, 120, 120), "v2": (260, 320, 120, 80),
-    "d1": (460, 260, 80, 120), "l1": (600, 100, 120, 80), "c1": (800, 260, 80, 120),
+    "v1": (80, 240, 80, 120),
+    "s1": (260, 120, 120, 120),
+    "v2": (260, 320, 120, 80),
+    "d1": (460, 260, 80, 120),
+    "l1": (600, 100, 120, 80),
+    "c1": (800, 260, 80, 120),
     "r1": (980, 260, 80, 120),
 }
 ids = list(boxes)
 for i, a in enumerate(ids):
-    for b in ids[i + 1:]:
+    for b in ids[i + 1 :]:
         ax, ay, aw, ah = boxes[a]
         bx, by, bw, bh = boxes[b]
         overlap = ax < bx + bw and bx < ax + aw and ay < by + bh and by < ay + ah
         assert not overlap, f"{a} overlaps {b}"
 
 PORTS = {
-    "v1": {"p", "n"}, "s1": {"p", "n", "cp", "cn"}, "v2": {"p", "n"},
-    "d1": {"a", "k"}, "l1": {"p", "n"}, "c1": {"p", "n"}, "r1": {"p", "n"},
+    "v1": {"p", "n"},
+    "s1": {"p", "n", "cp", "cn"},
+    "v2": {"p", "n"},
+    "d1": {"a", "k"},
+    "l1": {"p", "n"},
+    "c1": {"p", "n"},
+    "r1": {"p", "n"},
 }
 for w in wires:
     for end in ("from", "to"):
         blk, prt = w[end]["block"], w[end]["port"]
-        assert prt in PORTS[blk], f'{w["id"]}: {blk} has no port {prt!r}'
+        assert prt in PORTS[blk], f"{w['id']}: {blk} has no port {prt!r}"
 
 out = pathlib.Path(sys.argv[1])
 out.write_text(json.dumps(doc, indent=1) + "\n")

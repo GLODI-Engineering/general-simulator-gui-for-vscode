@@ -644,9 +644,7 @@ def _r_source_sine(block: IR1Block, nets: dict[str, str]) -> str:
     freq = _num(block, "frequency", 1.0)
     phase = _num(block, "phase", 0.0)
     bias = _num(block, "bias", 0.0)
-    return _bsource(
-        block, nets, f"{bias:g}+{amp:g}*sin({_TWO_PI:g}*{freq:g}*time+{phase:g})"
-    )
+    return _bsource(block, nets, f"{bias:g}+{amp:g}*sin({_TWO_PI:g}*{freq:g}*time+{phase:g})")
 
 
 _RENDERERS: dict[str, Callable[[IR1Block, dict[str, str]], str]] = {
