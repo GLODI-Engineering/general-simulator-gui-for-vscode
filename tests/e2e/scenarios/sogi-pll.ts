@@ -200,7 +200,10 @@ export const PLL = {
   phaseDeg: 30,
   kSogi: Math.SQRT2,
   bandwidthHz: 15,
-  zeta: 0.707,
+  // The Butterworth damping ratio, $\zeta = 1/\sqrt{2}$ — written as the exact
+  // constant for the same reason `kSogi` above is, since 0.707 is the rounded
+  // form of this number and not a separately chosen value.
+  zeta: Math.SQRT1_2,
 } as const;
 
 export const KP = 2 * PLL.zeta * 2 * Math.PI * PLL.bandwidthHz;

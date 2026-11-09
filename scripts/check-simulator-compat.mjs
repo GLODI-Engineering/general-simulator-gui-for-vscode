@@ -20,9 +20,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const gsimCore = path.resolve(
-  process.argv[2] ?? path.join(repoRoot, "..", "gsim-core"),
-);
+const gsimCore = path.resolve(process.argv[2] ?? path.join(repoRoot, "..", "gsim-core"));
 const specPath = path.join(gsimCore, "crates", "gsim-core", "src", "compile", "spec.rs");
 
 let spec;

@@ -14,10 +14,15 @@ import config from "../../../playwright.config";
  */
 async function projectsWith(value: string | undefined): Promise<string[]> {
   const previous = process.env.GSIM_E2E_BROWSERS;
+  // `delete` and not an assignment: `process.env.X = undefined` stores the
+  // *string* "undefined" in Node, so the variable would read as set and this
+  // test would assert the wrong branch. Verified, not assumed.
+  // biome-ignore lint/performance/noDelete: the only way to unset an env var
   if (value === undefined) delete process.env.GSIM_E2E_BROWSERS;
   else process.env.GSIM_E2E_BROWSERS = value;
   vi.resetModules();
   const fresh = (await import("../../../playwright.config")).default;
+  // biome-ignore lint/performance/noDelete: as above — restoring an unset var
   if (previous === undefined) delete process.env.GSIM_E2E_BROWSERS;
   else process.env.GSIM_E2E_BROWSERS = previous;
   return fresh.projects?.map((project) => project.name as string) ?? [];

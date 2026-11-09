@@ -29,22 +29,6 @@ const L = (x1: number, y1: number, x2: number, y2: number) => (
 const BOX = (
   <rect x={10} y={6} width={40} height={28} fill={FILL} stroke={STROKE} strokeWidth={SW} />
 );
-const LEADS_1 = (
-  <>
-    {L(0, 20, 10, 20)}
-    {L(50, 20, 60, 20)}
-  </>
-);
-const curve = (pts: string) => (
-  <polyline
-    points={pts}
-    fill="none"
-    stroke={STROKE}
-    strokeWidth={SW}
-    strokeLinejoin="round"
-    strokeLinecap="round"
-  />
-);
 
 function draw(ctx: DrawContext): ReactNode {
   return (

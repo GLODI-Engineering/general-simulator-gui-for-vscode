@@ -848,6 +848,9 @@ export function Axes({ axesId, width, height, onZoomChange, bodeMargins }: AxesP
                 }
               >
                 {Array.from({ length: runHistory.length + 1 }, (_, depth) => (
+                  // The index *is* the value here — the list is 0..n of run depths,
+                  // it never reorders, and an <option> carries no state to misplace.
+                  // biome-ignore lint/suspicious/noArrayIndexKey: the index is the value
                   <option key={depth} value={depth}>
                     {depth}
                   </option>
