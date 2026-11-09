@@ -4,7 +4,8 @@ import { useLibraryStore, useUiStore } from "../store";
 import { SidebarItem } from "./SidebarItem";
 import { SimulatorSelect } from "./SimulatorSelect";
 import { insertCatalogBlock } from "./insert";
-import { loadSimulatorCompat } from "./simulator-compat";
+import { searchCatalog } from "./search";
+import { supportsBlock } from "./simulator-compat";
 
 const CATEGORY_ORDER = [
   "signal",
@@ -178,14 +179,34 @@ export function LibraryActivity() {
   const setExpanded = useUiStore((state) => state.setLibraryTreeExpanded);
   const recentlyUsed = useLibraryStore((state) => state.recentlyUsed);
   const [variantPicker, setVariantPicker] = useState<DisplayEntry | null>(null);
+  const [query, setQuery] = useState("");
 
-  const simulator = loadSimulatorCompat().simulators.find((entry) => entry.id === activeSimulator);
-  const supported = simulator ? new Set(simulator.supported) : null;
-  const rawVisibleCatalog = supported
-    ? catalog.filter((entry) => supported.has(entry.name))
-    : catalog;
+  // `supportsBlock` asks the engine's own library, which says per component whether this engine
+  // can compile it. This used to read a hand-written list of supported type names that had
+  // drifted out of all recognition — it matched none of the catalogue's types, so the palette's
+  // filter was deciding what to show from an answer that was wrong about everything.
+  const rawVisibleCatalog = useMemo(
+    () => catalog.filter((entry) => supportsBlock(activeSimulator, entry.name)),
+    [catalog, activeSimulator],
+  );
 
   const visibleCatalog = useMemo(() => dedupeAndCollapse(rawVisibleCatalog), [rawVisibleCatalog]);
+
+  // Searching ranks the components by name, label, alias and tag, with recently used ones
+  // favoured — the same ranking Quick Insert uses, so the two agree about what "best match"
+  // means. An empty query leaves the category tree alone.
+  const matches = useMemo(() => {
+    if (query.trim() === "") return null;
+    const ranked = searchCatalog(
+      visibleCatalog.map((item) => item.entry),
+      query,
+      recentlyUsed,
+    );
+    const byName = new Map(visibleCatalog.map((item) => [item.entry.name, item]));
+    return ranked
+      .map((result) => byName.get(result.entry.name))
+      .filter((item): item is DisplayEntry => item !== undefined);
+  }, [query, visibleCatalog, recentlyUsed]);
 
   return (
     <section className="library-activity">
@@ -196,6 +217,24 @@ export function LibraryActivity() {
         </div>
         <div className="library-activity__header-row">
           <SimulatorSelect />
+        </div>
+        <div className="library-activity__header-row">
+          <input
+            type="search"
+            className="library-activity__search"
+            placeholder="Search components…"
+            aria-label="Search components"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={(event) => {
+              // Escape clears rather than bubbling to the canvas, where it would cancel a
+              // selection the user has not touched.
+              if (event.key === "Escape" && query !== "") {
+                event.stopPropagation();
+                setQuery("");
+              }
+            }}
+          />
         </div>
       </header>
 
@@ -227,53 +266,83 @@ export function LibraryActivity() {
         </section>
       ) : null}
 
-      <div className="library-tree" role="tree" aria-label="Block categories">
-        {CATEGORY_ORDER.map((category) => {
-          const entries = visibleCatalog
-            .filter((item) => item.entry.category === category)
-            .sort((left, right) => left.entry.label.localeCompare(right.entry.label));
+      {matches ? (
+        <div className="library-tree" role="group" aria-label={`Search results for ${query}`}>
+          {matches.length === 0 ? (
+            <p className="library-activity__empty">
+              Nothing matches “{query}”.{" "}
+              {rawVisibleCatalog.length < catalog.length
+                ? `${catalog.length - rawVisibleCatalog.length} components are hidden because the selected simulator cannot compile them.`
+                : null}
+            </p>
+          ) : (
+            <div className="library-tree__items">
+              {matches.map((item) => (
+                <SidebarItem
+                  key={item.entry.name}
+                  entry={item.entry}
+                  onInsert={insertCatalogBlock}
+                  onOpenVariants={
+                    item.variants.length > 1 ? () => setVariantPicker(item) : undefined
+                  }
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="library-tree" role="tree" aria-label="Block categories">
+          {CATEGORY_ORDER.map((category) => {
+            const entries = visibleCatalog
+              .filter((item) => item.entry.category === category)
+              .sort((left, right) => left.entry.label.localeCompare(right.entry.label));
 
-          if (entries.length === 0) {
-            return null;
-          }
+            if (entries.length === 0) {
+              return null;
+            }
 
-          const sectionId = `library.${category}`;
-          const isExpanded = expanded[sectionId] ?? true;
+            const sectionId = `library.${category}`;
+            const isExpanded = expanded[sectionId] ?? true;
 
-          return (
-            <section key={category} className="library-tree__section">
-              <button
-                type="button"
-                className="library-tree__toggle"
-                onClick={() => {
-                  setExpanded(sectionId, !isExpanded);
-                }}
-                aria-expanded={isExpanded}
-              >
-                <span>{isExpanded ? "▾" : "▸"}</span>
-                <span>{CATEGORY_LABELS[category]}</span>
-                <span className="library-tree__count">{entries.length}</span>
-              </button>
-              {isExpanded ? (
-                <div className="library-tree__items" role="group">
-                  {entries.map((item) => (
-                    <SidebarItem
-                      key={item.entry.name}
-                      entry={item.entry}
-                      onInsert={insertCatalogBlock}
-                      onOpenVariants={
-                        item.variants.length > 1 ? () => setVariantPicker(item) : undefined
-                      }
-                    />
-                  ))}
-                </div>
-              ) : null}
-            </section>
-          );
-        })}
+            return (
+              <section key={category} className="library-tree__section">
+                <button
+                  type="button"
+                  className="library-tree__toggle"
+                  onClick={() => {
+                    setExpanded(sectionId, !isExpanded);
+                  }}
+                  aria-expanded={isExpanded}
+                >
+                  <span>{isExpanded ? "▾" : "▸"}</span>
+                  <span>{CATEGORY_LABELS[category]}</span>
+                  <span className="library-tree__count">{entries.length}</span>
+                </button>
+                {isExpanded ? (
+                  <div className="library-tree__items" role="group">
+                    {entries.map((item) => (
+                      <SidebarItem
+                        key={item.entry.name}
+                        entry={item.entry}
+                        onInsert={insertCatalogBlock}
+                        onOpenVariants={
+                          item.variants.length > 1 ? () => setVariantPicker(item) : undefined
+                        }
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </section>
+            );
+          })}
 
-        <SignalFlowSection catalog={visibleCatalog} expanded={expanded} setExpanded={setExpanded} />
-      </div>
+          <SignalFlowSection
+            catalog={visibleCatalog}
+            expanded={expanded}
+            setExpanded={setExpanded}
+          />
+        </div>
+      )}
 
       {variantPicker ? (
         <div className="params-backdrop" role="presentation">

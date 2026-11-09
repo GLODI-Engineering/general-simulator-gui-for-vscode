@@ -128,7 +128,7 @@ def merge_into_catalog(
     "type omitted -> name is the catalog type" rule). This is the only
     bridge from a GSF-authored component into the real catalog tree that
     ``gsim_model.catalog.load_symbol_geometry()`` and the frontend's
-    catalog-manifest build already read.
+    engine catalogue build already read.
     """
     type_path = component.type or component.name
     directory = pathlib.Path(blocks_root, *type_path.split("."))

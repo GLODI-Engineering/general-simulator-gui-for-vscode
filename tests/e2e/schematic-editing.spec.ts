@@ -8,7 +8,7 @@
 import { SchematicPage } from "./actions/schematic";
 import { expect, test } from "./fixtures/build";
 
-const RESISTOR = "physical_electrical.passive.resistor";
+const RESISTOR = "passive.resistor";
 
 test.describe("selection", () => {
   test("clicking a component selects it, and a rotation reaches it", async ({ appPage }) => {
@@ -156,5 +156,20 @@ test.describe("deleting", () => {
 
     expect(await sheet.blockCount()).toBe(1);
     expect(await sheet.wireCount()).toBe(0);
+  });
+});
+
+test.describe("naming", () => {
+  test("a component found under its older spelling is the same component", async ({ appPage }) => {
+    // The engine owns component names and has renamed some of them: what
+    // this front end once called `physical_electrical.passive.resistor` the
+    // engine calls `passive.resistor`, and the old name survives as an
+    // alias. A sheet saved before the rename names the old spelling, and so
+    // does every document and habit built around it — searching for it has
+    // to land on the one component, not on nothing.
+    const sheet = new SchematicPage(appPage);
+    const r = await sheet.insertType("physical_electrical.passive.resistor");
+
+    expect((await sheet.blockState(r)).type).toBe(RESISTOR);
   });
 });

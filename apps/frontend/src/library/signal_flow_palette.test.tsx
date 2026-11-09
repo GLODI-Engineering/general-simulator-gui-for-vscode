@@ -15,7 +15,7 @@ import { DND_BLOCK_TYPE, decodeBlockPayload } from "../canvas/dnd";
 import type { BlockMetadata } from "../model/types";
 import { SidebarItem } from "./SidebarItem";
 import { getCatalogEntry } from "./catalog-core";
-import catalogManifest from "./catalog-manifest.json";
+import catalogManifest from "./engine-catalog.json";
 import { createBlockFromMetadata } from "./insert";
 
 let SignalFlowPalette: React.ComponentType | null = null;

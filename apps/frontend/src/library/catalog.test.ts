@@ -202,8 +202,8 @@ const FE47_SOURCE_NAMES = [
 ];
 
 describe("FE-47: source/dependent block names in catalog manifest", () => {
-  it("catalog-manifest.json contains all 23 FE-47 block names", () => {
-    const manifestPath = resolve(__dirname, "./catalog-manifest.json");
+  it("the engine's catalogue contains all 23 FE-47 block names", () => {
+    const manifestPath = resolve(__dirname, "./engine-catalog.json");
     const manifest = JSON.parse(readFileSync(manifestPath, "utf-8")) as Array<{
       metadata: { name: string };
     }>;
@@ -232,8 +232,8 @@ const FE48_SEMI_NAMES = [
 ];
 
 describe("FE-48: semiconductor block names in catalog manifest", () => {
-  it("catalog-manifest.json contains all 10 FE-48 block names", () => {
-    const manifestPath = resolve(__dirname, "./catalog-manifest.json");
+  it("the engine's catalogue contains all 10 FE-48 block names", () => {
+    const manifestPath = resolve(__dirname, "./engine-catalog.json");
     const manifest = JSON.parse(readFileSync(manifestPath, "utf-8")) as Array<{
       metadata: { name: string };
     }>;
@@ -257,8 +257,8 @@ const FE49_TLINE_NAMES = [
 ];
 
 describe("FE-49: tline block names in catalog manifest", () => {
-  it("catalog-manifest.json contains all 5 FE-49 block names", () => {
-    const manifestPath = resolve(__dirname, "./catalog-manifest.json");
+  it("the engine's catalogue contains all 5 FE-49 block names", () => {
+    const manifestPath = resolve(__dirname, "./engine-catalog.json");
     const manifest = JSON.parse(readFileSync(manifestPath, "utf-8")) as Array<{
       metadata: { name: string };
     }>;

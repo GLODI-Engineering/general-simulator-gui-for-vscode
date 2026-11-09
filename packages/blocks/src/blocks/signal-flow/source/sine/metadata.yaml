@@ -9,7 +9,7 @@ domain: signal
 aliases: [sine]
 tags: [signal-flow, source]
 ports: {inputs: [], outputs: [{id: out, label: "", kind: {domain: signal, dims: scalar}, side: right, offset: 20}]}
-params: [{name: amplitude, label: Amplitude, type: number, default: 1.0}, {name: frequency, label: Frequency, type: number, default: 1.0}, {name: phase, label: Phase, type: number, default: 0.0}, {name: bias, label: Bias, type: number, default: 0.0}, {name: sample_time, label: Sample time, type: number, default: 0.0}]
+params: [{name: va, label: Amplitude, type: number, default: 1.0}, {name: freq, label: Frequency, type: number, default: 1.0}, {name: v0, label: Offset, type: number, default: 0.0}, {name: td, label: Delay, type: number, default: 0.0}, {name: theta, label: Damping, type: number, default: 0.0}, {name: phase, label: Phase, type: number, default: 0.0}]
 fidelities: [{tier: n_a, ports: [{id: out, kind: signal, direction: out, side: right, offset: 20}], params: [{id: amplitude, type: number, default: 1.0}, {id: frequency, type: number, default: 1.0}, {id: phase, type: number, default: 0.0}, {id: bias, type: number, default: 0.0}, {id: sample_time, type: number, default: 0.0}], doc: Sine signal source.}]
 symbol: {bbox: [60, 40], shape: rect, text: sine}
 behavior: {causality: source, domain: signal, state_count: 0, equation_template: signal_flow.source.sine}

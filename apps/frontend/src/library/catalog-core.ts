@@ -5,7 +5,7 @@
 // VS Code webview's CSP forbids — the import alone blanked the whole webview.
 import { validateBlockMetadataSchema as validateBlockMetadata } from "../generated/validators/block-metadata.js";
 import type { BlockMetadata, Fidelity, PortKindDomain } from "../model/types";
-import catalogManifest from "./catalog-manifest.json" with { type: "json" };
+import catalogManifest from "./engine-catalog.json" with { type: "json" };
 
 export type Tier = Fidelity;
 
@@ -178,7 +178,12 @@ function normalizeMetadata(metadata: BlockMetadata): BlockMetadata {
 
 function ensureActiveCatalog(): void {
   if (Object.keys(activeCatalog).length === 0) {
-    loadCatalog(catalogManifest as CatalogEntrySource[]);
+    // Through `unknown` because TypeScript infers a symbol's `bbox` from the JSON as
+    // `number[]` where `BlockMetadata` wants `[number, number]`, and a tuple is not assignable
+    // from an array of unknown length. `loadCatalog` validates every component against the
+    // block-metadata schema on the way in, so the shape is checked at runtime rather than
+    // assumed by this cast.
+    loadCatalog(catalogManifest as unknown as CatalogEntrySource[]);
   }
 }
 

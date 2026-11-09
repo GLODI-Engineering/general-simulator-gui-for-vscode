@@ -12,7 +12,9 @@ import "reactflow/dist/style.css";
 import { listTiers } from "../library/catalog-core";
 import { canSwap } from "../library/fidelity-swap";
 import { insertAtPosition } from "../library/insert";
-import type { Block, PortKindDomain, Wire } from "../model/types";
+import type { PortKindDomain, Wire } from "../model/types";
+import { type WireDraw, findWireNear, junctionSplice, wiresAttachedTo } from "./wire-tap";
+
 import { useGraphStore, useLibraryStore, useToastStore, useUiStore } from "../store";
 import { rerouteWiresForBlocks } from "../store/graph";
 import { useIpcStore } from "../store/ipc";
@@ -219,6 +221,22 @@ function resolveEndpointCenterFromStore(endpoint: { block: string; port: string 
     return port.center;
   }
   return { x: block.position[0], y: block.position[1] };
+}
+
+/**
+ * Apply a junction splice to the active model.
+ *
+ * The geometry and the resulting wires are decided by `wire-tap.ts`, which is pure and tested;
+ * this is only the store write, shared by the two ways a user lands on a wire — clicking its
+ * body with the wire tool, and releasing a drag on it.
+ */
+function spliceJunctionIntoWire(existing: Wire, at: [number, number], draw: WireDraw): void {
+  const splice = junctionSplice(existing, at, draw, (kind) => `${kind}-${crypto.randomUUID()}`);
+  mutateActiveModelFromStore("branch wire", (model) => {
+    model.wires = model.wires.filter((wire) => wire.id !== splice.removeWireId);
+    model.blocks.push(splice.junction);
+    model.wires.push(...splice.wires);
+  });
 }
 
 function commitWireToPort(
@@ -554,6 +572,28 @@ function CanvasSurface() {
         if (bestBlock && bestPort) {
           commitWireToPort(current.from, bestBlock, bestPort, current.waypoints, current.posture);
           committed = true;
+        } else {
+          // No port under the release — try a wire. Drawing a branch had required landing on a
+          // port, so releasing on an existing conductor did nothing at all and the user had to
+          // find a port to tap instead of the wire they meant. A junction is spliced in where
+          // the release lands, which is what the model already represents for a node with more
+          // than two conductors.
+          //
+          // Wires already attached to the drawing port are excluded: tapping the conductor you
+          // are drawing from would splice a junction into your own branch and connect the port
+          // to itself.
+          const hit = findWireNear(
+            model.wires,
+            resolveEndpointCenterFromStore,
+            { x: rawX, y: rawY },
+            hitRadius,
+            model.grid ?? 0,
+            wiresAttachedTo(model.wires, current.from),
+          );
+          if (hit) {
+            spliceJunctionIntoWire(hit.wire, hit.at, current);
+            committed = true;
+          }
         }
       }
       // Reset the draw once a wire lands on a target port, or whenever we are not
@@ -588,60 +628,7 @@ function CanvasSurface() {
         useUiStore.getState().zoom,
         activeModel.grid,
       );
-      const junctionId = `junction-${crypto.randomUUID()}`;
-      const junctionBlock: Block = {
-        id: junctionId,
-        type: "routing.junction",
-        paradigm: "routing",
-        domain: existing.kind,
-        fidelity: "n_a",
-        position: [x, y],
-        rotation: 0,
-        mirror: "none",
-        params: {},
-        ic: {},
-      };
-      const makeWire = (wire: Omit<Wire, "id">): Wire => ({
-        id: `wire-${crypto.randomUUID()}`,
-        ...wire,
-      });
-      mutateActiveModelFromStore("branch wire", (model) => {
-        model.wires = model.wires.filter((wire) => wire.id !== existing.id);
-        model.blocks.push(junctionBlock);
-        model.wires.push(
-          makeWire({
-            from: existing.from,
-            to: { block: junctionId, port: "node" },
-            waypoints: [[x, y]],
-            pinned: false,
-            net: existing.net,
-            kind: existing.kind,
-          }),
-        );
-        model.wires.push(
-          makeWire({
-            from: { block: junctionId, port: "node" },
-            to: existing.to,
-            waypoints: [[x, y]],
-            pinned: false,
-            net: existing.net,
-            kind: existing.kind,
-          }),
-        );
-        model.wires.push(
-          makeWire({
-            from: { block: current.from.blockId, port: current.from.portId },
-            to: { block: junctionId, port: "node" },
-            waypoints: [
-              ...current.waypoints.map((point): [number, number] => [point.x, point.y]),
-              [x, y],
-            ],
-            pinned: false,
-            net: existing.net,
-            kind: current.from.domain,
-          }),
-        );
-      });
+      spliceJunctionIntoWire(existing, [x, y], current);
       setWireDraw(null);
     };
     window.addEventListener("gensim:wire-body-click", handleWireBodyClick);

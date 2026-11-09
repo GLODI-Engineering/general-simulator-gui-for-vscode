@@ -9,7 +9,7 @@ domain: physical-electrical
 aliases: [diode]
 tags: [physical, electrical, semiconductor]
 ports: {inputs: [{id: a, label: A, kind: {domain: physical-electrical}, side: left, offset: 20}], outputs: [{id: k, label: K, kind: {domain: physical-electrical}, side: right, offset: 20}]}
-params: [{name: model, label: Model, type: string, default: D}]
+params: [{name: model, label: Model, type: string, default: D}, {name: g_on, label: On conductance, type: number, default: 1.0}, {name: g_off, label: Off conductance, type: number, default: 0.0}, {name: v_th, label: Forward threshold, type: number, default: 0.7}, {name: v_breakdown, label: Breakdown voltage, type: number, default: -100.0}, {name: g_breakdown, label: Breakdown conductance, type: number, default: 0.0}]
 fidelities: [{tier: ideal, ports: [{id: a, kind: physical-electrical, direction: inout}, {id: k, kind: physical-electrical, direction: inout}], params: [{id: model, type: string, default: D}], doc: Ideal diode.}, {tier: behavioral, doc: Behavioral diode — Shockley equation.}, {tier: spice, doc: SPICE diode model.}]
 symbol: {bbox: [60, 40], shape: rect, text: D}
 behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.semiconductor.diode}

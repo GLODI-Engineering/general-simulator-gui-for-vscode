@@ -109,6 +109,17 @@ export type WebviewBoundMessage =
   | { type: "gsim/dragState"; blockName: string | null; label?: string }
   /** Insert a block into this schematic editor (relayed library click). */
   | { type: "gsim/insertBlock"; blockName: string }
+  /**
+   * A keyboard shortcut VS Code claimed, handed to the schematic instead.
+   *
+   * A webview only sees a keystroke the workbench did not take first, so every chord VS Code
+   * binds at the workbench level — `Ctrl+R` is its recent-files list — never reached the
+   * canvas. The extension contributes those chords with a `when` clause limited to a focused
+   * schematic and relays them here.
+   *
+   * `chord` is the schematic keymap's own spelling, e.g. `Ctrl+Shift+R`.
+   */
+  | { type: "gsim/forwardedChord"; chord: string }
   /** Waveform panel should show the results of this sim id. */
   | { type: "gsim/showSimulation"; simId: string }
   /** The workspace's user components changed — merge them into the catalog. */
