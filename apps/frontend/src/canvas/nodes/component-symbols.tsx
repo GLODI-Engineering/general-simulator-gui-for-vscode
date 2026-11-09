@@ -234,12 +234,26 @@ function dcVoltageGlyph(y: number, _ctx: SymbolContext): ReactNode {
   // Plain text: `sourceCircle` already wraps every glyph in the counter-
   // rotation, so undoing the rotation here as well turned it the wrong way
   // by twice the angle and put the minus sign back on its side.
+  // Both signs share a baseline and a size, which is the whole trick: they were
+  // drawn at y-1/size 8 and y+3/size 10, so the plus sat four pixels high and a
+  // size smaller than the minus and the pair read as crooked inside the circle.
+  //
+  // `+` and `U+2212 MINUS` are both centred on the font's math axis, roughly
+  // 0.28em above the baseline, so one baseline puts both glyph centres at the
+  // same height. Offsetting that baseline by +3 at this size then lands that
+  // shared centre on the circle's own centre line rather than above it.
+  //
+  // No `dominant-baseline`: this file's `SymbolLabel` avoids it deliberately
+  // because engines disagree about it, and a glyph that moves between Chrome
+  // and a VS Code webview is worse than one placed by arithmetic.
+  const size = 9;
+  const baseline = y + 3;
   return (
     <g>
-      <text x={26} y={y - 1} fontSize={8} fill={STROKE} textAnchor="middle">
+      <text x={26} y={baseline} fontSize={size} fill={STROKE} textAnchor="middle">
         +
       </text>
-      <text x={34} y={y + 3} fontSize={10} fill={STROKE} textAnchor="middle">
+      <text x={34} y={baseline} fontSize={size} fill={STROKE} textAnchor="middle">
         −
       </text>
     </g>
