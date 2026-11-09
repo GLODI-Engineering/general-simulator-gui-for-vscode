@@ -22,7 +22,7 @@
 
 import type { Locator, Page } from "@playwright/test";
 import { Probe, type Target } from "gs-ui-probe";
-import { paramLabel } from "./catalog";
+import { canonicalType, paramLabel } from "./catalog";
 
 export interface BlockInfo {
   id: string;
@@ -373,19 +373,30 @@ export class SchematicPage {
   }
 
   /**
-   * Insert exactly this component type, and say so plainly if the search
-   * found something else.
+   * Insert exactly this component, and say so plainly if the search found
+   * something else.
    *
    * Searching by name and taking whatever comes back is how a test ends up
-   * quietly exercising the wrong component — `passive.resistor` and
-   * `physical_electrical.passive.resistor` are different blocks with
-   * different ports and both match "resistor".
+   * quietly exercising a different component: "resistor" alone matches
+   * `passive.resistor`, `passive.resistor.behavioral` and
+   * `passive.resistor.semiconductor`, which have different parameters.
+   *
+   * The comparison is against the catalog's canonical name, not against
+   * the spelling asked for. The engine owns component names and has
+   * renamed some of them — a test may still ask for
+   * `physical_electrical.passive.resistor`, the catalog resolves that
+   * alias to `passive.resistor`, and the inserted block carries the
+   * canonical name. Demanding a literal match would fail a test that got
+   * exactly the component it meant.
    */
   async insertType(type: string): Promise<BlockHandle> {
-    const block = await this.insertByName(type, { variant: type });
-    if (block.type !== type) {
+    const canonical = canonicalType(type);
+    const block = await this.insertByName(type, { variant: canonical });
+    if (block.type !== canonical) {
+      const asked =
+        canonical === type ? `"${type}"` : `"${type}" (which the catalog calls "${canonical}")`;
       throw new Error(
-        `asked Quick Insert for "${type}" and it inserted "${block.type}".\n\n` +
+        `asked Quick Insert for ${asked} and it inserted "${block.type}".\n\n` +
           this.probe.trace.format(),
       );
     }
