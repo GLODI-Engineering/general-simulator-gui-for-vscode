@@ -124,6 +124,50 @@ be driven by Playwright:
 pnpm dev:webviews          # http://localhost:5173
 ```
 
+## Settings
+
+Everything the extension needs to find lives under **General Simulator** in VS Code's settings
+(`Ctrl+,`, then search `generalSimulator`). Every path may be left empty, in which case it is
+searched for.
+
+| Setting | What it is for |
+| --- | --- |
+| `generalSimulator.generalSimulatorPath` | The `general-simulator` binary — the engine that runs a simulation. Build it with `cargo build --release -p general-simulator-cli` and point here at `target/release/general-simulator`. |
+| `generalSimulator.ngspicePath` | The `ngspice` binary. Only for schematics run with that solver. |
+| `generalSimulator.xycePath` | The `Xyce` binary. Only for schematics run with that solver. |
+| `generalSimulator.octaveCliPath` | The `octave-cli` binary, for `octfunc` / `octblock` code blocks. |
+| `generalSimulator.pythonPath` | Extra directories on `PYTHONPATH`, so a `pyblock` / `pyfunc` block can import your own modules. Relative entries resolve against the workspace folder. |
+| `generalSimulator.environment` | Extra environment variables for the kernel and everything it starts. The escape hatch for anything without its own setting. |
+| `generalSimulator.workspaceRoot` | The Python checkout the simulation kernel starts from. Empty uses the open workspace folders. |
+| `generalSimulator.pythonRunner` | Command that starts the kernel — `uv` by default. |
+| `generalSimulator.autoStartKernel` | Start the kernel when the extension activates. |
+
+### How a binary is actually found
+
+A setting is one rung of a chain the backend already had, and not the first:
+
+1. an explicit path on the simulate request,
+2. the app settings file (`~/.local/share/general-simulator/settings.json`),
+3. the environment — **this is the rung these settings write**,
+4. `PATH`,
+5. otherwise `SolverNotFoundError`, listing every place it looked.
+
+So a setting overrides `PATH` and is overridden by the settings file. Setting
+`generalSimulator.generalSimulatorPath` is equivalent to exporting
+`GENSIM_GENERAL_SIMULATOR_PATH` before starting the editor, and you can do either.
+
+Two of these are not quite like the others:
+
+- **Octave** has no path setting in the engine: it spawns `octave-cli` from `PATH` and nothing
+  else. So `octaveCliPath` puts that binary's directory at the front of the `PATH` the
+  simulation inherits.
+- **`pythonPath`** does not choose an interpreter. The engine embeds the one it was built
+  against; this only adds places for a block's `import` to look.
+
+The kernel log (`General Simulator: Show Kernel Log`) lists the variable *names* it was given
+on start-up, so you can tell a setting arrived without a path appearing in a log you might
+paste into an issue.
+
 ## Testing
 
 ```sh

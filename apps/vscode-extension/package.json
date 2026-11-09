@@ -111,17 +111,62 @@
         "generalSimulator.workspaceRoot": {
           "type": "string",
           "default": "",
-          "description": "Absolute path to the general-simulator checkout (the directory containing pyproject.toml). Leave empty to auto-discover from the open workspace folders."
+          "description": "Absolute path to the general-simulator checkout (the directory containing pyproject.toml). Leave empty to auto-discover from the open workspace folders.",
+          "markdownDescription": "Folder holding the General Simulator Python checkout (the one with `pyproject.toml`) that the simulation kernel is started from. Empty uses the open workspace folders."
         },
         "generalSimulator.pythonRunner": {
           "type": "string",
           "default": "uv",
-          "description": "Command used to run the kernel sidecar. With the default 'uv', the sidecar is launched as `uv run --project <root> python -m kernel_sidecar`."
+          "description": "Command used to run the kernel sidecar. With the default 'uv', the sidecar is launched as `uv run --project <root> python -m kernel_sidecar`.",
+          "markdownDescription": "Command used to start the Python simulation kernel \u2014 `uv` by default. Set to `python` or an absolute interpreter path if you manage the environment yourself."
         },
         "generalSimulator.autoStartKernel": {
           "type": "boolean",
           "default": true,
-          "description": "Start the kernel sidecar automatically when the extension activates."
+          "description": "Start the kernel sidecar automatically when the extension activates.",
+          "markdownDescription": "Start the simulation kernel automatically when the extension activates."
+        },
+        "generalSimulator.generalSimulatorPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Absolute path to the `general-simulator` binary \u2014 the engine that actually runs a simulation.\n\nLeave empty to search, in order: this setting, `GENSIM_GENERAL_SIMULATOR_PATH`, then `PATH`, then a sibling `general-simulator` checkout beside the workspace. Build it with `cargo build --release -p general-simulator-cli` and point here at `target/release/general-simulator`.",
+          "scope": "machine-overridable"
+        },
+        "generalSimulator.ngspicePath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Absolute path to the `ngspice` binary. Only needed for schematics run with the ngspice solver; the default engine does not use it. Empty searches `GENSIM_NGSPICE_PATH` then `PATH`.",
+          "scope": "machine-overridable"
+        },
+        "generalSimulator.xycePath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Absolute path to the `Xyce` binary. Only needed for schematics run with the Xyce solver. Empty searches `GENSIM_XYCE_PATH` then `PATH`.",
+          "scope": "machine-overridable"
+        },
+        "generalSimulator.octaveCliPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Absolute path to the `octave-cli` binary, for `octfunc` / `octblock` code blocks.\n\nThe engine looks this up on `PATH` only \u2014 it has no flag for it \u2014 so setting this puts its directory at the front of the `PATH` the simulation process inherits.",
+          "scope": "machine-overridable"
+        },
+        "generalSimulator.pythonPath": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "markdownDescription": "Extra directories to put on `PYTHONPATH` for `pyblock` / `pyfunc` code blocks, so a block can import your own modules.\n\nRelative entries resolve against the workspace folder. This does not change which interpreter runs \u2014 the engine embeds the one it was built against.",
+          "scope": "machine-overridable"
+        },
+        "generalSimulator.environment": {
+          "type": "object",
+          "default": {},
+          "additionalProperties": {
+            "type": "string"
+          },
+          "markdownDescription": "Extra environment variables for the simulation kernel and everything it starts.\n\nAn escape hatch for anything without its own setting. Applied after the settings above, so an entry here wins.",
+          "scope": "machine-overridable"
         }
       }
     },

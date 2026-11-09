@@ -23,13 +23,29 @@ class SolverNotFoundError(Exception):
     def __init__(self, solver_name: str, sources_searched: list[str]) -> None:
         self.solver_name = solver_name
         self.sources_searched = sources_searched
-        env_var = f"GENSIM_{solver_name.upper()}_PATH"
+        env_var = _env_var_names(solver_name)[0]
         msg = (
             f"Solver {solver_name!r} not found. Searched:\n"
             + "\n".join(f"  {s}" for s in sources_searched)
             + f"\nSet {env_var} or configure the path in settings.json."
         )
         super().__init__(msg)
+
+
+def _env_var_names(solver_name: str) -> list[str]:
+    """Environment variables that may name this solver's binary, best first.
+
+    `general-simulator` becomes `GENSIM_GENERAL_SIMULATOR_PATH`, not
+    `GENSIM_GENERAL-SIMULATOR_PATH`: a hyphen cannot appear in a shell
+    identifier. The hyphenated form is kept as a fallback so nothing that
+    already sets it programmatically breaks.
+    """
+    upper = solver_name.upper()
+    names = [f"GENSIM_{upper.replace('-', '_')}_PATH"]
+    hyphenated = f"GENSIM_{upper}_PATH"
+    if hyphenated != names[0]:
+        names.append(hyphenated)
+    return names
 
 
 def _validate_executable(path: pathlib.Path, version_regex: str | None = None) -> bool:
@@ -119,13 +135,22 @@ def find_solver(
         sources_searched.append("settings file: not provided")
 
     # 3. Environment variable.
-    env_var = f"GENSIM_{solver_name.upper()}_PATH"
-    env_val = os.environ.get(env_var)
-    if env_val:
-        p = pathlib.Path(env_val)
-        sources_searched.append(f"env var {env_var}: {p}")
-        if _validate_executable(p):
-            return p
+    #
+    # Both spellings, underscores first. The obvious construction —
+    # f"GENSIM_{solver_name.upper()}_PATH" — gives `GENSIM_GENERAL-SIMULATOR_PATH`
+    # for the one solver most people need to point at, and a hyphen is not a
+    # valid shell identifier: `export GENSIM_GENERAL-SIMULATOR_PATH=...` is a
+    # syntax error in bash and zsh. The variable can still be set
+    # programmatically (the VS Code extension does exactly that when spawning
+    # the sidecar), so the hyphenated form is still honoured for anything
+    # already relying on it — but the form a person can actually type wins.
+    for env_var in _env_var_names(solver_name):
+        env_val = os.environ.get(env_var)
+        if env_val:
+            p = pathlib.Path(env_val)
+            sources_searched.append(f"env var {env_var}: {p}")
+            if _validate_executable(p):
+                return p
 
     # 4. PATH lookup.
     which_result = shutil.which(solver_name)
