@@ -171,12 +171,11 @@ jobs:
   # committed generated files. Fails if generated/typescript/index.ts or
   # generated/python/__init__.py are out of sync with the schema sources.
   # ---------------------------------------------------------------------------
-  engine-capabilities-drift:
-    # The engine declares what it can compile; `engine-capabilities.json` is a committed copy
-    # of that answer. This fails when the copy stops matching, which is the only thing keeping
-    # it a cache rather than a second opinion. It needs `gsim_py`, which is built from a
-    # private sibling repository, so the generator exits cleanly when it cannot import it and
-    # this job reports that rather than failing a checkout that never had it.
+  engine-catalogue-drift:
+    # The engine owns the component library — what the palette shows, what each component's
+    # parameters are, and whether this engine can compile it. The front end's copy is
+    # generated from it. This fails when the copy stops matching, which is the only thing
+    # keeping it a cache rather than a second opinion.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -199,8 +198,8 @@ jobs:
           python -m pip install --upgrade maturin
           maturin build --release --manifest-path /tmp/gsim-core/crates/gsim-py/Cargo.toml --out /tmp/wheels
           python -m pip install /tmp/wheels/gsim_py-*.whl
-      - name: engine capabilities drift
-        run: GSIM_PYTHON=$(which python) node scripts/gen-engine-capabilities.mjs --check
+      - name: engine catalogue drift
+        run: GSIM_PYTHON=$(which python) node scripts/gen-engine-catalog.mjs --check
 
   schema-drift:
     runs-on: ubuntu-latest

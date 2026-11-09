@@ -18,7 +18,7 @@ import { resolve } from "node:path";
  * cause. The runner's working directory is the config's directory, which
  * is the repo root.
  */
-const MANIFEST = resolve(process.cwd(), "apps/frontend/src/library/catalog-manifest.json");
+const MANIFEST = resolve(process.cwd(), "apps/frontend/src/library/engine-catalog.json");
 
 export interface PortSpec {
   id: string;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import catalog from "../../../library/catalog-manifest.json";
+import catalog from "../../../library/engine-catalog.json";
 import { SYMBOL_DRAWINGS } from "./registry";
 
 /**

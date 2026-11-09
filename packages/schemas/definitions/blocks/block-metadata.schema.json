@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://general-simulator.dev/schemas/blocks/block-metadata.schema.json",
   "title": "BlockMetadata",
-  "description": "Catalog entry for one functional block. One file per block under packages/blocks/src/blocks/<family>/<block_dir>/metadata.yaml. Shared contract: the frontend reads visual + search fields; the simulator reads behavior + equation_template. See docs/specs/frontend-spec.md \u00a79 and progress.yaml FE-23.",
+  "description": "Catalog entry for one functional block. One file per block under packages/blocks/src/blocks/<family>/<block_dir>/metadata.yaml. Shared contract: the frontend reads visual + search fields; the simulator reads behavior + equation_template. See docs/specs/frontend-spec.md §9 and progress.yaml FE-23.",
   "type": "object",
   "additionalProperties": false,
   "required": ["label", "paradigm", "domain", "fidelities"],
@@ -10,7 +10,7 @@
     "name": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
-      "description": "Catalog key in dotted canonical form such as `control.gain` or `source.voltage.pulse`. Stable across releases \u2014 renaming breaks every saved model that uses the block."
+      "description": "Catalog key in dotted canonical form such as `control.gain` or `source.voltage.pulse`. Stable across releases — renaming breaks every saved model that uses the block."
     },
     "label": {
       "type": "string",
@@ -21,6 +21,18 @@
       "type": "string",
       "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z0-9][a-z0-9_-]*)+$",
       "description": "v2 catalog type string, such as `physical-electrical.passive.resistor`. When omitted, `name` is also the catalog type."
+    },
+    "engineId": {
+      "type": "string",
+      "description": "The engine's own name for this component — its id in gsim-core's component library. The catalogue is generated from that library, so this is the component's identity on the side that compiles it."
+    },
+    "engineType": {
+      "type": ["string", "null"],
+      "description": "The compile-registry type this component becomes, or null when the engine has no model for it. Declared by the engine, not inferred from the name: leaf-name matching pairs an ideal switch with an ideal op-amp."
+    },
+    "compilable": {
+      "type": "boolean",
+      "description": "Whether the engine can compile this component. Derived by the engine from its own registry rather than stored, so it cannot disagree with what a compile actually does. False components are shown and marked, not hidden: the engine having no model yet is a different statement from the component not existing."
     },
     "version": {
       "type": "integer",
@@ -277,7 +289,7 @@
           "description": "Reference to the simulator-side equation template (resolved by the `packages/simulator/` lowering stage). Conventionally equals `name` and may contain multiple dotted segments, but is kept separate so a block can be renamed without breaking its template binding."
         }
       },
-      "description": "Solver-facing metadata. The frontend uses `causality` to lay out ports; the simulator uses all four fields during IR-1 \u2192 IR-2 lowering."
+      "description": "Solver-facing metadata. The frontend uses `causality` to lay out ports; the simulator uses all four fields during IR-1 → IR-2 lowering."
     },
     "main_param": {
       "type": "string",
@@ -307,7 +319,7 @@
   ],
   "$defs": {
     "Primitive": {
-      "description": "GSF (Gsim Symbol Format) primitive \u2014 mirrors the Primitive union in apps/frontend/src/canvas/nodes/primitive-renderer.ts field-for-field. Coordinates are integers in block-local space, origin top-left of symbol.bbox.",
+      "description": "GSF (Gsim Symbol Format) primitive — mirrors the Primitive union in apps/frontend/src/canvas/nodes/primitive-renderer.ts field-for-field. Coordinates are integers in block-local space, origin top-left of symbol.bbox.",
       "oneOf": [
         {
           "type": "object",
@@ -787,7 +799,7 @@
         "type": {
           "type": "string",
           "enum": ["number", "integer", "vector", "matrix", "string", "bool", "enum", "list"],
-          "description": "Param value type. The inspector renders one editor per type (NumberInput, VectorInput, Dropdown, etc. \u2014 see FE-26)."
+          "description": "Param value type. The inspector renders one editor per type (NumberInput, VectorInput, Dropdown, etc. — see FE-26)."
         },
         "default": {
           "description": "Default value used when a block is inserted. Must match `type`. Validation is done by the catalog loader, not the schema (cross-field type rules are awkward in pure JSON Schema)."

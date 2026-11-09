@@ -1,17 +1,4 @@
-import engineCapabilities from "./engine-capabilities.json";
-import { engineTypeOf } from "./engine-types";
-
-/**
- * What the engine says it can compile, read from its own generated manifest.
- *
- * `engine-capabilities.json` is written by `scripts/gen-engine-capabilities.mjs` straight
- * from `gsim_py.capabilities()`, and a CI check fails when the committed copy stops matching.
- * So this is a cache of the engine's answer rather than a second opinion about it — which is
- * the whole point, because the second opinion is what drifted.
- */
-const ENGINE_TYPES: ReadonlySet<string> = new Set(
-  (engineCapabilities as { types: Array<{ type: string }> }).types.map((entry) => entry.type),
-);
+import { isCompilable } from "./engine-types";
 
 export interface SimulatorCompat {
   id: string;
@@ -158,30 +145,15 @@ export function supportsBlock(simulatorId: string, blockType: string): boolean {
   const contract = simulatorContract(simulatorId);
   if (!contract) return true;
 
-  // The engine's own declaration decides, not a list kept here. `blockType` is the
-  // catalogue's spelling and the manifest uses the engine's, so it is translated first —
-  // see `engine-types.ts` for why that bridge is hand-checked rather than derived.
+  // The engine's own answer, not a list kept here. Each component in the engine's library says
+  // whether this engine can compile it, derived there from its compile registry rather than
+  // stored, so it cannot disagree with what a compile actually does.
   //
   // This used to be `contract.supported.includes(blockType)`, comparing a catalogue type
-  // against engine names directly. It matched none of the catalogue's 143 types, so every
-  // block reported unsupported and the one honest "no" was lost among 143 wrong ones.
-  // Either vocabulary is accepted. A caller holding an engine type — a netlist importer, a
-  // test, the compile path itself — should not have to know it is on the other side of the
-  // bridge to ask a question about it.
-  if (engineDeclaresType(blockType)) return true;
-
-  const engineType = engineTypeOf(blockType);
-  if (engineType === undefined) return false;
-  return engineDeclaresType(engineType);
-}
-
-/** Every type the engine declares it can compile. */
-export function engineSupportedTypes(): ReadonlySet<string> {
-  return ENGINE_TYPES;
-}
-
-function engineDeclaresType(engineType: string): boolean {
-  return ENGINE_TYPES.has(engineType);
+  // against engine names. It matched none of the catalogue's 143 types, so every block on
+  // every sheet reported "not supported by the simulator" and the one honest "no" was lost
+  // among 143 wrong ones.
+  return isCompilable(blockType);
 }
 
 /**
