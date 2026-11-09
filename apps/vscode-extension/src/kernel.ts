@@ -10,6 +10,8 @@ import { type ChildProcess, spawn } from "node:child_process";
 import * as readline from "node:readline";
 import * as vscode from "vscode";
 
+import { buildKernelEnvironment } from "./kernel-environment";
+
 import {
   type KernelConfig,
   buildSpawnPlan,
@@ -120,13 +122,38 @@ export class KernelSidecar implements vscode.Disposable {
 
     const token = generateToken();
     const plan = buildSpawnPlan(workspaceRoot, token, runner);
+
+    const kernelEnv = buildKernelEnvironment({
+      base: process.env,
+      workspaceRoot,
+      settings: {
+        generalSimulatorPath: settings.get<string>("generalSimulatorPath"),
+        ngspicePath: settings.get<string>("ngspicePath"),
+        xycePath: settings.get<string>("xycePath"),
+        octaveCliPath: settings.get<string>("octaveCliPath"),
+        pythonPath: settings.get<string[]>("pythonPath"),
+        environment: settings.get<Record<string, string>>("environment"),
+      },
+    });
+
     this.log.appendLine(`[kernel] spawning: ${plan.command} ${plan.args.join(" ")}`);
+    // Names only. A value can be an absolute path a user would rather not have
+    // in a log they paste into an issue.
+    const configured = Object.keys(kernelEnv).filter(
+      (key) => key.startsWith("GENSIM_") || key === "PYTHONPATH",
+    );
+    if (configured.length > 0) {
+      this.log.appendLine(`[kernel] environment from settings: ${configured.sort().join(", ")}`);
+    }
 
     let child: ChildProcess;
     try {
       child = spawn(plan.command, plan.args, {
         cwd: plan.cwd,
         stdio: ["ignore", "pipe", "pipe"],
+        // Previously omitted, so the kernel inherited whatever the editor
+        // happened to have and no setting could reach the solver it starts.
+        env: kernelEnv,
       });
     } catch (error) {
       this.log.appendLine(`[kernel] spawn failed: ${String(error)}`);
