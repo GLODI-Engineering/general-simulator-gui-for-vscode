@@ -1,3 +1,5 @@
+import { isCompilable } from "./engine-types";
+
 export interface SimulatorCompat {
   id: string;
   label: string;
@@ -142,7 +144,16 @@ export function supportsBlock(simulatorId: string, blockType: string): boolean {
   if (simulatorId === "all") return true;
   const contract = simulatorContract(simulatorId);
   if (!contract) return true;
-  return contract.supported.includes(blockType);
+
+  // The engine's own answer, not a list kept here. Each component in the engine's library says
+  // whether this engine can compile it, derived there from its compile registry rather than
+  // stored, so it cannot disagree with what a compile actually does.
+  //
+  // This used to be `contract.supported.includes(blockType)`, comparing a catalogue type
+  // against engine names. It matched none of the catalogue's 143 types, so every block on
+  // every sheet reported "not supported by the simulator" and the one honest "no" was lost
+  // among 143 wrong ones.
+  return isCompilable(blockType);
 }
 
 /**

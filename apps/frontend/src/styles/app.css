@@ -327,6 +327,34 @@ textarea:focus-visible {
   white-space: nowrap;
 }
 
+/* The component search box. Inherits the host's theme colours rather than naming any, so it
+   reads correctly in a VS Code light theme, a dark one and a high-contrast one alike. */
+.library-activity__search {
+  width: 100%;
+  min-width: 0;
+  padding: 4px 8px;
+  font: inherit;
+  color: inherit;
+  background: var(--vscode-input-background, rgb(0 0 0 / 18%));
+  border: 1px solid var(--vscode-input-border, rgb(127 127 127 / 40%));
+  border-radius: 3px;
+}
+
+.library-activity__search::placeholder {
+  color: var(--vscode-input-placeholderForeground, rgb(127 127 127 / 90%));
+}
+
+.library-activity__search:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder, currentcolor);
+  outline-offset: -1px;
+}
+
+.library-activity__empty {
+  margin: 8px 4px;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
 .library-activity__recent h3 {
   margin: 0 0 8px;
   font-size: 12px;

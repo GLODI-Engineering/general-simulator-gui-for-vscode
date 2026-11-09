@@ -23,7 +23,7 @@ import gsimSchema from "../../../../packages/schemas/definitions/model/gsim_sch.
 import portKindSchema from "../../../../packages/schemas/definitions/model/port-kind.schema.json";
 import { validateBlockMetadataSchema } from "../generated/validators/block-metadata.js";
 import { validateGsimSchDocument } from "../generated/validators/gsim-sch.js";
-import catalogManifest from "../library/catalog-manifest.json";
+import catalogManifest from "../library/engine-catalog.json";
 import { validateModelDocument } from "./schema";
 
 const PORT_KIND_ID = "https://general-simulator.dev/schemas/model/port-kind.schema.json";

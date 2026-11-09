@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import manifest from "./catalog-manifest.json";
+import manifest from "./engine-catalog.json";
 
 /**
  * Every value `PortKindDomain` admits.

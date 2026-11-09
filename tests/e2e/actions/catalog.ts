@@ -18,7 +18,7 @@ import { resolve } from "node:path";
  * cause. The runner's working directory is the config's directory, which
  * is the repo root.
  */
-const MANIFEST = resolve(process.cwd(), "apps/frontend/src/library/catalog-manifest.json");
+const MANIFEST = resolve(process.cwd(), "apps/frontend/src/library/engine-catalog.json");
 
 export interface PortSpec {
   id: string;
@@ -37,6 +37,8 @@ export interface ParamSpec {
 
 export interface ComponentSpec {
   type: string;
+  /** Every other name this component answers to, including older spellings. */
+  aliases: string[];
   label: string;
   paradigm: string;
   domain: string;
@@ -60,6 +62,9 @@ interface RawParam {
 
 interface RawMetadata {
   name: string;
+  aliases?: string[];
+  engineId?: string;
+  engineType?: string | null;
   params?: RawParam[];
   label?: string;
   paradigm?: string;
@@ -92,6 +97,11 @@ export function allComponents(): ComponentSpec[] {
     }
     return {
       type: metadata.name,
+      aliases: [
+        ...(metadata.aliases ?? []),
+        ...(metadata.engineId ? [metadata.engineId] : []),
+        ...(metadata.engineType ? [metadata.engineType] : []),
+      ],
       label: metadata.label ?? metadata.name,
       paradigm: metadata.paradigm ?? "unknown",
       domain: metadata.domain ?? "unknown",
@@ -108,10 +118,48 @@ export function allComponents(): ComponentSpec[] {
   return cached;
 }
 
+/**
+ * Every name that reaches a component, canonical and otherwise.
+ *
+ * The engine owns the spelling of a component, and it has renamed some of
+ * them: what the front end used to call
+ * `physical_electrical.passive.resistor` the engine calls
+ * `passive.resistor`, and the old name survives as an alias. A test may
+ * name either; both must land on the one component.
+ *
+ * First writer wins, so a canonical name is never shadowed by another
+ * component's alias.
+ */
+let index: Map<string, ComponentSpec> | null = null;
+
+function byAnyName(): Map<string, ComponentSpec> {
+  if (index) return index;
+  const map = new Map<string, ComponentSpec>();
+  for (const component of allComponents()) map.set(component.type, component);
+  for (const component of allComponents()) {
+    for (const alias of component.aliases) if (!map.has(alias)) map.set(alias, component);
+  }
+  index = map;
+  return map;
+}
+
 export function componentByType(type: string): ComponentSpec {
-  const found = allComponents().find((c) => c.type === type);
-  if (!found) throw new Error(`no component "${type}" in the catalog`);
+  const found = byAnyName().get(type);
+  if (!found) {
+    throw new Error(`no component "${type}" in the catalog, by name or as an alias of one`);
+  }
   return found;
+}
+
+/**
+ * What the catalog actually calls the component a test asked for.
+ *
+ * A saved sheet and an inserted block both carry the canonical name, so an
+ * assertion about an inserted block has to be made against this rather
+ * than against whatever spelling the test happened to use.
+ */
+export function canonicalType(name: string): string {
+  return componentByType(name).type;
 }
 
 /** Every port domain the catalog actually uses. */

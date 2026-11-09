@@ -95,7 +95,7 @@ test.describe("converters are how domains meet", () => {
 
     const gain = await sheet.add("control.gain", 0.12, 0.3);
     const converter = await sheet.add("converter.sig2phys", 0.5, 0.3);
-    const ground = await sheet.add("physical_electrical.reference.ground", 0.85, 0.65);
+    const ground = await sheet.add("routing.ground", 0.85, 0.65);
 
     const signalSide = await sheet.wire(
       { block: gain, port: "out" },
@@ -113,7 +113,7 @@ test.describe("converters are how domains meet", () => {
   test("the same signal cannot reach the electrical node directly", async ({ appPage }) => {
     const sheet = new SchematicPage(appPage);
     const gain = await sheet.add("control.gain", 0.15, 0.35);
-    const ground = await sheet.add("physical_electrical.reference.ground", 0.8, 0.6);
+    const ground = await sheet.add("routing.ground", 0.8, 0.6);
 
     await sheet.expectWireRefused({ block: gain, port: "out" }, { block: ground, port: "gnd" });
   });
@@ -125,9 +125,9 @@ test.describe("fan-in", () => {
     // solved together. Three things meeting at one node is a circuit, not
     // a conflict.
     const sheet = new SchematicPage(appPage);
-    const r1 = await sheet.add("physical_electrical.passive.resistor", 0.15, 0.2);
-    const r2 = await sheet.add("physical_electrical.passive.resistor", 0.15, 0.7);
-    const ground = await sheet.add("physical_electrical.reference.ground", 0.75, 0.45);
+    const r1 = await sheet.add("passive.resistor", 0.15, 0.2);
+    const r2 = await sheet.add("passive.resistor", 0.15, 0.7);
+    const ground = await sheet.add("routing.ground", 0.75, 0.45);
 
     await sheet.wire({ block: r1, port: "n" }, { block: ground, port: "gnd" });
     await sheet.wire({ block: r2, port: "n" }, { block: ground, port: "gnd" });

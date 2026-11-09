@@ -1,5 +1,73 @@
 # Changelog
 
+## 2026-11-09 — The engine says what it has (0.4.0)
+
+### Added
+
+- **The component library comes from the engine.** There were two
+  descriptions of every component: a catalogue kept in this repository and
+  the engine's own registry, and they disagreed — of 26 components whose
+  parameters both described, 15 agreed and 10 did not, each disagreement a
+  parameter the inspector offered and the compiler rejected, or the reverse.
+  The engine now ships the library itself and serves it through
+  `gsim_py.catalog()`; this front end generates its catalogue from that call
+  and displays it. There is no second list to keep. A CI job rebuilds the
+  catalogue from the engine and fails on any difference, so the two cannot
+  drift apart again.
+
+  Merging the two descriptions collapsed 26 duplicate spellings, taking the
+  library from 265 components to 239, and claimed 32 registry types that
+  nothing in the catalogue had ever named. Every one of the 239 now names a
+  registry type or declares that it compiles nowhere; 60 compile. Which ones
+  is no longer written down anywhere: `compilable` is derived from the
+  registry when the catalogue is built, so it cannot disagree with what the
+  compiler will actually do.
+
+  Components the engine spells differently kept their old names as aliases,
+  so a sheet saved before this release opens unchanged.
+
+- **The schematic's keyboard shortcuts win over VS Code's.** A webview only
+  receives a keystroke the workbench did not claim first, so 28 of this
+  editor's chords never reached it: `Ctrl+R` opened VS Code's recent-files
+  list instead of rotating the selection, and nothing on screen explained
+  why. Those 28 are now contributed as keybindings conditioned on a
+  schematic being the active editor, and forwarded into the webview.
+
+  The new setting **General Simulator › Override VS Code Keybindings**
+  turns this off and gives the chords back. It is on by default. It applies
+  only while a schematic tab is focused — a source file, the explorer and
+  the terminal are untouched either way, and the setting takes effect
+  without a reload. `docs/keyboard-conflicts.md` lists all 58 collisions,
+  generated from the keymap, including the 30 that need no contribution
+  because they are editor-scoped and never fired over a webview anyway.
+
+- **A search box in the library.** 239 components in a tree is not something
+  to scroll. Escape clears it.
+
+- **A wire can be dropped onto a wire.** Releasing a drag on an existing
+  conductor splices a junction into it at the nearest point on the segment,
+  rather than requiring a port at both ends.
+
+### Fixed
+
+- **A simulation that failed said nothing at all.** The backend answered in
+  about a millisecond with a precise reason — `SolverUnavailable: gsim_py is
+  not installed, and gsim_tools.schematic needs it` — and the Run button
+  looked dead: the word `gsim_py` appeared nowhere on screen. The failure
+  path wrote to the Output panel and the Problems list, both of which live
+  in the bottom panel, which starts hidden and is not mounted in every
+  shell. The validation path a few lines above opened it; this one never
+  did.
+
+  Every failure now reports through one helper: the full text to Output and
+  Problems, the panel opened on Problems, and a toast carrying the first
+  line — the toast because it does not depend on a panel existing. The Run
+  dropdown had a second silent path that never checked the result status at
+  all, and set an empty waveform manifest on failure, so a failed run showed
+  an empty plot instead of a reason.
+
+---
+
 ## 2026-11-06 — Rows have a floor (0.3.3)
 
 ### Fixed

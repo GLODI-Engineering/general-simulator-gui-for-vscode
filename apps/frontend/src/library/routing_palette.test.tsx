@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const MANIFEST_PATH = resolve(__dirname, "./catalog-manifest.json");
+const MANIFEST_PATH = resolve(__dirname, "./engine-catalog.json");
 
 describe("FE-64: routing_palette", () => {
   it("renders Routing sub-group in Signal-flow (manifest entries exist)", () => {

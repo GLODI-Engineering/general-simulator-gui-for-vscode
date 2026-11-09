@@ -9,7 +9,7 @@ domain: physical-electrical
 aliases: [ccvs]
 tags: [physical, electrical, source]
 ports: {inputs: [{id: p, label: "+", kind: {domain: physical-electrical}, side: right, offset: 1}], outputs: [{id: n, label: "-", kind: {domain: physical-electrical}, side: right, offset: 59}]}
-params: [{name: R, label: Transresistance, type: number, default: 1.0}]
+params: [{name: control, label: Controlling element, type: string, default: ''}, {name: gain, label: Transresistance, type: number, default: 1.0}]
 fidelities: [{tier: ideal, doc: Ideal Current-Controlled Voltage Source.}]
 symbol: {bbox: [80, 60], shape: rect, text: CCVS}
 behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.source.ccvs}

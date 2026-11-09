@@ -10,6 +10,7 @@
  */
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { replayForwardedChord } from "./forwarded-chord";
 
 import App from "../App";
 import { installCrossWebviewDnd } from "../canvas/dnd";
@@ -47,6 +48,10 @@ function installDocumentBridge(): () => void {
       const text = currentDocumentText();
       lastSyncedText = text;
       postToHost({ type: "gsim/documentContent", requestId: message.requestId, text });
+    } else if (message.type === "gsim/forwardedChord") {
+      // Replayed as a real keydown so it meets the same context and focus rules a typed
+      // keystroke does — see forwarded-chord.ts.
+      replayForwardedChord(message.chord);
     } else if (message.type === "gsim/insertBlock") {
       const metadata = useLibraryStore.getState().catalog[message.blockName];
       if (metadata) {

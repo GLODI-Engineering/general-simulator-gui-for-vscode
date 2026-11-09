@@ -18,7 +18,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, "../..");
 const BLOCKS_DIR = resolve(REPO_ROOT, "packages/blocks/src/blocks");
 const SCHEMAS_DIR = resolve(REPO_ROOT, "packages/schemas/definitions");
-const MANIFEST_PATH = resolve(REPO_ROOT, "apps/frontend/src/library/catalog-manifest.json");
+const MANIFEST_PATH = resolve(REPO_ROOT, "apps/frontend/src/library/engine-catalog.json");
 
 function findMetadataFiles(dir: string): string[] {
   const results: string[] = [];
@@ -71,9 +71,7 @@ describe("tests/blocks: block metadata validation", () => {
 
   it("catalog manifest exists (build has been run)", () => {
     if (!existsSync(MANIFEST_PATH)) {
-      console.warn(
-        "catalog-manifest.json not found — coder-agent needs to run build-catalog-manifest.ts",
-      );
+      console.warn("engine-catalog.json not found — run scripts/gen-engine-catalog.mjs");
     }
     // Non-fatal for test run — the drift check will catch this in CI
     expect(true).toBe(true);

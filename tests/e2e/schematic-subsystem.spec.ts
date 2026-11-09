@@ -12,8 +12,8 @@
 import { SchematicPage } from "./actions/schematic";
 import { expect, test } from "./fixtures/build";
 
-const RESISTOR = "physical_electrical.passive.resistor";
-const CAPACITOR = "physical_electrical.passive.capacitor";
+const RESISTOR = "passive.resistor";
+const CAPACITOR = "passive.capacitor";
 
 test.describe("grouping", () => {
   test("two selected components become one subsystem", async ({ appPage }) => {
