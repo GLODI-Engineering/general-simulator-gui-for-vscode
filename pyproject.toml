@@ -122,7 +122,19 @@ warn_unused_ignores = true
 disallow_untyped_defs = true
 check_untyped_defs = true
 no_implicit_optional = true
-files = ["apps/kernel-sidecar/src", "packages/*/src"]
+# Named rather than globbed: `packages/*/src` also matches `packages/webview-protocol`,
+# which is TypeScript, and mypy fails outright on a directory with no Python in it
+# ("There are no .py[i] files in directory"). A new Python package needs a line here.
+files = [
+    "apps/kernel-sidecar/src",
+    "packages/blocks/src",
+    "packages/components/src",
+    "packages/engine-xyce/src",
+    "packages/gsim-model/src",
+    "packages/kernel-core/src",
+    "packages/simulator/src",
+    "packages/synthesis/src",
+]
 exclude = [
     "build/",
     "dist/",
