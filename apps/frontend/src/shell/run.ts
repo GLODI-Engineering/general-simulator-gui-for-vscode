@@ -133,6 +133,35 @@ async function ensureKernelConnected(): Promise<boolean> {
  *
  * Both now say so where the click happened.
  */
+/**
+ * Tell the user a run failed, somewhere they will actually see it.
+ *
+ * A failed simulation used to write "Backend error: …" to the Output panel and add a Problems
+ * entry, and nothing else. Both of those live in the bottom panel, which starts hidden and is
+ * not mounted in every shell at all — so a run that failed looked exactly like a run that
+ * never started. Reported as: *"I click on the simulation button at the top and nothing is
+ * happening"*, when the backend had in fact answered in a millisecond with a precise reason.
+ *
+ * The toast is the part that does not depend on a panel being mounted or open. The full text
+ * still goes to Output and Problems, because a solver's answer is often many lines and a toast
+ * is the wrong place to read them.
+ */
+function reportRunFailure(summary: string, details?: string): void {
+  const full = details && details !== summary ? `${summary}: ${details}` : summary;
+  useIpcStore.getState().appendOutput(`Backend error: ${full}`);
+  useIpcStore.getState().setProblems([{ id: "solver-1", severity: "error", message: full }]);
+  useUiStore.getState().focusBottomTab("core.problems");
+  // First line only: a SolverUnavailable answer is a whole paragraph of build instructions,
+  // and the toast's job is to say that the run failed and roughly why, not to carry all of it.
+  const firstLine = full.split("\n")[0] ?? full;
+  useToastStore
+    .getState()
+    .pushToast(
+      `Simulation failed — ${firstLine}${firstLine.length < full.length ? " (see Problems)" : ""}`,
+      8000,
+    );
+}
+
 export async function triggerRun(): Promise<void> {
   const importedNetlist = useIpcStore.getState().importedNetlist;
 
@@ -228,11 +257,7 @@ export async function triggerRun(): Promise<void> {
     useIpcStore.getState().setSimProgress(null);
 
     if (result.status === "error") {
-      const errorMsg = result.chunks?.[0] ?? "Simulation failed";
-      useIpcStore.getState().appendOutput(`Backend error: ${errorMsg}`);
-      useIpcStore
-        .getState()
-        .setProblems([{ id: "solver-1", severity: "error", message: errorMsg }]);
+      reportRunFailure(result.chunks?.[0] ?? "Simulation failed");
       return;
     }
 
@@ -251,26 +276,12 @@ export async function triggerRun(): Promise<void> {
     useIpcStore.getState().setActiveEditorTab("core.waveform");
   } catch (error) {
     useIpcStore.getState().setSimProgress(null);
+    // translated.summary is a short, generic category (a connection failure and a numerical
+    // convergence failure fall through to the same "Solver error" summary), so the details are
+    // always carried too — otherwise an unreachable kernel is indistinguishable from a solver
+    // crash.
     const translated = translateError(error instanceof Error ? error.message : String(error));
-    useIpcStore.getState().appendOutput(`Solver error: ${translated.summary}`);
-    // translated.summary is a short, generic category (e.g. a connection
-    // failure and a numerical convergence failure both fall through to the
-    // same "Solver error" summary) — always show the actual message too, or
-    // a transport-level error (kernel sidecar unreachable/disconnected) is
-    // indistinguishable from a solver crash in the output.
-    if (translated.details && translated.details !== translated.summary) {
-      useIpcStore.getState().appendOutput(`  ${translated.details}`);
-    }
-    useIpcStore.getState().setProblems([
-      {
-        id: "solver-1",
-        severity: translated.severity,
-        message:
-          translated.details && translated.details !== translated.summary
-            ? `${translated.summary}: ${translated.details}`
-            : translated.summary,
-      },
-    ]);
+    reportRunFailure(translated.summary, translated.details);
   }
 }
 
@@ -318,6 +329,15 @@ export async function triggerRunAnalysis(analysisId: string): Promise<void> {
     const result = await executeWithTimeout(payload);
 
     useIpcStore.getState().setSimProgress(null);
+
+    // This path had no error check at all: a failed run set the empty manifest the client
+    // resolves errors with and switched to the waveform tab, so the user was shown an empty
+    // plot instead of the reason.
+    if (result.status === "error") {
+      reportRunFailure(result.chunks?.[0] ?? "Simulation failed");
+      return;
+    }
+
     useIpcStore.getState().setLastManifest(result.manifest);
     useIpcStore.getState().setDcOpTable(result.dc_op_table ?? null);
     useIpcStore.getState().setActiveEditorTab("core.waveform");
@@ -328,16 +348,7 @@ export async function triggerRunAnalysis(analysisId: string): Promise<void> {
   } catch (error) {
     useIpcStore.getState().setSimProgress(null);
     const translated = translateError(error instanceof Error ? error.message : String(error));
-    useIpcStore.getState().setProblems([
-      {
-        id: "solver-1",
-        severity: translated.severity,
-        message:
-          translated.details && translated.details !== translated.summary
-            ? `${translated.summary}: ${translated.details}`
-            : translated.summary,
-      },
-    ]);
+    reportRunFailure(translated.summary, translated.details);
   }
 }
 
