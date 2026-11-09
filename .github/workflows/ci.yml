@@ -147,33 +147,6 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-      # `gs-ui-probe` is a private sibling repository, pinned in package.json to
-      # a tag over https. Without a token git cannot fetch it and every spec dies
-      # on "Cannot find module 'gs-ui-probe'" — forty times, with nothing saying
-      # why. Say why once instead.
-      - name: check the probe token is present
-        env:
-          GS_UI_PROBE_TOKEN: ${{ secrets.GS_UI_PROBE_TOKEN }}
-        run: |
-          if [ -z "$GS_UI_PROBE_TOKEN" ]; then
-            echo "::error::GS_UI_PROBE_TOKEN is not set. The e2e suite depends on"
-            echo "::error::Elvis-codeur/gs-ui-probe, which is private, so CI needs a"
-            echo "::error::token to fetch it. Create a fine-grained PAT with read"
-            echo "::error::access to that repository, then:"
-            echo "::error::  gh secret set GS_UI_PROBE_TOKEN --repo <this repo>"
-            exit 1
-          fi
-      # pnpm records the dependency as `https://git@github.com:owner/repo.git`
-      # — an https scheme with an ssh-style colon — so a single rewrite of
-      # `https://github.com/` does not match it. All three forms are covered.
-      - name: authenticate git for the private probe
-        env:
-          GS_UI_PROBE_TOKEN: ${{ secrets.GS_UI_PROBE_TOKEN }}
-        run: |
-          auth="https://x-access-token:${GS_UI_PROBE_TOKEN}@github.com/"
-          git config --global url."$auth".insteadOf "https://git@github.com:"
-          git config --global url."$auth".insteadOf "https://github.com/"
-          git config --global url."$auth".insteadOf "git@github.com:"
       - run: pnpm install --frozen-lockfile
       - name: install playwright browsers
         run: pnpm exec playwright install --with-deps
