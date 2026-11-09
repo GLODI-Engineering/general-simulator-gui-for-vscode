@@ -168,8 +168,88 @@ function pythonReturnArity(text: string, functionName: string): string[] | null 
  * is invisible to this and that is accepted: the user asked for a static
  * read of the source, not an interpreter.
  */
+/**
+ * Read a `cscript_arity` declaration, if the source has one.
+ *
+ * ```c
+ * int cscript_arity(int *in_len, int *out_len) {
+ *     *in_len = 2;
+ *     *out_len = 1;
+ *     return 0;
+ * }
+ * ```
+ *
+ * The engine honours this symbol (general-simulator#30): when present it checks the counts
+ * against the netlist before the first step and refuses a disagreement. That makes it the one
+ * thing in a `.c` file that is authoritative rather than inferred, so it wins here too.
+ *
+ * `null` when the function is absent, when it does not assign both out-parameters, or when it
+ * can only be seen to `return` non-zero — declining is not an error, it just means there is
+ * nothing to read. A negative value means "not declaring this side", exactly as the engine
+ * reads it.
+ */
+function parseDeclaredArity(
+  text: string,
+): { inputs: number | null; outputs: number | null } | null {
+  const fn = /\bint\s+cscript_arity\s*\([^)]*\)\s*\{/.exec(text);
+  if (!fn) return null;
+
+  // The body, by brace balance from the opening brace — a regex cannot do this, and the
+  // function may contain nested blocks.
+  const open = fn.index + fn[0].length - 1;
+  let depth = 0;
+  let end = -1;
+  for (let i = open; i < text.length; i++) {
+    if (text[i] === "{") depth++;
+    else if (text[i] === "}") {
+      depth--;
+      if (depth === 0) {
+        end = i;
+        break;
+      }
+    }
+  }
+  if (end < 0) return null;
+  const body = text.slice(open + 1, end);
+
+  // Declining: every `return` says non-zero. A body with no `return 0` at all cannot be read
+  // as declaring, since the engine only trusts the values when it returns 0.
+  const returns = [...body.matchAll(/\breturn\s+(-?\d+)\s*;/g)].map((m) => Number(m[1]));
+  if (returns.length > 0 && returns.every((value) => value !== 0)) return null;
+
+  const assigned = (name: string): number | null => {
+    const match = new RegExp(`\\*\\s*${name}\\s*=\\s*(-?\\d+)`).exec(body);
+    if (!match) return null;
+    const value = Number(match[1]);
+    return Number.isFinite(value) && value >= 0 ? value : null;
+  };
+
+  const inputs = assigned("in_len");
+  const outputs = assigned("out_len");
+  if (inputs === null && outputs === null) return null;
+  return { inputs, outputs };
+}
+
 export function parseCPorts(source: string): DerivedPorts {
   const text = stripComments(source, "c");
+
+  // A declaration beats the inference below: the engine itself enforces it, so this is the one
+  // thing a `.c` file says about its arity that is a fact rather than a floor.
+  const declared = parseDeclaredArity(text);
+  if (declared) {
+    const name = (prefix: string, count: number | null) =>
+      count === null ? null : Array.from({ length: count }, (_, i) => `${prefix}${i}`);
+    const side = (count: number | null, what: string) =>
+      count === null ? `${what} left open` : `${count} ${what}`;
+    return {
+      inputs: name("u", declared.inputs),
+      outputs: name("y", declared.outputs),
+      note:
+        `cscript_arity declares ${side(declared.inputs, "inputs")} and ` +
+        `${side(declared.outputs, "outputs")} — the engine checks the netlist against this`,
+    };
+  }
+
   const highest = (identifier: string): number => {
     let max = -1;
     for (const match of text.matchAll(

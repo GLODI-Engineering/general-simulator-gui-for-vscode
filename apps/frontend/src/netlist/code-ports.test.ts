@@ -163,3 +163,80 @@ describe("derivePortsFor picks by block type", () => {
     expect(derivePortsFor("passive.resistor", "whatever").inputs).toBeNull();
   });
 });
+
+describe("cscript_arity — a declaration beats the inference", () => {
+  const declaring = `
+    int cscript_arity(int *in_len, int *out_len) {
+      *in_len = 2;
+      *out_len = 1;
+      return 0;
+    }
+    void cscript_output(void *state, const double *in, int in_len, double dt,
+                        double *out, int out_len) {
+      out[0] = in[0] + in[1];
+    }
+  `;
+
+  it("uses the declared counts, not the highest index the code touches", () => {
+    const ports = parseCPorts(declaring);
+    expect(ports.inputs).toEqual(["u0", "u1"]);
+    expect(ports.outputs).toEqual(["y0"]);
+    expect(ports.note).toContain("cscript_arity declares 2 inputs and 1 outputs");
+  });
+
+  it("is believed even when the code indexes further than it declares", () => {
+    // The inference would say three inputs. The engine enforces the declaration, so a
+    // disagreement is the C file's bug — and showing three here would quietly disagree with
+    // what the engine will do with the same file.
+    const ports = parseCPorts(`
+      int cscript_arity(int *in_len, int *out_len) { *in_len = 2; *out_len = 1; return 0; }
+      void cscript_output(void *s, const double *in, int n, double dt, double *out, int m) {
+        out[0] = in[0] + in[1] + in[2];
+      }
+    `);
+    expect(ports.inputs).toEqual(["u0", "u1"]);
+  });
+
+  it("leaves a side open when the declaration does", () => {
+    const ports = parseCPorts(`
+      int cscript_arity(int *in_len, int *out_len) { *in_len = -1; *out_len = 1; return 0; }
+      void cscript_output(void *s, const double *in, int n, double dt, double *out, int m) {
+        for (int i = 0; i < n; i++) out[0] += in[i];
+      }
+    `);
+    expect(ports.inputs).toBeNull();
+    expect(ports.outputs).toEqual(["y0"]);
+    expect(ports.note).toContain("inputs left open");
+  });
+
+  it("falls back to the inference when the declaration declines", () => {
+    const ports = parseCPorts(`
+      int cscript_arity(int *in_len, int *out_len) { (void)in_len; (void)out_len; return 1; }
+      void cscript_output(void *s, const double *in, int n, double dt, double *out, int m) {
+        out[0] = in[0] * 2.0;
+      }
+    `);
+    expect(ports.inputs).toEqual(["u0"]);
+    expect(ports.note).toContain("highest index");
+  });
+
+  it("falls back when there is no declaration at all", () => {
+    const ports = parseCPorts(`
+      void cscript_output(void *s, const double *in, int n, double dt, double *out, int m) {
+        out[0] = in[0] + in[1];
+      }
+    `);
+    expect(ports.inputs).toEqual(["u0", "u1"]);
+    expect(ports.note).toContain("highest index");
+  });
+
+  it("is not fooled by the declaration appearing in a comment", () => {
+    const ports = parseCPorts(`
+      /* int cscript_arity(int *in_len, int *out_len) { *in_len = 9; *out_len = 9; return 0; } */
+      void cscript_output(void *s, const double *in, int n, double dt, double *out, int m) {
+        out[0] = in[0];
+      }
+    `);
+    expect(ports.inputs).toEqual(["u0"]);
+  });
+});
