@@ -9,7 +9,7 @@ domain: physical-electrical
 aliases: [switch, generic_switch]
 tags: [physical, electrical, switch]
 ports: {inputs: [{id: p, label: "+", kind: {domain: physical-electrical}, side: left, offset: 10}, {id: n, label: "-", kind: {domain: physical-electrical}, side: left, offset: 30}, {id: ctl, label: ctl, kind: {domain: physical-signal}, side: top, offset: 20}]}
-params: [{name: r_on, label: On resistance, type: number, default: 0.001}, {name: r_off, label: Off resistance, type: number, default: 1000000.0}, {name: threshold, label: Threshold, type: number, default: 0.5}]
+params: [{name: r_on, label: On resistance, type: number, default: 0.1}, {name: g_on, label: On conductance, type: number, default: 1.0}, {name: g_off, label: Off conductance, type: number, default: 0.0}, {name: v_th, label: Threshold voltage, type: number, default: 0.7}, {name: v_breakdown, label: Breakdown voltage, type: number, default: -100.0}, {name: g_breakdown, label: Breakdown conductance, type: number, default: 0.0}]
 fidelities: [{tier: ideal, doc: Ideal generic switch.}, {tier: behavioral, doc: Behavioral generic switch.}]
 symbol: {bbox: [80, 60], shape: rect, text: SW}
 behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.switch.generic}

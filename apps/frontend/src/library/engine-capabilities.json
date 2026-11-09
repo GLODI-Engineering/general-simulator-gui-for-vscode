@@ -211,6 +211,64 @@
       ]
     },
     {
+      "type": "source.voltage.pulse",
+      "emits": {
+        "card": "element",
+        "letter": "V"
+      },
+      "node_ports": [
+        "p",
+        "n"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "V1",
+          "field": "PULSE.v1",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "V2",
+          "field": "PULSE.v2",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "TD",
+          "field": "PULSE.td",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "TR",
+          "field": "PULSE.tr",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "TF",
+          "field": "PULSE.tf",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "PW",
+          "field": "PULSE.pw",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "PER",
+          "field": "PULSE.per",
+          "required": true,
+          "form": "source_function_field"
+        }
+      ]
+    },
+    {
       "type": "source.dependent.vcvs",
       "emits": {
         "card": "element",

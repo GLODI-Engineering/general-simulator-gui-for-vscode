@@ -15273,6 +15273,36 @@
           "label": "Model",
           "name": "model",
           "type": "string"
+        },
+        {
+          "default": 1,
+          "label": "On conductance",
+          "name": "g_on",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Off conductance",
+          "name": "g_off",
+          "type": "number"
+        },
+        {
+          "default": 0.7,
+          "label": "Forward threshold",
+          "name": "v_th",
+          "type": "number"
+        },
+        {
+          "default": -100,
+          "label": "Breakdown voltage",
+          "name": "v_breakdown",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Breakdown conductance",
+          "name": "g_breakdown",
+          "type": "number"
         }
       ],
       "ports": {
@@ -15373,6 +15403,36 @@
           "label": "Model",
           "name": "model",
           "type": "string"
+        },
+        {
+          "default": 1,
+          "label": "On conductance",
+          "name": "g_on",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Off conductance",
+          "name": "g_off",
+          "type": "number"
+        },
+        {
+          "default": 0.7,
+          "label": "Forward threshold",
+          "name": "v_th",
+          "type": "number"
+        },
+        {
+          "default": -100,
+          "label": "Breakdown voltage",
+          "name": "v_breakdown",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Breakdown conductance",
+          "name": "g_breakdown",
+          "type": "number"
         }
       ],
       "ports": {
@@ -15473,6 +15533,36 @@
           "label": "Model",
           "name": "model",
           "type": "string"
+        },
+        {
+          "default": 1,
+          "label": "On conductance",
+          "name": "g_on",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Off conductance",
+          "name": "g_off",
+          "type": "number"
+        },
+        {
+          "default": 0.7,
+          "label": "Forward threshold",
+          "name": "v_th",
+          "type": "number"
+        },
+        {
+          "default": -100,
+          "label": "Breakdown voltage",
+          "name": "v_breakdown",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Breakdown conductance",
+          "name": "g_breakdown",
+          "type": "number"
         }
       ],
       "ports": {
@@ -18245,9 +18335,15 @@
       "paradigm": "physical-network",
       "params": [
         {
+          "default": "",
+          "label": "Controlling element",
+          "name": "control",
+          "type": "string"
+        },
+        {
           "default": 1,
-          "label": "Gain",
-          "name": "B",
+          "label": "Current gain",
+          "name": "gain",
           "type": "number"
         }
       ],
@@ -18318,9 +18414,15 @@
       "paradigm": "physical-network",
       "params": [
         {
+          "default": "",
+          "label": "Controlling element",
+          "name": "control",
+          "type": "string"
+        },
+        {
           "default": 1,
-          "label": "Gain",
-          "name": "B",
+          "label": "Current gain",
+          "name": "gain",
           "type": "number"
         }
       ],
@@ -18391,9 +18493,15 @@
       "paradigm": "physical-network",
       "params": [
         {
+          "default": "",
+          "label": "Controlling element",
+          "name": "control",
+          "type": "string"
+        },
+        {
           "default": 1,
-          "label": "Gain",
-          "name": "B",
+          "label": "Current gain",
+          "name": "gain",
           "type": "number"
         }
       ],
@@ -18464,9 +18572,15 @@
       "paradigm": "physical-network",
       "params": [
         {
+          "default": "",
+          "label": "Controlling element",
+          "name": "control",
+          "type": "string"
+        },
+        {
           "default": 1,
           "label": "Transresistance",
-          "name": "R",
+          "name": "gain",
           "type": "number"
         }
       ],
@@ -18537,9 +18651,15 @@
       "paradigm": "physical-network",
       "params": [
         {
+          "default": "",
+          "label": "Controlling element",
+          "name": "control",
+          "type": "string"
+        },
+        {
           "default": 1,
           "label": "Transresistance",
-          "name": "R",
+          "name": "gain",
           "type": "number"
         }
       ],
@@ -18610,9 +18730,15 @@
       "paradigm": "physical-network",
       "params": [
         {
+          "default": "",
+          "label": "Controlling element",
+          "name": "control",
+          "type": "string"
+        },
+        {
           "default": 1,
           "label": "Transresistance",
-          "name": "R",
+          "name": "gain",
           "type": "number"
         }
       ],
@@ -19597,7 +19723,7 @@
         {
           "default": 1,
           "label": "Transconductance",
-          "name": "G",
+          "name": "gain",
           "type": "number"
         }
       ],
@@ -19670,7 +19796,7 @@
         {
           "default": 1,
           "label": "Transconductance",
-          "name": "G",
+          "name": "gain",
           "type": "number"
         }
       ],
@@ -19743,7 +19869,7 @@
         {
           "default": 1,
           "label": "Transconductance",
-          "name": "G",
+          "name": "gain",
           "type": "number"
         }
       ],
@@ -19816,7 +19942,7 @@
         {
           "default": 1,
           "label": "Gain",
-          "name": "A",
+          "name": "gain",
           "type": "number"
         }
       ],
@@ -19889,7 +20015,7 @@
         {
           "default": 1,
           "label": "Gain",
-          "name": "A",
+          "name": "gain",
           "type": "number"
         }
       ],
@@ -19962,7 +20088,7 @@
         {
           "default": 1,
           "label": "Gain",
-          "name": "A",
+          "name": "gain",
           "type": "number"
         }
       ],
@@ -22039,21 +22165,39 @@
       "paradigm": "physical-network",
       "params": [
         {
-          "default": 0.001,
+          "default": 0.1,
           "label": "On resistance",
           "name": "r_on",
           "type": "number"
         },
         {
-          "default": 1000000,
-          "label": "Off resistance",
-          "name": "r_off",
+          "default": 1,
+          "label": "On conductance",
+          "name": "g_on",
           "type": "number"
         },
         {
-          "default": 0.5,
-          "label": "Threshold",
-          "name": "threshold",
+          "default": 0,
+          "label": "Off conductance",
+          "name": "g_off",
+          "type": "number"
+        },
+        {
+          "default": 0.7,
+          "label": "Threshold voltage",
+          "name": "v_th",
+          "type": "number"
+        },
+        {
+          "default": -100,
+          "label": "Breakdown voltage",
+          "name": "v_breakdown",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Breakdown conductance",
+          "name": "g_breakdown",
           "type": "number"
         }
       ],
@@ -22137,21 +22281,39 @@
       "paradigm": "physical-network",
       "params": [
         {
-          "default": 0.001,
+          "default": 0.1,
           "label": "On resistance",
           "name": "r_on",
           "type": "number"
         },
         {
-          "default": 1000000,
-          "label": "Off resistance",
-          "name": "r_off",
+          "default": 1,
+          "label": "On conductance",
+          "name": "g_on",
           "type": "number"
         },
         {
-          "default": 0.5,
-          "label": "Threshold",
-          "name": "threshold",
+          "default": 0,
+          "label": "Off conductance",
+          "name": "g_off",
+          "type": "number"
+        },
+        {
+          "default": 0.7,
+          "label": "Threshold voltage",
+          "name": "v_th",
+          "type": "number"
+        },
+        {
+          "default": -100,
+          "label": "Breakdown voltage",
+          "name": "v_breakdown",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Breakdown conductance",
+          "name": "g_breakdown",
           "type": "number"
         }
       ],
@@ -22235,21 +22397,39 @@
       "paradigm": "physical-network",
       "params": [
         {
-          "default": 0.001,
+          "default": 0.1,
           "label": "On resistance",
           "name": "r_on",
           "type": "number"
         },
         {
-          "default": 1000000,
-          "label": "Off resistance",
-          "name": "r_off",
+          "default": 1,
+          "label": "On conductance",
+          "name": "g_on",
           "type": "number"
         },
         {
-          "default": 0.5,
-          "label": "Threshold",
-          "name": "threshold",
+          "default": 0,
+          "label": "Off conductance",
+          "name": "g_off",
+          "type": "number"
+        },
+        {
+          "default": 0.7,
+          "label": "Threshold voltage",
+          "name": "v_th",
+          "type": "number"
+        },
+        {
+          "default": -100,
+          "label": "Breakdown voltage",
+          "name": "v_breakdown",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Breakdown conductance",
+          "name": "g_breakdown",
           "type": "number"
         }
       ],
@@ -35297,6 +35477,18 @@
           "type": "number"
         },
         {
+          "default": -1e+30,
+          "label": "Output clamp low",
+          "name": "clamp_lo",
+          "type": "number"
+        },
+        {
+          "default": 1e+30,
+          "label": "Output clamp high",
+          "name": "clamp_hi",
+          "type": "number"
+        },
+        {
           "choices": [
             "parallel",
             "ideal"
@@ -35451,6 +35643,18 @@
           "type": "number"
         },
         {
+          "default": -1e+30,
+          "label": "Output clamp low",
+          "name": "clamp_lo",
+          "type": "number"
+        },
+        {
+          "default": 1e+30,
+          "label": "Output clamp high",
+          "name": "clamp_hi",
+          "type": "number"
+        },
+        {
           "choices": [
             "parallel",
             "ideal"
@@ -36884,6 +37088,12 @@
       "paradigm": "signal-flow",
       "params": [
         {
+          "default": 1,
+          "label": "Symmetric limit",
+          "name": "limit",
+          "type": "number"
+        },
+        {
           "default": -1,
           "label": "Lower limit",
           "name": "lo",
@@ -36997,6 +37207,12 @@
       "paradigm": "signal-flow",
       "params": [
         {
+          "default": 1,
+          "label": "Symmetric limit",
+          "name": "limit",
+          "type": "number"
+        },
+        {
           "default": -1,
           "label": "Lower limit",
           "name": "lo",
@@ -43922,27 +44138,45 @@
       "paradigm": "signal-flow",
       "params": [
         {
-          "default": 1,
-          "label": "Amplitude",
-          "name": "amplitude",
+          "default": 0,
+          "label": "Initial value",
+          "name": "v1",
           "type": "number"
         },
         {
           "default": 1,
-          "label": "Period",
-          "name": "period",
+          "label": "Pulsed value",
+          "name": "v2",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Delay",
+          "name": "td",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Rise time",
+          "name": "tr",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Fall time",
+          "name": "tf",
           "type": "number"
         },
         {
           "default": 0.5,
           "label": "Pulse width",
-          "name": "pulse_width",
+          "name": "pw",
           "type": "number"
         },
         {
-          "default": 0,
-          "label": "Phase delay",
-          "name": "phase_delay",
+          "default": 1,
+          "label": "Period",
+          "name": "per",
           "type": "number"
         }
       ],
@@ -44037,27 +44271,45 @@
       "paradigm": "signal-flow",
       "params": [
         {
-          "default": 1,
-          "label": "Amplitude",
-          "name": "amplitude",
+          "default": 0,
+          "label": "Initial value",
+          "name": "v1",
           "type": "number"
         },
         {
           "default": 1,
-          "label": "Period",
-          "name": "period",
+          "label": "Pulsed value",
+          "name": "v2",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Delay",
+          "name": "td",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Rise time",
+          "name": "tr",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Fall time",
+          "name": "tf",
           "type": "number"
         },
         {
           "default": 0.5,
           "label": "Pulse width",
-          "name": "pulse_width",
+          "name": "pw",
           "type": "number"
         },
         {
-          "default": 0,
-          "label": "Phase delay",
-          "name": "phase_delay",
+          "default": 1,
+          "label": "Period",
+          "name": "per",
           "type": "number"
         }
       ],
@@ -44367,31 +44619,37 @@
         {
           "default": 1,
           "label": "Amplitude",
-          "name": "amplitude",
+          "name": "va",
           "type": "number"
         },
         {
           "default": 1,
           "label": "Frequency",
-          "name": "frequency",
+          "name": "freq",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Offset",
+          "name": "v0",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Delay",
+          "name": "td",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Damping",
+          "name": "theta",
           "type": "number"
         },
         {
           "default": 0,
           "label": "Phase",
           "name": "phase",
-          "type": "number"
-        },
-        {
-          "default": 0,
-          "label": "Bias",
-          "name": "bias",
-          "type": "number"
-        },
-        {
-          "default": 0,
-          "label": "Sample time",
-          "name": "sample_time",
           "type": "number"
         }
       ],
@@ -44493,31 +44751,37 @@
         {
           "default": 1,
           "label": "Amplitude",
-          "name": "amplitude",
+          "name": "va",
           "type": "number"
         },
         {
           "default": 1,
           "label": "Frequency",
-          "name": "frequency",
+          "name": "freq",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Offset",
+          "name": "v0",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Delay",
+          "name": "td",
+          "type": "number"
+        },
+        {
+          "default": 0,
+          "label": "Damping",
+          "name": "theta",
           "type": "number"
         },
         {
           "default": 0,
           "label": "Phase",
           "name": "phase",
-          "type": "number"
-        },
-        {
-          "default": 0,
-          "label": "Bias",
-          "name": "bias",
-          "type": "number"
-        },
-        {
-          "default": 0,
-          "label": "Sample time",
-          "name": "sample_time",
           "type": "number"
         }
       ],

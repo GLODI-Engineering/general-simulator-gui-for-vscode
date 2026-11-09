@@ -9,7 +9,7 @@ domain: physical-electrical
 aliases: [vcvs]
 tags: [physical, electrical, source]
 ports: {inputs: [{id: p, label: "+", kind: {domain: physical-electrical}, side: left, offset: 20}], outputs: [{id: n, label: "-", kind: {domain: physical-electrical}, side: right, offset: 20}]}
-params: [{name: A, label: Gain, type: number, default: 1.0}]
+params: [{name: gain, label: Gain, type: number, default: 1.0}]
 fidelities: [{tier: ideal, doc: Ideal Voltage-Controlled Voltage Source.}]
 symbol: {bbox: [60, 40], shape: rect, text: VCVS}
 behavior: {causality: acausal, domain: electrical, state_count: 0, equation_template: physical_electrical.source.vcvs}

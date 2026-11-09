@@ -72,11 +72,20 @@ describe("supportsBlock answers from the engine's declaration", () => {
     expect(supportsBlock("general-simulator", "signal-flow.math.gain")).toBe(true);
   });
 
-  it("says no to a block nothing maps, and means it", () => {
-    // A pulse *source* is the case that prompted all this. The engine's registry has no
-    // voltage-pulse type — a netlist can write PULSE(...) on a V line, but no block compiles
-    // to it — so this "no" is now true rather than collateral.
+  it("says yes to the pulse source that started all this", () => {
+    // The report was "my simulator supports a pulse source and the GUI says it does not". It
+    // was right about the engine and the engine was missing the type: a netlist could write
+    // PULSE(...) on a V line, and no *block* compiled to one. gsim-core now has
+    // `source.voltage.pulse`, and the catalogue entry already carried its seven fields.
     expect(supportsBlock("general-simulator", "physical-electrical.source.voltage_pulse")).toBe(
+      true,
+    );
+  });
+
+  it("says no to a block the engine genuinely cannot compile", () => {
+    // A MOSFET has no type in the compile registry at all, so this "no" is the truth rather
+    // than the collateral damage every block used to suffer.
+    expect(supportsBlock("general-simulator", "physical-electrical.semiconductor.mosfet_n")).toBe(
       false,
     );
   });
