@@ -28,8 +28,14 @@ test.describe("the inspector", () => {
     const sheet = new SchematicPage(appPage);
     const gain = await sheet.add("control.gain", 0.4, 0.4);
 
+    // Deliberately 1.4142 and not Math.SQRT2: this asserts that what a person
+    // *types* into the field round-trips, and nobody types seventeen digits.
+    // Substituting the constant would still pass at four decimals while quietly
+    // testing something else.
+    // biome-ignore lint/suspicious/noApproximativeNumericConstant: a typed input, not a constant
     await sheet.setParam(gain, "k", 1.4142);
 
+    // biome-ignore lint/suspicious/noApproximativeNumericConstant: the same typed input
     expect(Number(await sheet.paramOf(gain, "k"))).toBeCloseTo(1.4142, 4);
   });
 });

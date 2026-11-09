@@ -108,9 +108,7 @@ def test_derivative_card_text() -> None:
 
 
 def test_transfer_function_num_den_coeff() -> None:
-    block = _block(
-        "signal-flow.continuous.transfer_function", num=[5.0], den=[1.0, 2.0, 3.0]
-    )
+    block = _block("signal-flow.continuous.transfer_function", num=[5.0], den=[1.0, 2.0, 3.0])
     text = render(block, _nets("signal-flow.continuous.transfer_function"))
     model_line = text.splitlines()[1]
     assert "num_coeff=[5]" in model_line
@@ -211,7 +209,9 @@ def test_integration_gain_integrator_saturation_chain(tmp_path: pathlib.Path) ->
             # to node "0") — rgnd's "p" terminal ties vin.n to the
             # is_reference net below; rgnd.n is left floating, which is
             # fine since nothing else needs it.
-            IR1Connection(src=("vin", "n"), dst=("rgnd", "p"), kind="physical-electrical", net="gnd"),
+            IR1Connection(
+                src=("vin", "n"), dst=("rgnd", "p"), kind="physical-electrical", net="gnd"
+            ),
             IR1Connection(src=("vin", "p"), dst=("gain1", "in"), kind="signal", net="vin_net"),
             IR1Connection(src=("gain1", "out"), dst=("int1", "in"), kind="signal", net="gain_out"),
             IR1Connection(src=("int1", "out"), dst=("sat1", "in"), kind="signal", net="int_out"),
@@ -224,7 +224,13 @@ def test_integration_gain_integrator_saturation_chain(tmp_path: pathlib.Path) ->
 
     netlist = write_netlist(
         ir1,
-        AnalysisRequest(id="tran1", type="TRAN", params={"t_end": 2e-3, "t_step": 1e-4}, sweeps=[], solver_options={}),
+        AnalysisRequest(
+            id="tran1",
+            type="TRAN",
+            params={"t_end": 2e-3, "t_step": 1e-4},
+            sweeps=[],
+            solver_options={},
+        ),
     )
 
     solver = NgspiceSolver(ngspice_path=ng_path)
@@ -271,10 +277,14 @@ def test_integration_lookup_1d_doubles_input(tmp_path: pathlib.Path) -> None:
             ),
         ],
         connections=[
-            IR1Connection(src=("vin", "n"), dst=("rgnd", "p"), kind="physical-electrical", net="gnd"),
+            IR1Connection(
+                src=("vin", "n"), dst=("rgnd", "p"), kind="physical-electrical", net="gnd"
+            ),
             IR1Connection(src=("vin", "p"), dst=("lut1", "in"), kind="signal", net="vin_net"),
             IR1Connection(src=("lut1", "out"), dst=("rload", "p"), kind="signal", net="lut1_out"),
-            IR1Connection(src=("rload", "n"), dst=("rgnd", "p"), kind="physical-electrical", net="gnd"),
+            IR1Connection(
+                src=("rload", "n"), dst=("rgnd", "p"), kind="physical-electrical", net="gnd"
+            ),
         ],
         nets=[IR1Net(name="gnd", kind="physical-electrical", scope="model", is_reference=True)],
     )

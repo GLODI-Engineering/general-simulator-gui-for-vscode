@@ -17,12 +17,6 @@ import {
   SymbolLabel,
 } from "../symbol-drawing";
 
-/** An instance parameter as display text, for a drawing that shows a value. */
-function param(ctx: DrawContext, key: string, fallback: string): string {
-  const raw = ctx.params[key];
-  if (raw === undefined || raw === null || raw === "") return fallback;
-  return String(raw);
-}
 const L = (x1: number, y1: number, x2: number, y2: number) => (
   <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={STROKE} strokeWidth={SW} />
 );
@@ -34,16 +28,6 @@ const LEADS_1 = (
     {L(0, 20, 10, 20)}
     {L(50, 20, 60, 20)}
   </>
-);
-const curve = (pts: string) => (
-  <polyline
-    points={pts}
-    fill="none"
-    stroke={STROKE}
-    strokeWidth={SW}
-    strokeLinejoin="round"
-    strokeLinecap="round"
-  />
 );
 
 function draw(ctx: DrawContext): ReactNode {

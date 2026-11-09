@@ -14,9 +14,7 @@ import pytest
 from gsim_model import GsimSchDocument
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
-SCHEMA_PATH = (
-    REPO_ROOT / "packages" / "schemas" / "definitions" / "model" / "gsim_sch.schema.json"
-)
+SCHEMA_PATH = REPO_ROOT / "packages" / "schemas" / "definitions" / "model" / "gsim_sch.schema.json"
 
 FIXTURES = [
     REPO_ROOT / "docs" / "circuit_test" / "buck_converter" / "buck_converter.gsim_sch",
@@ -39,9 +37,7 @@ def test_real_fixture_round_trips(fixture: pathlib.Path) -> None:
 
     # Every block/wire id that was present in the source file must survive
     # the pydantic round-trip unchanged.
-    assert {b["id"] for b in raw["model"]["blocks"]} == {
-        b["id"] for b in dumped["model"]["blocks"]
-    }
+    assert {b["id"] for b in raw["model"]["blocks"]} == {b["id"] for b in dumped["model"]["blocks"]}
     assert {w["id"] for w in raw["model"]["wires"]} == {w["id"] for w in dumped["model"]["wires"]}
 
 

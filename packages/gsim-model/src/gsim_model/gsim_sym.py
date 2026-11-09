@@ -119,7 +119,9 @@ def load_gsim_sym(path: pathlib.Path | str) -> ComponentDefinition:
     return component_from_dict(data)
 
 
-def merge_into_catalog(component: ComponentDefinition, blocks_root: pathlib.Path | str) -> pathlib.Path:
+def merge_into_catalog(
+    component: ComponentDefinition, blocks_root: pathlib.Path | str
+) -> pathlib.Path:
     """Write/overwrite *component*'s ``metadata.yaml`` under *blocks_root*,
     at the path derived from ``component.type`` (falling back to
     ``component.name`` when ``type`` is unset, mirroring the schema's own

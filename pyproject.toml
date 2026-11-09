@@ -26,14 +26,27 @@ components = { workspace = true }
 blocks = { workspace = true }
 synthesis = { workspace = true }
 engine-xyce = { workspace = true }
-# Sibling repo, read-only path dependency — same convention general-simulator's own
-# Cargo.toml already uses for *its* sibling repos (general-mna, spice-lsp). Pure Python,
-# no compiled extension, so a plain path source is safe here. gsim_py (the compiled
-# PyO3 extension gsim-tools wraps) is deliberately *not* declared as a dependency here —
-# it is platform/interpreter-specific and must be built locally; see
-# packages/simulator/src/simulator/solvers/general_simulator_solver.py's own module doc
-# comment for the one-time build step.
-gsim-tools = { path = "../gsim-tools" }
+# `gsim-tools` and `gsim_py` are both installed by hand, not locked.
+#
+# `gsim_py` because it is a compiled PyO3 extension (gsim-core/crates/gsim-py):
+# a path source would pin one platform and interpreter's wheel into the lockfile.
+# `gsim-tools` because it lives in a *private* sibling repository: no CI checkout
+# can resolve a path to it, and making it an optional extra does not help, since
+# uv locks every extra and the path then has to exist at lock time anyway (both
+# behaviours verified against uv 0.13, not assumed).
+#
+# One-time install into this workspace's venv, after `uv sync --all-packages`
+# (which prunes anything it does not lock, so both need redoing after a sync):
+#
+#   uv pip install -e ../gsim-tools
+#   # and the gsim_py wheel — see packages/simulator/src/simulator/compiler/
+#   # gsim_py_netlist.py's own module doc comment for the maturin step.
+#
+# Every import of either is lazy, every test that needs them skips when they are
+# absent, and the IPC layer turns their absence into a `SolverUnavailable` reply
+# naming the build step — so a checkout without them is a working checkout that
+# simply cannot run the general-simulator solve path.
+# gsim-tools = { path = "../gsim-tools" }
 
 [dependency-groups]
 dev = [
@@ -57,6 +70,10 @@ extend-exclude = [
     "packages/schemas/generated",
     "**/build",
     "**/dist",
+    # ruff formats fenced Python inside Markdown too. A spec's snippet is
+    # illustrative — often a deliberate fragment, wrapped to fit the prose — so
+    # reformatting it is churn that says nothing about the code that ships.
+    "docs/**/*.md",
 ]
 
 [tool.ruff.lint]
@@ -124,6 +141,13 @@ disallow_untyped_defs = false
 # Third-party libs without stubs — silence the noise rather than chase shims.
 [[tool.mypy.overrides]]
 module = ["h5py.*", "scipy.*", "matplotlib.*", "sympy.*", "networkx.*", "yaml", "yaml.*", "pandas", "pandas.*"]
+ignore_missing_imports = true
+
+# `gsim_tools` ships no stubs, and is hand-installed rather than locked (see the
+# note in `[tool.uv.sources]`), so on a checkout without the private sibling repo
+# it is missing outright. Either way mypy must not treat that as an error.
+[[tool.mypy.overrides]]
+module = ["gsim_tools.*"]
 ignore_missing_imports = true
 
 # ---------------------------------------------------------------------------

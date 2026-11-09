@@ -165,6 +165,11 @@ export const SYMBOL_DRAWINGS: Record<string, SymbolDrawing> = {
   "control.saturation": saturationDrawing,
   "control.deadband": deadbandDrawing,
   "control.rate_limiter": rateLimiterDrawing,
+  // The catalog's own spelling. `symbolKeyCandidates` bridges
+  // physical-electrical <-> physical_electrical and nothing else, so a key the
+  // catalog does not spell this way is artwork nothing can reach: the block
+  // falls through to the generic renderer and draws as a box with its name in it.
+  "signal-flow.discontinuity.rate_limiter": rateLimiterDrawing,
   "control.transfer_function": transferFunctionDrawing,
   "control.discrete_transfer_function": transferFunctionDrawing,
   "control.sum": sumDrawing,
@@ -173,14 +178,39 @@ export const SYMBOL_DRAWINGS: Record<string, SymbolDrawing> = {
   "signal_flow.math.product": productDrawing,
   "control.delay": unitDelayDrawing,
   "control.zero_order_hold": zeroOrderHoldDrawing,
+  "signal-flow.discrete.zero_order_hold": zeroOrderHoldDrawing,
   "control.quantizer": quantizerDrawing,
   "signal_flow.math.abs": absDrawing,
   "signal_flow.math.sign": signDrawing,
   "signal_flow.math.min_max": minMaxDrawing,
+  // Note the catalog spells it "minmax", with no underscore.
+  "signal-flow.math.minmax": minMaxDrawing,
   "math.fn1": mathFunctionDrawing,
   "math.fn2": mathFunctionDrawing,
   "math.fn3": mathFunctionDrawing,
   "logic.comparator": comparatorDrawing,
+
+  // ── The catalog's own spellings ──────────────────────────────────────────
+  // `symbolKeyCandidates` bridges physical-electrical <-> physical_electrical
+  // and nothing else, and a block on a sheet carries its *type*, never its
+  // aliases — so a drawing keyed only under an alias is a drawing nothing can
+  // reach. Those blocks fell through to the older fallback table and drew as a
+  // labelled box ("1/s", "s", "z^-N", "sat") with the hand-drawn symbol for
+  // each sitting unused in this directory. Rendered and looked at, before and
+  // after.
+  "signal-flow.continuous.integrator": integratorDrawing,
+  "signal-flow.continuous.derivative": derivativeDrawing,
+  "signal-flow.continuous.transfer_function": transferFunctionDrawing,
+  "signal-flow.discontinuity.saturation": saturationDrawing,
+  "signal-flow.discrete.delay": unitDelayDrawing,
+  "signal-flow.math.abs": absDrawing,
+  "signal-flow.math.gain": gainDrawing,
+  "signal-flow.math.product": productDrawing,
+  "signal-flow.math.sign": signDrawing,
+  "signal-flow.math.sum": sumDrawing,
+  "physical-electrical.source.vccs": dependentVccsDrawing,
+  "physical-electrical.source.vcvs": dependentVcvsDrawing,
+  "physical-electrical.switch.generic": genericSwitchDrawing,
 };
 
 /** The artwork for a catalog type, if this directory supplies one. */

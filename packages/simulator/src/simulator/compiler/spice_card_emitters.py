@@ -556,12 +556,8 @@ _OPAMP_PORTS = ("vp", "vn", "out")
 # uncompilable depending on which tier a document happens to use.
 for _t in ("ideal", "behavioral"):
     _reg("physical-electrical.opamp.ideal", _t, "E", _OPAMP_PORTS, _render_opamp_ideal)
-    _reg(
-        "physical-electrical.opamp.finite_gain", _t, "B", _OPAMP_PORTS, _render_opamp_finite_gain
-    )
-    _reg(
-        "physical-electrical.opamp.comparator", _t, "A", _OPAMP_PORTS, _render_opamp_comparator
-    )
+    _reg("physical-electrical.opamp.finite_gain", _t, "B", _OPAMP_PORTS, _render_opamp_finite_gain)
+    _reg("physical-electrical.opamp.comparator", _t, "A", _OPAMP_PORTS, _render_opamp_comparator)
     _reg(
         "physical-electrical.opamp.band_limited",
         _t,

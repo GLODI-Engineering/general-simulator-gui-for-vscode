@@ -70,12 +70,18 @@ def _voltage_source(instance_id: str, v: float) -> IR1Block:
 
 def _divider_chain_graph() -> IR1Graph:
     return IR1Graph(
-        blocks=[_voltage_source("v1", 5.0), _instance_block("x1", "divider"), _instance_block("x2", "divider")],
+        blocks=[
+            _voltage_source("v1", 5.0),
+            _instance_block("x1", "divider"),
+            _instance_block("x2", "divider"),
+        ],
         connections=[
             IR1Connection(src=("v1", "p"), dst=("x1", "in"), kind="physical-electrical", net="vin"),
             IR1Connection(src=("v1", "n"), dst=("x1", "gnd"), kind="physical-electrical", net="0"),
             IR1Connection(src=("v1", "n"), dst=("x2", "gnd"), kind="physical-electrical", net="0"),
-            IR1Connection(src=("x1", "out"), dst=("x2", "in"), kind="physical-electrical", net="mid"),
+            IR1Connection(
+                src=("x1", "out"), dst=("x2", "in"), kind="physical-electrical", net="mid"
+            ),
         ],
         subckt_defs=[_DIVIDER_DEF],
     )
@@ -107,13 +113,19 @@ def test_nested_subckt_defs_emit_inner_x_card() -> None:
     leaf = IR1SubcktDef(
         id="leaf",
         name="LEAF",
-        ports=[IR1SubcktPort(id="a", kind="physical-electrical"), IR1SubcktPort(id="b", kind="physical-electrical")],
+        ports=[
+            IR1SubcktPort(id="a", kind="physical-electrical"),
+            IR1SubcktPort(id="b", kind="physical-electrical"),
+        ],
         body="R1 a b 1k",
     )
     wrapper = IR1SubcktDef(
         id="wrapper",
         name="WRAPPER",
-        ports=[IR1SubcktPort(id="p", kind="physical-electrical"), IR1SubcktPort(id="n", kind="physical-electrical")],
+        ports=[
+            IR1SubcktPort(id="p", kind="physical-electrical"),
+            IR1SubcktPort(id="n", kind="physical-electrical"),
+        ],
         instances=[IR1SubcktInstance(id="Xinner", def_ref="leaf", connections=["p", "n"])],
     )
     graph = IR1Graph(
@@ -143,7 +155,9 @@ def test_integration_divider_chain_runs_on_real_ngspice(tmp_path: pathlib.Path) 
     if ng_path is None:
         pytest.skip("ngspice not found on this host — skipping integration test")
 
-    netlist = write_netlist(_divider_chain_graph(), _analysis_request("TRAN", t_end=1e-3, t_step=1e-4))
+    netlist = write_netlist(
+        _divider_chain_graph(), _analysis_request("TRAN", t_end=1e-3, t_step=1e-4)
+    )
 
     solver = NgspiceSolver(ngspice_path=ng_path)
     result = solver.solve(netlist, sim_id="subckt-int")

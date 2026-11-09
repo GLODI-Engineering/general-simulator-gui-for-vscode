@@ -20,6 +20,10 @@ const MIN_ROW = 260;
 /** Thickness of the draggable gap between tracks. */
 const SPLITTER_PX = 6;
 
+/** How far one arrow-key press moves a splitter, and how far with Shift held. */
+const KEY_STEP_PX = 16;
+const KEY_STEP_PX_COARSE = 64;
+
 export function GridLayout({ figureId, rows, cols }: GridLayoutProps) {
   const axes = useWaveformStore((s) => s.axes);
   const figureEntry = useWaveformStore((s) => s.figures.get(figureId));
@@ -74,6 +78,42 @@ export function GridLayout({ figureId, rows, cols }: GridLayoutProps) {
     handle.addEventListener("pointermove", onMove);
     handle.addEventListener("pointerup", onUp);
     handle.addEventListener("pointercancel", onUp);
+  }
+
+  /**
+   * The same resize from the keyboard.
+   *
+   * A splitter carries `role="separator"`, which promises a keyboard user can
+   * move it; without this it was pointer-only and the promise was false. One
+   * press nudges by `KEY_STEP_PX`, Shift by `KEY_STEP_PX_COARSE`, and the
+   * clamping is `resizeTracks`' own — the same function the drag uses, so the
+   * two paths cannot disagree about a minimum.
+   */
+  function nudge(axis: "rows" | "cols", index: number, deltaPx: number) {
+    const box = gridRef.current?.getBoundingClientRect();
+    if (!box) return;
+    const sizes = axis === "rows" ? rowSizes : colSizes;
+    const next = resizeTracks(
+      sizes,
+      index,
+      deltaPx,
+      axis === "rows" ? box.height : box.width,
+      axis === "rows" ? MIN_ROW : MIN_TRACK_PX,
+    );
+    setFigureTrackSizes(figureId, axis === "rows" ? { rows: next } : { cols: next });
+  }
+
+  function onSplitterKeyDown(
+    event: React.KeyboardEvent<HTMLDivElement>,
+    axis: "rows" | "cols",
+    index: number,
+  ) {
+    const back = axis === "rows" ? "ArrowUp" : "ArrowLeft";
+    const forward = axis === "rows" ? "ArrowDown" : "ArrowRight";
+    if (event.key !== back && event.key !== forward) return;
+    event.preventDefault();
+    const step = event.shiftKey ? KEY_STEP_PX_COARSE : KEY_STEP_PX;
+    nudge(axis, index, event.key === back ? -step : step);
   }
 
   // FE-167: only honor maximizedAxesId if that axes still exists in this
@@ -199,7 +239,13 @@ export function GridLayout({ figureId, rows, cols }: GridLayoutProps) {
           every column and vice versa. */}
       {rowSizes.slice(0, -1).map((_, index) => (
         <div
+          // A splitter *is* its index: it is the boundary between track n and track
+          // n+1, holds no state of its own, and has no stabler identity to give it.
+          // Keying by anything else would mean inventing an id to satisfy the rule.
+          // biome-ignore lint/suspicious/noArrayIndexKey: the index is the identity
           key={`row-splitter-${index}`}
+          tabIndex={0}
+          onKeyDown={(event) => onSplitterKeyDown(event, "rows", index)}
           className="figure-grid__splitter figure-grid__splitter--row"
           role="separator"
           aria-orientation="horizontal"
@@ -213,7 +259,11 @@ export function GridLayout({ figureId, rows, cols }: GridLayoutProps) {
       ))}
       {colSizes.slice(0, -1).map((_, index) => (
         <div
+          // As above: a column splitter is the boundary between column n and n+1.
+          // biome-ignore lint/suspicious/noArrayIndexKey: the index is the identity
           key={`col-splitter-${index}`}
+          tabIndex={0}
+          onKeyDown={(event) => onSplitterKeyDown(event, "cols", index)}
           className="figure-grid__splitter figure-grid__splitter--col"
           role="separator"
           aria-orientation="vertical"

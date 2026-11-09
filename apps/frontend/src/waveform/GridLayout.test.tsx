@@ -1,4 +1,4 @@
-import { fireEvent, render } from "@testing-library/react";
+import { act, fireEvent, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { useWaveformStore } from "../store/waveform";
@@ -163,5 +163,97 @@ describe("a row has a floor, and the figure scrolls past it", () => {
     const grid = container.querySelector(".figure-grid") as HTMLElement;
     expect(grid.style.gridTemplateRows).toMatch(/minmax\(\d{3}px, 1fr\)/);
     expect(grid.style.overflowY).toBe("auto");
+  });
+});
+
+describe("#29 resizing a figure's tracks from the keyboard", () => {
+  afterEach(() => {
+    useWaveformStore.setState({
+      figures: new Map(),
+      axes: new Map(),
+      couplingGroups: new Map(),
+      signalCache: new Map(),
+      streamingSignals: new Set(),
+    });
+  });
+
+  function twoByTwo() {
+    useWaveformStore.setState({
+      figures: new Map([["fig-1", { id: "fig-1", name: "Sim", rows: 2, cols: 2, axesIds: [] }]]),
+      axes: new Map(),
+      couplingGroups: new Map(),
+      signalCache: new Map(),
+      streamingSignals: new Set(),
+    });
+    return render(<GridLayout figureId="fig-1" rows={2} cols={2} />);
+  }
+
+  /**
+   * jsdom gives every element a zero-sized rect, and `nudge` needs the grid's
+   * width and height to turn a pixel step into a fraction — so without a size
+   * it returns early and nothing moves. Stand in for layout.
+   */
+  function withGridSize(container: HTMLElement, width: number, height: number) {
+    const grid = container.querySelector(".figure-grid") as HTMLElement;
+    grid.getBoundingClientRect = () =>
+      ({ width, height, top: 0, left: 0, right: width, bottom: height }) as DOMRect;
+    return grid;
+  }
+
+  it("a splitter is reachable by keyboard at all", () => {
+    const { container } = twoByTwo();
+    const splitters = [...container.querySelectorAll(".figure-grid__splitter")];
+    expect(splitters.length).toBe(2); // one row boundary, one column boundary
+    for (const splitter of splitters) {
+      expect(splitter.getAttribute("tabindex")).toBe("0");
+      expect(splitter.getAttribute("role")).toBe("separator");
+    }
+  });
+
+  it("ArrowDown on the row splitter grows the row above it", () => {
+    const { container } = twoByTwo();
+    withGridSize(container, 800, 600);
+    const rowSplitter = container.querySelector(".figure-grid__splitter--row") as HTMLElement;
+
+    fireEvent.keyDown(rowSplitter, { key: "ArrowDown" });
+
+    const sizes = useWaveformStore.getState().figures.get("fig-1")?.rowSizes as number[];
+    expect(sizes).toHaveLength(2);
+    expect(sizes[0]).toBeGreaterThan(sizes[1]);
+    // Total is conserved: a splitter rebalances two tracks, it does not add space.
+    expect(sizes[0] + sizes[1]).toBeCloseTo(2, 6);
+  });
+
+  it("ArrowUp moves it the other way, and Shift moves it further", () => {
+    const { container } = twoByTwo();
+    withGridSize(container, 800, 600);
+    const rowSplitter = container.querySelector(".figure-grid__splitter--row") as HTMLElement;
+
+    fireEvent.keyDown(rowSplitter, { key: "ArrowUp" });
+    const small = useWaveformStore.getState().figures.get("fig-1")?.rowSizes as number[];
+    expect(small[0]).toBeLessThan(small[1]);
+
+    // Back to equal tracks, so the coarse step is measured from the same start.
+    act(() => {
+      useWaveformStore.setState({
+        figures: new Map([["fig-1", { id: "fig-1", name: "Sim", rows: 2, cols: 2, axesIds: [] }]]),
+      });
+    });
+    fireEvent.keyDown(rowSplitter, { key: "ArrowUp", shiftKey: true });
+    const coarse = useWaveformStore.getState().figures.get("fig-1")?.rowSizes as number[];
+    expect(coarse[0]).toBeLessThan(small[0]);
+  });
+
+  it("the column splitter answers to left and right, not up and down", () => {
+    const { container } = twoByTwo();
+    withGridSize(container, 800, 600);
+    const colSplitter = container.querySelector(".figure-grid__splitter--col") as HTMLElement;
+
+    fireEvent.keyDown(colSplitter, { key: "ArrowDown" });
+    expect(useWaveformStore.getState().figures.get("fig-1")?.colSizes).toBeUndefined();
+
+    fireEvent.keyDown(colSplitter, { key: "ArrowRight" });
+    const sizes = useWaveformStore.getState().figures.get("fig-1")?.colSizes as number[];
+    expect(sizes[0]).toBeGreaterThan(sizes[1]);
   });
 });
