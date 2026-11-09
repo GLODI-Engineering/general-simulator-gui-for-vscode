@@ -46,9 +46,7 @@ def check_no_cyclic_defs(defs: list[IR1SubcktDef]) -> None:
             visit(def_id, [])
 
 
-def check_def_refs_resolve(
-    defs: list[IR1SubcktDef], block_def_refs: list[tuple[str, str]]
-) -> None:
+def check_def_refs_resolve(defs: list[IR1SubcktDef], block_def_refs: list[tuple[str, str]]) -> None:
     """*block_def_refs*: ``(block_instance_id, def_ref)`` for every
     spice-subckt.instance block in the design."""
     by_id = {d.id: d for d in defs}

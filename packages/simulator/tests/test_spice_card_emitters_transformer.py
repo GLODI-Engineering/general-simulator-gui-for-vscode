@@ -87,15 +87,25 @@ def test_integration_transformer_voltage_ratio(tmp_path: pathlib.Path) -> None:
 
     ir1 = IR1Graph(
         blocks=[
-            _pe_block("vin", "physical-electrical.source.voltage_ac", amplitude=1.0, frequency=1000.0),
+            _pe_block(
+                "vin", "physical-electrical.source.voltage_ac", amplitude=1.0, frequency=1000.0
+            ),
             _pe_block("t1", "physical-electrical.passive.transformer", n=5.0),
             _pe_block("rload", "physical-electrical.passive.resistor", R=1000.0),
         ],
         connections=[
-            IR1Connection(src=("vin", "p"), dst=("t1", "p1"), kind="physical-electrical", net="prim_hi"),
-            IR1Connection(src=("vin", "n"), dst=("t1", "n1"), kind="physical-electrical", net="gnd"),
-            IR1Connection(src=("t1", "p2"), dst=("rload", "p"), kind="physical-electrical", net="sec_hi"),
-            IR1Connection(src=("t1", "n2"), dst=("rload", "n"), kind="physical-electrical", net="gnd"),
+            IR1Connection(
+                src=("vin", "p"), dst=("t1", "p1"), kind="physical-electrical", net="prim_hi"
+            ),
+            IR1Connection(
+                src=("vin", "n"), dst=("t1", "n1"), kind="physical-electrical", net="gnd"
+            ),
+            IR1Connection(
+                src=("t1", "p2"), dst=("rload", "p"), kind="physical-electrical", net="sec_hi"
+            ),
+            IR1Connection(
+                src=("t1", "n2"), dst=("rload", "n"), kind="physical-electrical", net="gnd"
+            ),
         ],
         nets=[IR1Net(name="gnd", kind="physical-electrical", scope="model", is_reference=True)],
     )

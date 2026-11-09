@@ -67,9 +67,7 @@ def test_zero_order_hold_unsupported() -> None:
 
 
 def test_discrete_integrator_forward_euler_network() -> None:
-    block = _block(
-        "signal-flow.discrete.integrator", method="forward", sample_time=0.01
-    )
+    block = _block("signal-flow.discrete.integrator", method="forward", sample_time=0.01)
     text = render(block, _nets("signal-flow.discrete.integrator"))
     lines = text.splitlines()
     assert lines[0] == "Ab1y out b1_yprev model_b1y"
@@ -166,7 +164,9 @@ def test_integration_unit_delay_step_response(tmp_path: pathlib.Path) -> None:
             *src_conns,
             IR1Connection(src=("vin", "p"), dst=("d1", "in"), kind="signal", net="vin_net"),
             IR1Connection(src=("d1", "out"), dst=("rload", "p"), kind="signal", net="d1_out"),
-            IR1Connection(src=("rload", "n"), dst=("rgnd", "p"), kind="physical-electrical", net="gnd"),
+            IR1Connection(
+                src=("rload", "n"), dst=("rgnd", "p"), kind="physical-electrical", net="gnd"
+            ),
         ],
         nets=[IR1Net(name="gnd", kind="physical-electrical", scope="model", is_reference=True)],
     )
@@ -175,7 +175,11 @@ def test_integration_unit_delay_step_response(tmp_path: pathlib.Path) -> None:
     netlist = write_netlist(
         ir1,
         AnalysisRequest(
-            id="tran1", type="TRAN", params={"t_end": 5e-3, "t_step": 1e-4}, sweeps=[], solver_options={}
+            id="tran1",
+            type="TRAN",
+            params={"t_end": 5e-3, "t_step": 1e-4},
+            sweeps=[],
+            solver_options={},
         ),
     )
 
@@ -209,7 +213,9 @@ def test_integration_discrete_integrator_forward_euler(tmp_path: pathlib.Path) -
             *src_conns,
             IR1Connection(src=("vin", "p"), dst=("int1", "in"), kind="signal", net="vin_net"),
             IR1Connection(src=("int1", "out"), dst=("rload", "p"), kind="signal", net="int1_out"),
-            IR1Connection(src=("rload", "n"), dst=("rgnd", "p"), kind="physical-electrical", net="gnd"),
+            IR1Connection(
+                src=("rload", "n"), dst=("rgnd", "p"), kind="physical-electrical", net="gnd"
+            ),
         ],
         nets=[IR1Net(name="gnd", kind="physical-electrical", scope="model", is_reference=True)],
     )
@@ -218,7 +224,11 @@ def test_integration_discrete_integrator_forward_euler(tmp_path: pathlib.Path) -
     netlist = write_netlist(
         ir1,
         AnalysisRequest(
-            id="tran1", type="TRAN", params={"t_end": 2e-3, "t_step": 1e-4}, sweeps=[], solver_options={}
+            id="tran1",
+            type="TRAN",
+            params={"t_end": 2e-3, "t_step": 1e-4},
+            sweeps=[],
+            solver_options={},
         ),
     )
 

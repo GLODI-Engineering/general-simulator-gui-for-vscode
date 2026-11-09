@@ -684,6 +684,38 @@ runtime — no registration needed on the Python side.
 | `persistence.spec.ts` | Save → reload → StartupModal → open → byte-equivalent | All 3 (web); 1 (Tauri, planned) |
 | `perf.spec.ts` | canvas p95 ≤16ms; Quick Insert ≤50ms; save ≤100ms | Chromium |
 
+#### The `gs-ui-probe` dependency
+
+The specs drive the UI through [`gs-ui-probe`](https://github.com/GLODI-Engineering/gs-ui-probe),
+which lives in its own repository so that it stays free of any knowledge of
+this application. `package.json` pins it to a tag:
+
+```json
+"gs-ui-probe": "github:GLODI-Engineering/gs-ui-probe#v0.2.2"
+```
+
+It is public, so CI needs no credentials for it.
+
+The `github:` shorthand rather than a `git+https://` URL on purpose: pnpm
+resolves the shorthand to a codeload tarball over plain HTTPS, while the git
+form makes it record whatever URL *your* git is configured to use — on a
+machine with SSH keys that is `git@github.com:…`, which then fails on a runner
+that has no key, for a public repository. The shorthand cannot pick up a
+machine-specific URL.
+
+**Locally**, a pinned tag means you get the released probe, not your working
+copy. To edit the probe and see the change here without cutting a tag:
+
+```bash
+pnpm link ../gs-ui-probe      # live edits
+pnpm install                  # back to the pinned tag
+```
+
+**To release a probe change**: `pnpm build` first — `dist/` is committed there,
+because the package is consumed from git rather than a registry, so the build
+output *is* the release. Then commit, tag, push, and bump the tag here. The tag
+is what makes an e2e run reproducible.
+
 ---
 
 ## 9. CI gates

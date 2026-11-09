@@ -48,7 +48,9 @@ def test_source_constant_card_text() -> None:
 
 
 def test_source_sine_card_text() -> None:
-    block = _block("s1", "signal-flow.source.sine", amplitude=100.0, frequency=50.0, phase=0.5, bias=2.0)
+    block = _block(
+        "s1", "signal-flow.source.sine", amplitude=100.0, frequency=50.0, phase=0.5, bias=2.0
+    )
     text = render(block, _nets("signal-flow.source.sine"))
     assert text == "Bs1 out 0 V=2+100*sin(6.28319*50*time+0.5)"
 

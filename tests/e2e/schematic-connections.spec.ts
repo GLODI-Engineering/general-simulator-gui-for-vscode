@@ -79,7 +79,7 @@ test.describe("different domains", () => {
 
       expect(
         wronglyAccepted,
-        `these cross-domain connections were accepted and should not have been:\n` +
+        "these cross-domain connections were accepted and should not have been:\n" +
           wronglyAccepted.join("\n"),
       ).toEqual([]);
     });

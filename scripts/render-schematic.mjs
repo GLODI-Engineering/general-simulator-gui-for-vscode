@@ -23,7 +23,7 @@
  */
 
 import { spawn } from "node:child_process";
-import { mkdirSync, readFileSync, existsSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -44,14 +44,36 @@ function parseArgs(argv) {
     const flag = argv[i];
     const value = argv[i + 1];
     switch (flag) {
-      case "--doc": args.doc = value; i += 1; break;
-      case "--out": args.out = value; i += 1; break;
-      case "--width": args.width = Number(value); i += 1; break;
-      case "--height": args.height = Number(value); i += 1; break;
-      case "--theme": args.theme = value; i += 1; break;
-      case "--base": args.base = value; i += 1; break;
-      case "--full": args.full = true; break;
-      case "--keep-server": args.keepServer = true; break;
+      case "--doc":
+        args.doc = value;
+        i += 1;
+        break;
+      case "--out":
+        args.out = value;
+        i += 1;
+        break;
+      case "--width":
+        args.width = Number(value);
+        i += 1;
+        break;
+      case "--height":
+        args.height = Number(value);
+        i += 1;
+        break;
+      case "--theme":
+        args.theme = value;
+        i += 1;
+        break;
+      case "--base":
+        args.base = value;
+        i += 1;
+        break;
+      case "--full":
+        args.full = true;
+        break;
+      case "--keep-server":
+        args.keepServer = true;
+        break;
       default:
         if (flag.startsWith("--")) throw new Error(`unknown flag: ${flag}`);
     }
@@ -65,14 +87,24 @@ async function startPreview() {
   const child = spawn(
     "pnpm",
     [
-      "--filter", "@gensim/frontend", "preview",
-      "--host", PREVIEW_HOST, "--port", String(PREVIEW_PORT), "--strictPort",
+      "--filter",
+      "@gensim/frontend",
+      "preview",
+      "--host",
+      PREVIEW_HOST,
+      "--port",
+      String(PREVIEW_PORT),
+      "--strictPort",
     ],
     { cwd: REPO_ROOT, stdio: ["ignore", "pipe", "pipe"] },
   );
   let log = "";
-  child.stdout.on("data", (d) => { log += d.toString(); });
-  child.stderr.on("data", (d) => { log += d.toString(); });
+  child.stdout.on("data", (d) => {
+    log += d.toString();
+  });
+  child.stderr.on("data", (d) => {
+    log += d.toString();
+  });
 
   const deadline = Date.now() + 60_000;
   while (Date.now() < deadline) {
@@ -130,12 +162,14 @@ async function main() {
     const page = await browser.newPage({
       viewport: { width: args.width, height: args.height },
       deviceScaleFactor: 2, // retina-density PNG: stroke weight and type are
-                            // exactly what this pass is meant to judge
+      // exactly what this pass is meant to judge
     });
 
     const errors = [];
     page.on("pageerror", (e) => errors.push(String(e)));
-    page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
+    page.on("console", (m) => {
+      if (m.type() === "error") errors.push(m.text());
+    });
 
     await page.goto(base, { waitUntil: "domcontentloaded" });
     await page.waitForSelector("[data-testid='app-shell'], main", { timeout: 20_000 });
@@ -156,7 +190,7 @@ async function main() {
 
     const target = args.full
       ? page
-      : (await page.$(".react-flow")) ?? (await page.$(".canvas-surface")) ?? page;
+      : ((await page.$(".react-flow")) ?? (await page.$(".canvas-surface")) ?? page);
     await target.screenshot({ path: outPath });
 
     const blocks = document?.model?.blocks?.length ?? 0;

@@ -40,7 +40,9 @@ def _blocks_root() -> pathlib.Path:
 
 
 @functools.cache
-def load_symbol_geometry(block_type: str, blocks_root: pathlib.Path | None = None) -> SymbolGeometry:
+def load_symbol_geometry(
+    block_type: str, blocks_root: pathlib.Path | None = None
+) -> SymbolGeometry:
     """Load *block_type*'s (e.g. ``"physical-electrical.passive.resistor"``)
     port sides/offsets and symbol bbox from its catalog ``metadata.yaml``.
 

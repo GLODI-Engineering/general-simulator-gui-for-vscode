@@ -8,14 +8,8 @@
  */
 import type { ReactNode } from "react";
 
-import { type DrawContext, FILL, STROKE, SW, type SymbolDrawing } from "../symbol-drawing";
+import { FILL, STROKE, SW, type SymbolDrawing } from "../symbol-drawing";
 
-/** An instance parameter as display text, for a drawing that shows a value. */
-function param(ctx: DrawContext, key: string, fallback: string): string {
-  const raw = ctx.params[key];
-  if (raw === undefined || raw === null || raw === "") return fallback;
-  return String(raw);
-}
 const L = (x1: number, y1: number, x2: number, y2: number) => (
   <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={STROKE} strokeWidth={SW} />
 );
@@ -39,7 +33,7 @@ const curve = (pts: string) => (
   />
 );
 
-function draw(ctx: DrawContext): ReactNode {
+function draw(): ReactNode {
   return (
     <g>
       {BOX}

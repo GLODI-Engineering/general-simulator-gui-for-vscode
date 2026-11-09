@@ -112,9 +112,7 @@ def build(doc: ModelDocument | dict[str, Any]) -> IR1Graph:
 def _build_subckt_defs(raw_defs: list[dict[str, Any]]) -> list[IR1SubcktDef]:
     defs: list[IR1SubcktDef] = []
     for d in raw_defs:
-        ports = [
-            IR1SubcktPort(id=p["id"], kind=p["kind"]) for p in d.get("ports", [])
-        ]
+        ports = [IR1SubcktPort(id=p["id"], kind=p["kind"]) for p in d.get("ports", [])]
         instances = [
             IR1SubcktInstance(
                 id=inst["id"],

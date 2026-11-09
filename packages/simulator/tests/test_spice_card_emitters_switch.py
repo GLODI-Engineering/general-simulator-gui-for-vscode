@@ -168,13 +168,27 @@ def test_integration_switch_rc_toggle(tmp_path: pathlib.Path) -> None:
             _pe_block("rload", "physical-electrical.passive.resistor", R=1000.0),
         ],
         connections=[
-            IR1Connection(src=("vin", "n"), dst=("rgnd", "p"), kind="physical-electrical", net="gnd"),
-            IR1Connection(src=("vctl", "n"), dst=("rgnd", "p"), kind="physical-electrical", net="gnd"),
-            IR1Connection(src=("vin", "p"), dst=("sw1", "p"), kind="physical-electrical", net="vin_net"),
-            IR1Connection(src=("sw1", "n"), dst=("rload", "p"), kind="physical-electrical", net="sw_out"),
-            IR1Connection(src=("rload", "n"), dst=("rgnd", "p"), kind="physical-electrical", net="gnd"),
-            IR1Connection(src=("vctl", "p"), dst=("sw1", "p_ctl"), kind="physical-electrical", net="ctl_net"),
-            IR1Connection(src=("sw1", "n_ctl"), dst=("rgnd", "p"), kind="physical-electrical", net="gnd"),
+            IR1Connection(
+                src=("vin", "n"), dst=("rgnd", "p"), kind="physical-electrical", net="gnd"
+            ),
+            IR1Connection(
+                src=("vctl", "n"), dst=("rgnd", "p"), kind="physical-electrical", net="gnd"
+            ),
+            IR1Connection(
+                src=("vin", "p"), dst=("sw1", "p"), kind="physical-electrical", net="vin_net"
+            ),
+            IR1Connection(
+                src=("sw1", "n"), dst=("rload", "p"), kind="physical-electrical", net="sw_out"
+            ),
+            IR1Connection(
+                src=("rload", "n"), dst=("rgnd", "p"), kind="physical-electrical", net="gnd"
+            ),
+            IR1Connection(
+                src=("vctl", "p"), dst=("sw1", "p_ctl"), kind="physical-electrical", net="ctl_net"
+            ),
+            IR1Connection(
+                src=("sw1", "n_ctl"), dst=("rgnd", "p"), kind="physical-electrical", net="gnd"
+            ),
         ],
         nets=[IR1Net(name="gnd", kind="physical-electrical", scope="model", is_reference=True)],
     )

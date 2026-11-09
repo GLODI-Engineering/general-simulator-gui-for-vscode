@@ -106,7 +106,31 @@ async def _do_simulate(ws: Any, msg: Message, ctx: Any, cancel_token: Any) -> No
     )
 
     try:
-        from simulator.compiler.gsim_py_netlist import GsimPyNotAvailable, compile_gsim_document
+        try:
+            from simulator.compiler.gsim_py_netlist import (
+                GsimPyNotAvailable,
+                compile_gsim_document,
+            )
+        except ImportError as exc:
+            # `gsim_tools` is hand-installed, not locked (it lives in a private
+            # sibling repository — see the root pyproject.toml's note), so on a
+            # checkout without it this import fails rather than the lazy
+            # `import gsim_py` inside it. Without this branch the failure left the
+            # handler by the `finally` below and the dispatcher answered on the
+            # `execute_error` channel, which nothing awaiting a `simulate_result`
+            # ever reads: pressing Run hung forever instead of saying why.
+            await _emit_error(
+                ws,
+                request_id,
+                "SolverUnavailable",
+                "The general-simulator compile path is unavailable: "
+                f"{exc}.\n\n"
+                "gsim-tools is installed by hand rather than locked — see the note "
+                "in the repository's root pyproject.toml under [tool.uv.sources] "
+                "for the one-time step:\n\n"
+                "    uv pip install -e <sibling-repos-root>/gsim-tools",
+            )
+            return
         from simulator.postprocess import result_writer
         from simulator.solvers.general_simulator_solver import GeneralSimulatorSolver
         from simulator.solvers.protocol import SimulationError, SolverOptions
@@ -560,6 +584,14 @@ async def _do_simulate(ws: Any, msg: Message, ctx: Any, cancel_token: Any) -> No
                 payload=simulate_result_payload,
             ).to_json()
         )
+
+    except Exception as exc:
+        # The dispatcher's own catch-all answers with `execute_error`, which a
+        # client awaiting `simulate_result` never reads — so an unforeseen failure
+        # in here used to read as a hang, not an error. Answer on the right
+        # channel, with the real message, and keep the traceback in the log.
+        logger.exception("simulate failed for request %s", request_id)
+        await _emit_error(ws, request_id, type(exc).__name__, str(exc) or repr(exc))
 
     finally:
         ctx.simulate_tokens.pop(request_id, None)

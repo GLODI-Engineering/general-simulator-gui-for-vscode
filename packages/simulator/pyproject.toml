@@ -7,7 +7,14 @@ dependencies = [
     "schemas",
     "components",
     "blocks",
-    "gsim-tools",
+    # `gsim-tools` is deliberately *not* declared here. It lives in a private
+    # sibling repository, so no CI checkout can resolve a path source to it, and
+    # an optional extra does not help: uv locks every extra, so the path has to
+    # exist at lock time either way. It is installed into the venv by hand,
+    # exactly as the `gsim_py` extension it wraps already is — see
+    # `src/simulator/compiler/gsim_py_netlist.py`'s own module doc comment for
+    # both steps. Every import of it in this package is already lazy and every
+    # test that needs it already skips when it is absent.
     "numpy>=1.26",
     "scipy>=1.13",
     "sympy>=1.13",

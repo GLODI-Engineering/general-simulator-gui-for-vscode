@@ -33,7 +33,7 @@ REF_FILE = REF_DIR / "step_pid_integrator_scope.npz"
 # ---------------------------------------------------------------------------
 
 
-async def test_smoke_e2e(e2e_server: dict) -> None:
+async def test_smoke_e2e(e2e_server: dict, requires_gsim_solve_path: None) -> None:
     """
     Full pipeline:
     1. Connect + handshake.

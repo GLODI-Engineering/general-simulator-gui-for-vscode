@@ -49,6 +49,8 @@ describe("coefficients drawn as a polynomial in s", () => {
   });
 
   it("rounds a long coefficient rather than overflowing the box", () => {
-    expect(polynomial([1.4142135623730951, 0], "D(s)")).toBe("1.41s");
+    // Math.SQRT2 is 1.4142135623730951 exactly — seventeen significant digits,
+    // which is the point: it must print as "1.41s" and not overflow the symbol.
+    expect(polynomial([Math.SQRT2, 0], "D(s)")).toBe("1.41s");
   });
 });
