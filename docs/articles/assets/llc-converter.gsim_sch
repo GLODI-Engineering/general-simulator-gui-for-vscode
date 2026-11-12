@@ -1,0 +1,912 @@
+{
+  "schema_version": 2,
+  "model": {
+    "id": "llc_half-bridge_100_khz",
+    "name": "LLC half-bridge 100 kHz",
+    "grid": 20,
+    "params": [],
+    "blocks": [
+      {
+        "id": "VIN",
+        "type": "source.voltage.dc",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          360,
+          210
+        ],
+        "rotation": 90,
+        "mirror": "none",
+        "params": {
+          "V": 400.0
+        },
+        "ic": {}
+      },
+      {
+        "id": "GHI",
+        "type": "source.pulsewave",
+        "paradigm": "signal-flow",
+        "domain": "signal",
+        "fidelity": "ideal",
+        "position": [
+          60,
+          120
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "v1": 0.0,
+          "v2": 5.0,
+          "td": 0.0,
+          "tr": 1e-09,
+          "tf": 1e-09,
+          "pw": 4.79902438183255e-06,
+          "per": 9.997967462151145e-06
+        },
+        "ic": {}
+      },
+      {
+        "id": "CHI",
+        "type": "converter.sig2phys",
+        "paradigm": "converter",
+        "domain": "mixed",
+        "fidelity": "ideal",
+        "position": [
+          200,
+          120
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "domain": "voltage"
+        },
+        "ic": {}
+      },
+      {
+        "id": "GLO",
+        "type": "source.pulsewave",
+        "paradigm": "signal-flow",
+        "domain": "signal",
+        "fidelity": "ideal",
+        "position": [
+          60,
+          440
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "v1": 0.0,
+          "v2": 5.0,
+          "td": 4.9989837310755726e-06,
+          "tr": 1e-09,
+          "tf": 1e-09,
+          "pw": 4.79902438183255e-06,
+          "per": 9.997967462151145e-06
+        },
+        "ic": {}
+      },
+      {
+        "id": "CLO",
+        "type": "converter.sig2phys",
+        "paradigm": "converter",
+        "domain": "mixed",
+        "fidelity": "ideal",
+        "position": [
+          200,
+          440
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "domain": "voltage"
+        },
+        "ic": {}
+      },
+      {
+        "id": "SH",
+        "type": "passive.switch.ideal",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          560,
+          120
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "r_on": 0.02,
+          "g_on": 50.0,
+          "g_off": 1e-09,
+          "v_th": 0.6,
+          "v_breakdown": -100,
+          "g_breakdown": 0
+        },
+        "ic": {}
+      },
+      {
+        "id": "SL",
+        "type": "passive.switch.ideal",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          560,
+          340
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "r_on": 0.02,
+          "g_on": 50.0,
+          "g_off": 1e-09,
+          "v_th": 0.6,
+          "v_breakdown": -100,
+          "g_breakdown": 0
+        },
+        "ic": {}
+      },
+      {
+        "id": "LR",
+        "type": "passive.inductor",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          700,
+          240
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "L": 6e-05,
+          "IC": 0
+        },
+        "ic": {}
+      },
+      {
+        "id": "CR",
+        "type": "passive.capacitor",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          850,
+          240
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "C": 4.22e-08,
+          "IC": 0
+        },
+        "ic": {}
+      },
+      {
+        "id": "LM",
+        "type": "passive.inductor",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          1000,
+          340
+        ],
+        "rotation": 90,
+        "mirror": "none",
+        "params": {
+          "L": 0.00036,
+          "IC": 0
+        },
+        "ic": {}
+      },
+      {
+        "id": "E1",
+        "type": "source.dependent.vcvs",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          1080,
+          100
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "gain": 0.25
+        },
+        "ic": {}
+      },
+      {
+        "id": "VS",
+        "type": "source.voltage.dc",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          1260,
+          120
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "V": 0.0
+        },
+        "ic": {}
+      },
+      {
+        "id": "F1",
+        "type": "source.dependent.cccs",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          700,
+          640
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "control": "VS",
+          "gain": 0.25
+        },
+        "ic": {}
+      },
+      {
+        "id": "D1",
+        "type": "passive.diode.ideal",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          1400,
+          100
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "g_on": 50.0,
+          "g_off": 1e-09,
+          "v_th": 0.6,
+          "v_breakdown": -100,
+          "g_breakdown": 0
+        },
+        "ic": {}
+      },
+      {
+        "id": "D2",
+        "type": "passive.diode.ideal",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          1400,
+          180
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "g_on": 50.0,
+          "g_off": 1e-09,
+          "v_th": 0.6,
+          "v_breakdown": -100,
+          "g_breakdown": 0
+        },
+        "ic": {}
+      },
+      {
+        "id": "D3",
+        "type": "passive.diode.ideal",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          1400,
+          280
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "g_on": 50.0,
+          "g_off": 1e-09,
+          "v_th": 0.6,
+          "v_breakdown": -100,
+          "g_breakdown": 0
+        },
+        "ic": {}
+      },
+      {
+        "id": "D4",
+        "type": "passive.diode.ideal",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          1400,
+          360
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "g_on": 50.0,
+          "g_off": 1e-09,
+          "v_th": 0.6,
+          "v_breakdown": -100,
+          "g_breakdown": 0
+        },
+        "ic": {}
+      },
+      {
+        "id": "CO",
+        "type": "passive.capacitor",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          1600,
+          240
+        ],
+        "rotation": 90,
+        "mirror": "none",
+        "params": {
+          "C": 0.0001,
+          "IC": 0
+        },
+        "ic": {}
+      },
+      {
+        "id": "RL",
+        "type": "passive.resistor",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          1720,
+          240
+        ],
+        "rotation": 90,
+        "mirror": "none",
+        "params": {
+          "R": 12.5
+        },
+        "ic": {}
+      },
+      {
+        "id": "RB1",
+        "type": "passive.resistor",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          1500,
+          620
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "R": 1000000.0
+        },
+        "ic": {}
+      },
+      {
+        "id": "RB2",
+        "type": "passive.resistor",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          1500,
+          710
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "R": 1000000.0
+        },
+        "ic": {}
+      },
+      {
+        "id": "G",
+        "type": "routing.ground",
+        "paradigm": "physical-network",
+        "domain": "physical-electrical",
+        "fidelity": "ideal",
+        "position": [
+          1180,
+          900
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {},
+        "ic": {}
+      }
+    ],
+    "wires": [
+      {
+        "id": "w0",
+        "from": {
+          "block": "VIN",
+          "port": "p"
+        },
+        "to": {
+          "block": "SH",
+          "port": "d"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w1",
+        "from": {
+          "block": "VIN",
+          "port": "n"
+        },
+        "to": {
+          "block": "G",
+          "port": "gnd"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w2",
+        "from": {
+          "block": "SH",
+          "port": "s"
+        },
+        "to": {
+          "block": "SL",
+          "port": "d"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w3",
+        "from": {
+          "block": "SL",
+          "port": "s"
+        },
+        "to": {
+          "block": "G",
+          "port": "gnd"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w4",
+        "from": {
+          "block": "GHI",
+          "port": "out"
+        },
+        "to": {
+          "block": "CHI",
+          "port": "in"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w5",
+        "from": {
+          "block": "CHI",
+          "port": "out"
+        },
+        "to": {
+          "block": "SH",
+          "port": "g"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w6",
+        "from": {
+          "block": "GLO",
+          "port": "out"
+        },
+        "to": {
+          "block": "CLO",
+          "port": "in"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w7",
+        "from": {
+          "block": "CLO",
+          "port": "out"
+        },
+        "to": {
+          "block": "SL",
+          "port": "g"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w8",
+        "from": {
+          "block": "SH",
+          "port": "s"
+        },
+        "to": {
+          "block": "LR",
+          "port": "p"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w9",
+        "from": {
+          "block": "LR",
+          "port": "n"
+        },
+        "to": {
+          "block": "CR",
+          "port": "p"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w10",
+        "from": {
+          "block": "CR",
+          "port": "n"
+        },
+        "to": {
+          "block": "LM",
+          "port": "p"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w11",
+        "from": {
+          "block": "LM",
+          "port": "n"
+        },
+        "to": {
+          "block": "G",
+          "port": "gnd"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w12",
+        "from": {
+          "block": "E1",
+          "port": "cp"
+        },
+        "to": {
+          "block": "CR",
+          "port": "n"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w13",
+        "from": {
+          "block": "E1",
+          "port": "cn"
+        },
+        "to": {
+          "block": "G",
+          "port": "gnd"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w14",
+        "from": {
+          "block": "F1",
+          "port": "p"
+        },
+        "to": {
+          "block": "CR",
+          "port": "n"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w15",
+        "from": {
+          "block": "F1",
+          "port": "n"
+        },
+        "to": {
+          "block": "G",
+          "port": "gnd"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w16",
+        "from": {
+          "block": "E1",
+          "port": "p"
+        },
+        "to": {
+          "block": "VS",
+          "port": "p"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w17",
+        "from": {
+          "block": "VS",
+          "port": "n"
+        },
+        "to": {
+          "block": "D1",
+          "port": "a"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w18",
+        "from": {
+          "block": "E1",
+          "port": "n"
+        },
+        "to": {
+          "block": "D2",
+          "port": "a"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w19",
+        "from": {
+          "block": "D1",
+          "port": "k"
+        },
+        "to": {
+          "block": "CO",
+          "port": "p"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w20",
+        "from": {
+          "block": "D2",
+          "port": "k"
+        },
+        "to": {
+          "block": "CO",
+          "port": "p"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w21",
+        "from": {
+          "block": "D3",
+          "port": "k"
+        },
+        "to": {
+          "block": "VS",
+          "port": "n"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w22",
+        "from": {
+          "block": "D4",
+          "port": "k"
+        },
+        "to": {
+          "block": "E1",
+          "port": "n"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w23",
+        "from": {
+          "block": "D3",
+          "port": "a"
+        },
+        "to": {
+          "block": "G",
+          "port": "gnd"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w24",
+        "from": {
+          "block": "D4",
+          "port": "a"
+        },
+        "to": {
+          "block": "G",
+          "port": "gnd"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w25",
+        "from": {
+          "block": "CO",
+          "port": "n"
+        },
+        "to": {
+          "block": "G",
+          "port": "gnd"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w26",
+        "from": {
+          "block": "RL",
+          "port": "p"
+        },
+        "to": {
+          "block": "CO",
+          "port": "p"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w27",
+        "from": {
+          "block": "RL",
+          "port": "n"
+        },
+        "to": {
+          "block": "G",
+          "port": "gnd"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w28",
+        "from": {
+          "block": "RB1",
+          "port": "p"
+        },
+        "to": {
+          "block": "VS",
+          "port": "n"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w29",
+        "from": {
+          "block": "RB1",
+          "port": "n"
+        },
+        "to": {
+          "block": "G",
+          "port": "gnd"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w30",
+        "from": {
+          "block": "RB2",
+          "port": "p"
+        },
+        "to": {
+          "block": "E1",
+          "port": "n"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      },
+      {
+        "id": "w31",
+        "from": {
+          "block": "RB2",
+          "port": "n"
+        },
+        "to": {
+          "block": "G",
+          "port": "gnd"
+        },
+        "waypoints": [],
+        "pinned": false,
+        "net": null,
+        "kind": "physical-electrical"
+      }
+    ],
+    "lines": [],
+    "nets": [],
+    "simulation": {},
+    "metadata": {}
+  }
+}
