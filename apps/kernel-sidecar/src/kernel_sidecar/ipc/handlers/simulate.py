@@ -10,7 +10,6 @@ that simulate_cancel can be dispatched while the solve is running.
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import math
 import pathlib
@@ -19,7 +18,6 @@ from typing import Any
 
 import numpy as np
 
-from kernel_sidecar.config.settings import default_settings_path
 from kernel_sidecar.ipc.envelope import (
     Message,
     MessageType,
@@ -30,13 +28,6 @@ from kernel_sidecar.ipc.envelope import (
 logger = logging.getLogger(__name__)
 
 
-def _is_circuit_schematic_legacy(ir1: Any) -> bool:
-    """Lazy-imported wrapper — only ever called on the explicit-legacy-solver path."""
-    from simulator.compiler.spice_netlist_writer import is_circuit_schematic
-
-    return bool(is_circuit_schematic(ir1))
-
-
 async def handle_simulate(ws: Any, msg: Message, ctx: Any) -> None:
     """Register cancel token and spawn the simulation as a background task."""
     request_id = msg.id
@@ -44,11 +35,8 @@ async def handle_simulate(ws: Any, msg: Message, ctx: Any) -> None:
     logger.debug("handle_simulate entry — request_id=%s", request_id)
 
     gsim_doc = payload.get("model")
-    direct_netlist = _normalize_netlist(payload.get("netlist"))
-    if gsim_doc is None and direct_netlist is None:
-        await _emit_error(
-            ws, request_id, "MissingModel", "Payload missing 'model' or 'netlist' key."
-        )
+    if gsim_doc is None:
+        await _emit_error(ws, request_id, "MissingModel", "Payload missing 'model' key.")
         return
 
     from simulator.solvers.protocol import CancelToken
@@ -72,19 +60,14 @@ async def _do_simulate(ws: Any, msg: Message, ctx: Any, cancel_token: Any) -> No
     payload = msg.payload
     options_raw = _extract_options(payload)
     gsim_doc = payload.get("model")
-    direct_netlist = _normalize_netlist(payload.get("netlist"))
-    requested_solver = payload.get("solver")
-    analysis_id_req: str | None = payload.get("analysis_id")  # BE-35
 
     logger.info(
         "simulate request %s — model=%s, netlist=%d chars, solver=%s",
         request_id,
         "yes" if gsim_doc else "no",
-        len(direct_netlist) if isinstance(direct_netlist, str) else 0,
-        requested_solver or "auto",
     )
 
-    if gsim_doc is None and direct_netlist is None:
+    if gsim_doc is None:
         logger.warning("simulate %s — missing model and netlist", request_id)
         await _emit_error(
             ws, request_id, "MissingModel", "Payload missing 'model' or 'netlist' key."
@@ -143,63 +126,6 @@ async def _do_simulate(ws: Any, msg: Message, ctx: Any, cancel_token: Any) -> No
         # simulator.compiler.gsim_py_netlist's own module doc comment. The three old
         # solvers stay reachable, but only via an *explicit* `solver=` request (kept for
         # side-by-side comparison / debugging, not the default path a real user takes).
-        legacy_solver_requested = (requested_solver or "").lower() in (
-            "ngspice",
-            "xyce",
-            "scipy",
-        )
-
-        ir1 = None
-        selected_req = None
-        if not isinstance(direct_netlist, str) and legacy_solver_requested:
-            # Old pipeline, kept reachable only for an explicit solver= override — see the
-            # module-level comment above `legacy_solver_requested`. Confirmed by hand that
-            # gsim_loader's own schema validation rejects real general-simulator-only
-            # documents outright (stale `net`-property requirement predating this
-            # benchmark's own wire schema), so it is not safe to reuse even for shared,
-            # solver-agnostic concerns like simulation-settings extraction — the bypass
-            # path below does not call any of this.
-            from simulator.compiler import gsim_loader, ir1_builder
-
-            # Step 1: validate and load.
-            try:
-                doc = gsim_loader.load(gsim_doc)
-            except (ValueError, TypeError) as exc:
-                await _emit_error(ws, request_id, "ValidationError", str(exc))
-                return
-
-            # Step 2: compile.
-            ir1 = ir1_builder.build(doc)
-
-            # BE-35: extract simulation plan and dispatch by analysis_id.
-            from simulator.compiler.simulation_extract import (
-                analysis_request_to_options_dict,
-                extract_simulation,
-            )
-            from simulator.solvers.protocol import UnsupportedAnalysisError
-
-            try:
-                if ir1.simulation.analyses:
-                    plan = extract_simulation(ir1)
-                    # Select the requested analysis or fall back to the plan default.
-                    target_id = analysis_id_req if analysis_id_req is not None else plan.default_id
-                    selected_req = next(
-                        (r for r in plan.analyses if r.id == target_id),
-                        plan.analyses[0] if plan.analyses else None,
-                    )
-                    if selected_req is not None:
-                        req_opts = analysis_request_to_options_dict(selected_req)
-                        # Plan provides base; IPC payload options_raw takes precedence.
-                        options_raw = {**req_opts, **options_raw}
-            except UnsupportedAnalysisError as exc:
-                await _emit_error(ws, request_id, "UnsupportedAnalysisError", str(exc))
-                return
-            except Exception:
-                # Extraction failure is non-fatal; fall through to payload options.
-                logger.warning(
-                    "extract_simulation failed for request %s", request_id, exc_info=True
-                )
-
         t_start = float(options_raw.get("t_start", 0.0))
         t_end = float(options_raw.get("t_end", 10.0))
         n_samples = _resolve_n_samples(options_raw, t_start, t_end)
@@ -310,8 +236,6 @@ async def _do_simulate(ws: Any, msg: Message, ctx: Any, cancel_token: Any) -> No
             ctx.sim_message = "Solving…"
             loop.call_soon_threadsafe(lambda: loop.create_task(emit_progress(frac)))
 
-        preferred_paths = _load_preferred_solver_paths(default_settings_path())
-
         # Step 3: solve.
         ctx.sim_message = "Solving…"
         logger.debug(
@@ -324,152 +248,45 @@ async def _do_simulate(ws: Any, msg: Message, ctx: Any, cancel_token: Any) -> No
         try:
             backend: Any
             node_domains: dict[str, str] | None = None
-            if isinstance(direct_netlist, str):
-                from simulator.solvers.ngspice_solver import NgspiceSolver
-                from simulator.solvers.xyce_solver import XyceSolver
+            # The backend is general-simulator. A document is compiled by
+            # gsim-core's own compile registry -- the single source of truth for
+            # what a block compiles to -- and solved by the real
+            # `general-simulator` binary.
+            #
+            # Three other dispatch branches used to live here: a raw-netlist path
+            # into ngspice/Xyce, a `spice_netlist_writer` path, and an
+            # ir2/scipy_compiler path, each reachable by an explicit `solver=`.
+            # They targeted a second block taxonomy maintained by hand, which is
+            # the design this project moved off. They are gone, not disabled, so
+            # there is no second description of a block left to drift.
+            try:
+                netlist = compile_gsim_document(gsim_doc)
+            except GsimPyNotAvailable as exc:
+                await _emit_error(ws, request_id, "SolverUnavailable", str(exc))
+                return
+            except Exception as exc:  # gsim-tools' own typed compile errors
+                await _emit_error(ws, request_id, "CompileError", str(exc))
+                return
 
-                requested = str(requested_solver or "ngspice").lower()
-                logger.debug(
-                    "simulate %s — direct netlist path, requested solver: %s",
-                    request_id,
-                    requested,
+            backend = GeneralSimulatorSolver.from_discovery()
+            if backend is None:
+                raise SimulationError(
+                    "general-simulator binary not found. Build it: see "
+                    "packages/simulator/src/simulator/solvers/"
+                    "general_simulator_solver.py's own module doc comment."
                 )
-                if requested == "xyce":
-                    if preferred_paths.get("xyce") is not None:
-                        backend = XyceSolver(preferred_paths["xyce"])
-                    else:
-                        backend = XyceSolver.from_discovery()
-                    if backend is None:
-                        raise SimulationError("Requested solver 'xyce' is not available.")
-                else:
-                    if preferred_paths.get("ngspice") is not None:
-                        backend = NgspiceSolver(preferred_paths["ngspice"])
-                        logger.debug(
-                            "simulate %s — using ngspice at configured path: %s",
-                            request_id,
-                            preferred_paths["ngspice"],
-                        )
-                    else:
-                        backend = NgspiceSolver.from_discovery()
-                        if backend is not None:
-                            logger.debug(
-                                "simulate %s — discovered ngspice at: %s",
-                                request_id,
-                                backend.ngspice_path,
-                            )
-                    if backend is None:
-                        logger.error("simulate %s — ngspice not found on system", request_id)
-                        raise SimulationError("Requested solver 'ngspice' is not available.")
-                logger.debug("simulate %s — launching %s solve…", request_id, backend.name)
-                bundle = await _run_with_heartbeat(
-                    loop,
-                    lambda: backend.solve(
-                        direct_netlist,
-                        sim_id=request_id,
-                        options=options,
-                        cancel=cancel_token,
-                        on_partial=on_partial if streams_live else None,
-                    ),
-                    emit_progress,
-                )
-            elif not legacy_solver_requested:
-                # The new default path (BE-72-equivalent bypass): compile straight from the
-                # raw `.gsim_sch` document via gsim-core's own compile registry, run the
-                # real `general-simulator` binary. See the module-level comment above
-                # `legacy_solver_requested`.
-                if gsim_doc is None:
-                    await _emit_error(
-                        ws, request_id, "MissingModel", "Payload missing 'model' key."
-                    )
-                    return
-                try:
-                    netlist = compile_gsim_document(gsim_doc)
-                except GsimPyNotAvailable as exc:
-                    await _emit_error(ws, request_id, "SolverUnavailable", str(exc))
-                    return
-                except Exception as exc:  # gsim-tools' own typed compile errors
-                    await _emit_error(ws, request_id, "CompileError", str(exc))
-                    return
-
-                backend = GeneralSimulatorSolver.from_discovery()
-                if backend is None:
-                    raise SimulationError(
-                        "general-simulator binary not found. Build it: see "
-                        "packages/simulator/src/simulator/solvers/"
-                        "general_simulator_solver.py's own module doc comment."
-                    )
-                logger.debug("simulate %s — launching %s solve…", request_id, backend.name)
-                bundle = await _run_with_heartbeat(
-                    loop,
-                    lambda: backend.solve(
-                        netlist,
-                        sim_id=request_id,
-                        options=options,
-                        cancel=cancel_token,
-                        on_partial=on_partial if streams_live else None,
-                    ),
-                    emit_progress,
-                )
-            elif ir1 is not None and _is_circuit_schematic_legacy(ir1):
-                from simulator.compiler.spice_netlist_writer import (
-                    compute_node_domains,
-                    write_netlist,
-                )
-                from simulator.selection import select_backend
-
-                # Use the AnalysisRequest from the simulation plan when available
-                # (triggers the v2 netlist writer which handles physical-electrical types).
-                # Fall back to SolverOptions for v1-format models without an analysis plan.
-                netlist = write_netlist(ir1, selected_req if selected_req is not None else options)
-                node_domains = compute_node_domains(ir1)
-                backend = select_backend(
-                    ir1,
-                    intent="transient",
-                    preferred_paths=preferred_paths,
-                    solver=requested_solver,
-                )
-                bundle = await _run_with_heartbeat(
-                    loop,
-                    lambda: backend.solve(
-                        netlist,
-                        sim_id=request_id,
-                        options=options,
-                        cancel=cancel_token,
-                        on_partial=on_partial if streams_live else None,
-                    ),
-                    emit_progress,
-                )
-            else:
-                from simulator.compiler import ir2_lowering, scipy_compiler
-                from simulator.selection import select_backend
-
-                if ir1 is None:
-                    await _emit_error(
-                        ws, request_id, "MissingModel", "Payload missing 'model' key."
-                    )
-                    return
-                try:
-                    ir2 = ir2_lowering.lower(ir1)
-                except ValueError as exc:
-                    await _emit_error(ws, request_id, "CompileError", str(exc))
-                    return
-
-                backend = select_backend(
-                    ir2,
-                    preferred_paths=preferred_paths,
-                    solver=requested_solver,
-                )
-                compiled = scipy_compiler.compile(ir2)
-                bundle = await loop.run_in_executor(
-                    None,
-                    lambda: backend.solve(
-                        compiled,
-                        (t_start, t_end),
-                        options,
-                        progress=progress_cb,
-                        cancel=cancel_token,
-                    ),
-                )
+            logger.debug("simulate %s — launching %s solve…", request_id, backend.name)
+            bundle = await _run_with_heartbeat(
+                loop,
+                lambda: backend.solve(
+                    netlist,
+                    sim_id=request_id,
+                    options=options,
+                    cancel=cancel_token,
+                    on_partial=on_partial if streams_live else None,
+                ),
+                emit_progress,
+            )
         except InterruptedError:
             await _emit_error(ws, request_id, "Cancelled", "Simulation was cancelled.")
             return
@@ -972,27 +789,3 @@ def _annotate_bundle(
         dc_op_table=dc_op_table,
         bode_margins=bode_margins_dict,
     )
-
-
-def _normalize_netlist(netlist: Any) -> str | None:
-    """Return a non-empty netlist string, or None for missing/blank input."""
-    if isinstance(netlist, str) and netlist.strip() != "":
-        return netlist
-    return None
-
-
-def _load_preferred_solver_paths(settings_path: pathlib.Path) -> dict[str, pathlib.Path]:
-    if not settings_path.exists():
-        return {}
-    try:
-        data = json.loads(settings_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return {}
-
-    solvers = data.get("solvers", {})
-    result: dict[str, pathlib.Path] = {}
-    for solver_name in ("ngspice", "xyce"):
-        solver_path = (solvers.get(solver_name) or {}).get("path")
-        if solver_path:
-            result[solver_name] = pathlib.Path(solver_path)
-    return result

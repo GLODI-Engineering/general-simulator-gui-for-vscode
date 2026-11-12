@@ -5,8 +5,8 @@ from __future__ import annotations
 import math
 
 import pytest
-
 from simulator.compiler.signal_flow_lower import AlgebraicLoopError, lower_signal_flow
+
 from simulator.ir.ir1 import IR1Block, IR1Connection, IR1Graph
 
 
