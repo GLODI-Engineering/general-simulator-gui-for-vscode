@@ -281,6 +281,7 @@ export function loadCatalog(
   entries: Array<BlockMetadata | CatalogEntrySource>,
 ): Record<string, BlockMetadata> {
   const catalog: Record<string, BlockMetadata> = {};
+  const accepted: BlockMetadata[] = [];
 
   for (const entry of entries) {
     const metadata = normalizeMetadata("metadata" in entry ? entry.metadata : entry);
@@ -295,6 +296,25 @@ export function loadCatalog(
     validateCrossFieldRules(metadata, source);
     for (const key of catalogKeys(metadata)) {
       catalog[key] = metadata;
+    }
+    accepted.push(metadata);
+  }
+
+  // Aliases in a second pass, and only into keys nothing has claimed.
+  //
+  // The catalogue used to key a component by its `name` and `type` alone,
+  // while `engine-types.ts` resolved `name`, `type` *and* every alias. The two
+  // lookups therefore disagreed about what a component is called: a sheet
+  // naming one by a true alias was reported compilable by `supportsBlock` and
+  // then found no metadata to draw with, so it rendered as an unnamed box.
+  // Same catalogue, same component, two answers.
+  //
+  // Second pass and `in` guard because an alias must never shadow a real
+  // component: a canonical name always wins, whatever order the entries
+  // arrived in.
+  for (const metadata of accepted) {
+    for (const alias of metadata.aliases ?? []) {
+      if (alias && !(alias in catalog)) catalog[alias] = metadata;
     }
   }
 

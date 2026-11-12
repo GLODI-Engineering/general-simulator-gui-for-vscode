@@ -15,9 +15,18 @@
  * Needs `gsim_py` importable. Without it the committed files stand and `--check` says so
  * rather than failing: a checkout without the Rust toolchain is a working checkout.
  *
+ * Every component the engine submits is validated against the block-metadata
+ * schema before anything is written. The drift check answers "did the engine's
+ * answer change?"; this answers "is the engine's answer a legal one?" -- a
+ * different question, and the one that was never asked. A malformed component
+ * used to flow through here into the front end untouched, to be discovered as
+ * a blank symbol or a missing port on somebody's sheet.
+ *
  *   node scripts/gen-engine-catalog.mjs           # write
  *   node scripts/gen-engine-catalog.mjs --check   # verify, exit 1 on drift
  */
+
+import Ajv from "ajv/dist/2020.js";
 
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
@@ -79,8 +88,50 @@ if (catalogRaw === null || capabilitiesRaw === null) {
 }
 
 const catalog = JSON.parse(catalogRaw);
+
+/**
+ * The contract the engine's submission has to satisfy.
+ *
+ * `block-metadata.schema.json` is the front end's half of the bargain: it says
+ * what a component declaration must look like for this app to be able to draw
+ * it, search it and offer its parameters. The engine owns *which* components
+ * exist; this owns *what shape* a component is described in. Validating here
+ * is what makes it a contract rather than a convention.
+ */
+const SCHEMA = JSON.parse(
+  readFileSync(
+    join(REPO_ROOT, "packages/schemas/definitions/blocks/block-metadata.schema.json"),
+    "utf8",
+  ),
+);
+const validateComponent = new Ajv({ strict: false, allErrors: true }).compile(SCHEMA);
+
+const entries = toCatalogEntries(catalog);
+const offenders = [];
+for (const entry of entries) {
+  if (validateComponent(entry.metadata)) continue;
+  const why = validateComponent.errors
+    .slice(0, 4)
+    .map((e) => `${e.instancePath || "/"} ${e.message}`)
+    .join("; ");
+  offenders.push(`  ${entry.metadata.engineId}: ${why}`);
+}
+if (offenders.length > 0) {
+  console.error(
+    `gen-engine-catalog: ${offenders.length} of ${entries.length} components do not satisfy ` +
+      "the block-metadata contract:",
+  );
+  for (const line of offenders.slice(0, 20)) console.error(line);
+  if (offenders.length > 20) console.error(`  ...and ${offenders.length - 20} more`);
+  console.error(
+    "\nThe engine owns which components exist; this schema owns how one is described. " +
+      "Fix the engine's declaration, or change the schema if the contract itself should widen.",
+  );
+  process.exit(1);
+}
+
 const outputs = [
-  [join(LIB, "engine-catalog.json"), toCatalogEntries(catalog)],
+  [join(LIB, "engine-catalog.json"), entries],
   [join(LIB, "engine-capabilities.json"), JSON.parse(capabilitiesRaw)],
 ];
 
