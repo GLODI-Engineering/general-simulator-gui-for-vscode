@@ -20,7 +20,6 @@ from simulator.equation_templates.protocol import BlockEquations
 logger = logging.getLogger(__name__)
 
 _BLOCKS_ROOT = pathlib.Path(__file__).parents[6] / "packages" / "blocks" / "src" / "blocks"
-_CIRCUIT_PREFIXES = ("passive.", "source.", "semi.", "tline.")
 
 
 def _load_module_from_path(module_name: str, path: pathlib.Path) -> types.ModuleType:
@@ -108,23 +107,6 @@ class TemplateRegistry:
             if not root.is_dir():
                 logger.warning("Blocks root not found: %s", root)
                 continue
-
-            for metadata_path in sorted(root.rglob("metadata.yaml")):
-                eq_path = metadata_path.parent / "equations.py"
-                if eq_path.exists():
-                    continue
-                try:
-                    metadata = _load_metadata(metadata_path)
-                except Exception:
-                    logger.exception("Failed to load metadata: %s", metadata_path)
-                    continue
-                block_name = str(metadata.get("name", ""))
-                if any(block_name.startswith(prefix) for prefix in _CIRCUIT_PREFIXES):
-                    logger.debug(
-                        "Skipping equations.py requirement for circuit-domain block %s at %s",
-                        block_name,
-                        metadata_path,
-                    )
 
             for eq_path in sorted(root.rglob("equations.py")):
                 metadata_path = eq_path.parent / "metadata.yaml"
