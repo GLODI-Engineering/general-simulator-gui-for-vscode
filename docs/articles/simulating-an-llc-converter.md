@@ -263,26 +263,48 @@ floating gate supply.
 **The tank.** `L1` = $L_r$ = 60 µH and `C1` = $C_r$ = 42.2 nF in series, `L2` =
 $L_m$ = 360 µH across the primary.
 
-**The transformer.** General Simulator's compile registry has no transformer
-primitive, so the ideal transformer is built from the two dependent sources it
-*does* have — the classic SPICE macro:
+**The transformer — one block, from the library.** General Simulator has no
+transformer *element*, and it does not need one. An ideal transformer is a
+`.SUBCKT` holding the three parts it has always been built from:
 
-- a **VCVS** (`E1`, gain $1/n$) senses the primary voltage and imposes
+- a **VCVS** (gain $1/n$) senses the primary voltage and imposes
   $V_{sec} = V_{pri}/n$;
-- a **0 V source** (`V2`) in series with the secondary acts as a current sensor;
-- a **CCCS** (`F1`, gain $1/n$) reflects that current back as
-  $I_{pri} = I_{sec}/n$.
+- a **0 V source** in series with the secondary acts as a current sensor;
+- a **CCCS** (gain $1/n$) reflects that current back as $I_{pri} = I_{sec}/n$.
+
+Defined once, it is placed as the single block `T1` with four terminals —
+`p1`, `p2`, `s1`, `s2` — and every schematic that needs a transformer uses it
+instead of re-drawing the trio. That is what the library is for.
 
 Before trusting it inside a resonant converter I checked it alone: 100 V in,
-4:1, into 10 Ω gave 25.000 V and 2.500 A on the secondary, 0.625 A on the
-primary, and 62.5 W on both sides. Exact. It is worth building the sub-block you
-are unsure of and testing it by itself before it is buried in something
-oscillating at 100 kHz.
+4:1, into 10 Ω gave 25.0000 V and 2.500 A on the secondary, 0.625 A on the
+primary, and 62.5 W on both sides. Exact. Then the same subcircuit inside the
+LLC reproduced the inline version's output to the millivolt. It is worth
+building the sub-block you are unsure of and testing it by itself before it is
+buried in something oscillating at 100 kHz.
 
-**Rectifier and output.** `D1`–`D4` as a full bridge, `C2` = 100 µF, `R1` =
-12.5 Ω. The two 1 MΩ resistors (`R2`, `R3`) are bleeders that give the floating
-secondary a defined potential during the interval when every diode is off;
-without them that node is unconstrained and the solver has a singular instant.
+> This did not work until recently. A current-controlled source names its
+> controlling voltage source, and that name is scoped to the subcircuit it is
+> written in. Flattening renamed the source but not the reference, so the build
+> failed with `unknown controlling branch 'VS'` — which is exactly the
+> reference an ideal transformer needs. Fixed in `general-mna`; see §7.
+
+**Rectifier and output.** `D1`–`D4` as a full bridge, drawn as two legs — the
+way a bridge is read, not as four diodes in a column. `C2` = 100 µF, `R1` =
+12.5 Ω.
+
+The two 1 MΩ resistors (`R2`, `R3`) are bleeders that give the floating
+secondary a defined potential during the interval when every diode is off. I
+expected them to be unnecessary, since an ideal diode's off-state conductance
+is $10^{-9}$ S rather than zero, and tested it: without them the output comes
+out at 43.4 V with 25 V of ripple instead of 48.5 V with 0.12 V. They are
+needed.
+
+**A word on grounds.** Every return here goes to its own ground symbol rather
+than to one shared symbol across the sheet. With a single ground every return
+is a separate wire to the same point, and the router draws them as a ribbon of
+parallel lines across the middle of the drawing. Local ground symbols are both
+how schematics are drawn and how this one became readable.
 
 ---
 
@@ -410,35 +432,56 @@ post-processing is not inventing anything.
 
 ## 7. What this exercise turned up
 
-Writing this article was also a test of the tool. Five things surfaced that
+Writing this article was also a test of the tool. Seven things surfaced that
 were not known before, listed here because a tutorial that claims everything
-was perfect is not worth reading.
+was perfect is not worth reading. Five are fixed; two are not.
 
-1. **`auto_arrange` is not presentable.** Laying this circuit out automatically
-   produced a topologically correct schematic with long crossing wires and
-   scattered parts — unusable as a figure. The layout in §4 is hand-placed.
-   Automatic layout needs work for circuits with heavy ground fan-out.
-2. **A dependent source's value label collides with its own symbol.** The
-   CCCS renders its gain ("250 m") on top of the diamond.
-3. **Declared parameter defaults are not optional.** The catalogue gives every
+**Fixed:**
+
+1. **A current-controlled source lost its controlling branch across a
+   subcircuit boundary.** An `F`/`H` card names the voltage source whose
+   current controls it, and that name is scoped to the body it is written in.
+   Flattening prefixed every element name with the instance path but left the
+   reference alone, so `F1 p1 p2 VS 0.25` survived expansion still pointing at
+   `VS` while the source had become `X1.VS`, and the build failed with
+   `unknown controlling branch 'VS'`. This is precisely the reference an ideal
+   transformer needs, so until it was fixed a transformer could not be a
+   library component at all.
+2. **A tapped wire could not be simulated.** The editor splices a
+   `routing.junction` block in when a branch is landed on an existing
+   conductor — the ordinary way anyone draws a node with three or more wires.
+   The compile registry had no entry for it, so every schematic drawn that way
+   failed on Run with `unknown-type`. Registered as structural: it emits no
+   card, and the conductors meeting at it share a node.
+3. **Four components declared ports no artwork could reach.** Both
+   current-controlled sources put `p` and `n` on the *same* face at its two
+   corners; the comparator carried the op-amp's offsets into a shorter box, so
+   its inverting input sat outside the triangle; the MESFET put drain and
+   source on a far corner. They drew as circles floating beside the symbol with
+   nothing joining them. The catalogue generator now rejects any port within
+   two units of a face corner.
+4. **A dependent source drew a lead outside its own box.** The current-sense
+   arrow ran from y=66 to y=80 in a 60-tall footprint, colliding with the value
+   label and implying a connection the component does not have.
+5. **No ideal transformer.** Now a library `.SUBCKT`, placed as one block.
+
+**Not fixed:**
+
+6. **`auto_arrange` is not presentable.** Laying this circuit out
+   automatically produced a topologically correct schematic with long crossing
+   wires and scattered parts — unusable as a figure. The layout in §4 is
+   hand-placed. Automatic layout needs work for circuits with heavy ground
+   fan-out.
+7. **Declared parameter defaults are not optional.** The catalogue gives every
    parameter a default, but the compiler rejects a block that omits one
    (`missing-param: block 'S1' is missing required parameter 'g_breakdown'`).
    The editor fills them in when you drop a component, so this only bites
    generated or hand-edited files — but a declared default that cannot be
    relied on is a sharp edge.
-4. **An ideal transformer deserves to be a primitive.** Building one from a
-   VCVS, a sense source and a CCCS works exactly, but it is four blocks and a
-   sign convention for something every isolated topology needs.
-5. **A floating secondary needs bleeders.** With every rectifier diode off, the
-   secondary node is unconstrained. Adding 1 MΩ to ground is the standard
-   remedy, but the failure mode — a singular instant rather than a clear error
-   — is not self-explanatory.
 
 None of these touched the numerical result. The solver matched closed-form
 theory to 0.06% where that theory is valid, and the engine's own measurement
 pass agreed with independent post-processing to nine figures.
-
----
 
 ## 8. Where to go next
 
