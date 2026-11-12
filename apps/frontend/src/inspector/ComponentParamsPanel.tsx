@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { resolveBlockMetadata } from "../canvas/subckt-metadata";
+import { blockDomainOf } from "../library/block-domain";
 import { supportsBlock } from "../library/simulator-compat";
 import type { Block, BlockMetadata, ParamValue } from "../model/types";
 import { paramValueFrom } from "../netlist/spice-number";
@@ -58,16 +59,6 @@ function inferParadigm(type: string): Block["paradigm"] {
   if (type.startsWith("routing.")) return "routing";
   if (type.startsWith("annotation.")) return "annotation";
   return "signal-flow";
-}
-
-function inferDomain(metadata: BlockMetadata): Block["domain"] {
-  const firstPort = metadata.ports.outputs[0] ?? metadata.ports.inputs[0];
-  if (firstPort?.kind.domain) return firstPort.kind.domain as Block["domain"];
-  if (metadata.behavior.domain === "electrical") return "physical-electrical";
-  if (metadata.behavior.domain === "thermal") return "physical-thermal";
-  if (metadata.behavior.domain === "mechanical") return "physical-translational";
-  if (metadata.behavior.domain === "mixed") return "mixed";
-  return "signal";
 }
 
 function defaultParams(metadata: BlockMetadata): Record<string, ParamValue> {
@@ -228,7 +219,7 @@ export function ComponentParamsPanel({ blockId, onClose }: Props) {
             ...candidate,
             type: nextMeta.name,
             paradigm: inferParadigm(nextMeta.name),
-            domain: inferDomain(nextMeta),
+            domain: blockDomainOf(nextMeta),
             params: mergedParams,
           };
         });

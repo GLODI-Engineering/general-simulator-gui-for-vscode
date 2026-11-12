@@ -67,30 +67,28 @@ function metadataFidelities(metadata: BlockMetadata): FidelityEntry[] {
   return (metadata as BlockMetadata & { fidelities: FidelityEntry[] }).fidelities;
 }
 
-function v2Domain(domain: string): PortKindDomain {
-  if (domain === "electrical") {
-    return "physical-electrical";
-  }
-  if (domain === "thermal") {
-    return "physical-thermal";
-  }
-  if (domain === "mechanical") {
-    return "physical-translational";
-  }
-  return domain as PortKindDomain;
+/**
+ * The domain for a v1 component that declared none.
+ *
+ * v2 metadata always carries `domain` -- the schema requires it and
+ * `gen-engine-catalog.mjs` enforces it on the engine's submission. A v1
+ * component being upgraded here may not, and this is the only place that has
+ * to invent one.
+ *
+ * It takes the first port's domain, never `behavior.domain`. The two speak
+ * different vocabularies: `behavior.domain` is
+ * signal/electrical/thermal/mechanical/event/mixed, and `mechanical` has no
+ * single right translation -- it collapses the rotational and translational
+ * domains into one, which is how the 13 rotational components used to lose
+ * theirs. A port's domain is already in the vocabulary the canvas speaks.
+ */
+function v1Domain(portGroups: BlockMetadata["ports"]): PortKindDomain {
+  const first = portGroups.outputs?.[0] ?? portGroups.inputs?.[0];
+  return (first?.kind.domain as PortKindDomain) ?? "signal";
 }
 
 function inferParadigm(metadata: BlockMetadata): "signal-flow" | "physical-network" {
   return metadata.behavior.domain === "signal" ? "signal-flow" : "physical-network";
-}
-
-function normalizePortDomains(metadata: BlockMetadata): void {
-  for (const port of metadata.ports.inputs ?? []) {
-    port.kind = { ...port.kind, domain: v2Domain(port.kind.domain) };
-  }
-  for (const port of metadata.ports.outputs ?? []) {
-    port.kind = { ...port.kind, domain: v2Domain(port.kind.domain) };
-  }
 }
 
 function normalizeMetadata(metadata: BlockMetadata): BlockMetadata {
@@ -120,8 +118,6 @@ function normalizeMetadata(metadata: BlockMetadata): BlockMetadata {
       metadata.ports.inputs ??= [];
       metadata.ports.outputs ??= [];
     }
-    normalizePortDomains(metadata);
-    draft.domain = v2Domain(draft.domain);
     return metadata;
   }
 
@@ -129,7 +125,7 @@ function normalizeMetadata(metadata: BlockMetadata): BlockMetadata {
     ...portGroups.inputs.map(
       (port): FidelityPortDef => ({
         id: port.id,
-        kind: v2Domain(port.kind.domain),
+        kind: port.kind.domain,
         direction: "in",
         label: port.label,
         side: port.side,
@@ -139,7 +135,7 @@ function normalizeMetadata(metadata: BlockMetadata): BlockMetadata {
     ...portGroups.outputs.map(
       (port): FidelityPortDef => ({
         id: port.id,
-        kind: v2Domain(port.kind.domain),
+        kind: port.kind.domain,
         direction: "out",
         label: port.label,
         side: port.side,
@@ -156,7 +152,13 @@ function normalizeMetadata(metadata: BlockMetadata): BlockMetadata {
       variadic_outputs: portGroups.variadic_outputs,
     },
     paradigm: draft.paradigm ?? inferParadigm({ ...metadata, behavior }),
-    domain: draft.domain ?? v2Domain(behavior.domain),
+    // The component's own declaration, not a guess from `behavior.domain`.
+    // The two speak different vocabularies -- `behavior.domain` is
+    // signal/electrical/thermal/mechanical/event/mixed -- and translating
+    // between them cost the 13 rotational components their domain, because
+    // `mechanical` has no single right answer. `domain` is required by the
+    // schema and enforced by `gen-engine-catalog.mjs`. See `block-domain.ts`.
+    domain: draft.domain ?? v1Domain(portGroups),
     fidelities: draft.fidelities ?? [
       {
         tier: "ideal",
