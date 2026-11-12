@@ -19,10 +19,11 @@
  *   --theme          light | dark (default light)
  *   --full           screenshot the whole window, not just the canvas
  *   --keep-server    leave the preview server running for a follow-up render
+ *   --no-build       skip the bundle rebuild (only when you just built)
  *   --base <url>     use an already-running server instead of starting one
  */
 
-import { spawn } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -74,12 +75,43 @@ function parseArgs(argv) {
       case "--keep-server":
         args.keepServer = true;
         break;
+      case "--no-build":
+        args.noBuild = true;
+        break;
       default:
         if (flag.startsWith("--")) throw new Error(`unknown flag: ${flag}`);
     }
   }
   if (!args.doc) throw new Error("--doc <path to .gsim_sch> is required");
   return args;
+}
+
+/**
+ * Rebuild the bundle this render is about to photograph.
+ *
+ * `vite preview` serves `apps/frontend/dist` from disk; it does not compile
+ * anything. Without this step the script happily renders whatever bundle was
+ * last built -- which made it a verification gate that cannot fail. A change
+ * to a symbol rendered byte-identically to the run before it, and the honest
+ * reading of that PNG ("the stroke is too heavy") was a reading of code from
+ * three days earlier. A gate that reports on stale output is worse than no
+ * gate, because it is believed.
+ *
+ * The build is ~4s against a warm cache, which is nothing next to launching
+ * Chromium, so it is unconditional rather than offered as a flag to remember.
+ */
+function buildBundle() {
+  process.stdout.write("building bundle... ");
+  try {
+    execFileSync("pnpm", ["--filter", "@gensim/frontend", "build"], {
+      cwd: REPO_ROOT,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    console.log("ok");
+  } catch (error) {
+    const detail = [error.stdout, error.stderr].filter(Boolean).join("\n");
+    throw new Error(`bundle build failed, refusing to render a stale one:\n${detail}`);
+  }
 }
 
 /** Start `vite preview` and resolve once it is actually serving. */
@@ -96,7 +128,12 @@ async function startPreview() {
       String(PREVIEW_PORT),
       "--strictPort",
     ],
-    { cwd: REPO_ROOT, stdio: ["ignore", "pipe", "pipe"] },
+    // Detached so the whole group can be signalled. `pnpm` is not the server:
+    // it spawns `sh -c vite preview`, which spawns the node process that binds
+    // the port. Killing the pnpm pid alone orphaned that grandchild, which kept
+    // both the port and this script's stdio pipes open -- so the render finished,
+    // wrote its PNG, and then hung forever with no output to say why.
+    { cwd: REPO_ROOT, stdio: ["ignore", "pipe", "pipe"], detached: true },
   );
   let log = "";
   child.stdout.on("data", (d) => {
@@ -116,8 +153,22 @@ async function startPreview() {
     }
     await new Promise((r) => setTimeout(r, 300));
   }
-  child.kill();
+  stopPreview(child);
   throw new Error(`preview server never came up:\n${log}`);
+}
+
+/** Signal the detached process group, not just the pnpm wrapper. */
+function stopPreview(child) {
+  try {
+    process.kill(-child.pid, "SIGTERM");
+  } catch {
+    // Group already gone, or never became one; fall back to the direct child.
+    try {
+      child.kill("SIGTERM");
+    } catch {
+      /* already dead */
+    }
+  }
 }
 
 async function main() {
@@ -132,6 +183,9 @@ async function main() {
     args.out ?? path.join("render-out", `${path.basename(docPath, path.extname(docPath))}.png`),
   );
   mkdirSync(path.dirname(outPath), { recursive: true });
+
+  // Before the server, so a reused preview picks the fresh files off disk too.
+  if (!args.noBuild) buildBundle();
 
   let server = null;
   const base = args.base ?? DEFAULT_BASE;
@@ -202,7 +256,7 @@ async function main() {
     }
   } finally {
     await browser.close();
-    if (server && !args.keepServer) server.kill("SIGTERM");
+    if (server && !args.keepServer) stopPreview(server);
   }
 }
 
