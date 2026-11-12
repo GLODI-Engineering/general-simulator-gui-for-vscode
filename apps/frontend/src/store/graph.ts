@@ -35,7 +35,8 @@ import {
   diffHasChanges,
 } from "./graph-diff";
 import { useLibraryStore } from "./library";
-import { resolveModelAtPath } from "./model";
+import { resolveModelAtPath, syncAncestorSubsystemPorts } from "./model";
+import { useUiStore } from "./ui";
 
 function invariantInteger(value: number, label: string): void {
   if (!Number.isInteger(value)) {
@@ -743,11 +744,23 @@ export const useGraphStore = create<GraphStoreState>((set, get) => ({
   setParam: (blockId, key, value) => {
     set((state) =>
       withDocumentMutation(state, (document) => {
-        document.model.blocks = document.model.blocks.map((block) =>
+        // An edit lands where the user is looking. This only ever touched the
+        // root sheet, so changing any parameter of a block inside a subsystem
+        // body silently did nothing -- including a boundary port's `id`, the
+        // one parameter that has to be editable in there for a subsystem to
+        // declare its own interface.
+        const path = useUiStore.getState().hierarchyPath;
+        const active = resolveModelAtPath(document.model, path);
+        // Falls back to the root sheet, so a caller that addresses a root
+        // block by id while the user happens to be inside a body still works.
+        const target =
+          active?.blocks.some((block) => block.id === blockId) === true ? active : document.model;
+        target.blocks = target.blocks.map((block) =>
           block.id === blockId
             ? { ...block, params: { ...block.params, [key]: structuredClone(value) } }
             : block,
         );
+        syncAncestorSubsystemPorts(document, target === document.model ? [] : path);
       }),
     );
   },
@@ -793,6 +806,9 @@ export const useGraphStore = create<GraphStoreState>((set, get) => ({
           return;
         }
         mutate(model);
+        // The single funnel for every edit inside a subsystem body, so a
+        // parent-side block's ports follow what the body declares.
+        syncAncestorSubsystemPorts(document, path);
       }),
     );
   },

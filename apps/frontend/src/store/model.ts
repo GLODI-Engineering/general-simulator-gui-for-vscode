@@ -171,11 +171,66 @@ export function ensureUniqueBlockIds(model: Model): Model {
 }
 
 /**
- * Sync the `subsystem.ports[]` on `block` to match the hierarchy.inport /
- * hierarchy.outport blocks inside its body.
+ * Rebuild one subsystem block's parent-side port list from the
+ * `hierarchy.inport` / `hierarchy.outport` blocks in its body, in place.
  *
- * Also updates any wires connected to ports that were renamed:
- * - If a port id changes, wires in the parent that connect to that port are updated.
+ * `pathStack` locates the model that *holds* the subsystem block, so a
+ * subsystem on the root sheet is `[]`.
+ *
+ * Wires are repaired at the same time, because a port list that no longer
+ * matches the wires landing on it is worse than a stale one:
+ * - a port whose `id` changed carries its parent wires over to the new name,
+ *   matched through `boundary_block` rather than by name;
+ * - a port that no longer exists takes its parent wires with it, instead of
+ *   leaving a wire pointing at a port that is not there.
+ */
+function syncPortsInPlace(
+  document: ModelDocument,
+  pathStack: string[],
+  subsystemBlockId: string,
+): void {
+  const parentModel = resolveModelAtPath(document.model, pathStack);
+  if (!parentModel) return;
+
+  const block = parentModel.blocks.find((candidate) => candidate.id === subsystemBlockId);
+  if (!block?.subsystem) return;
+
+  const oldPorts: SubsystemPort[] = block.subsystem.ports ?? [];
+  const newPorts = deriveBoundaryPorts(block.subsystem.blocks);
+
+  // boundary_block -> the port id it carried before this sync. The boundary
+  // block's own id is the stable identity here; the port id is the thing the
+  // user just changed, so it cannot be the key.
+  const portById = new Map(oldPorts.map((p) => [p.boundary_block, p.id]));
+
+  const renamedPortFor = (portId: string) =>
+    newPorts.find((p) => portById.get(p.boundary_block) === portId);
+
+  parentModel.wires = parentModel.wires
+    .map((wire) => {
+      let next = wire;
+      for (const side of ["from", "to"] as const) {
+        if (next[side].block !== subsystemBlockId) continue;
+        const portId = next[side].port;
+        const renamed = renamedPortFor(portId);
+        if (renamed && renamed.id !== portId) {
+          next = { ...next, [side]: { ...next[side], port: renamed.id } };
+          continue;
+        }
+        if (!newPorts.some((p) => p.id === portId)) {
+          return null;
+        }
+      }
+      return next;
+    })
+    .filter((wire): wire is Wire => wire !== null);
+
+  block.subsystem.ports = newPorts;
+}
+
+/**
+ * Sync the `subsystem.ports[]` on one subsystem block to match the
+ * hierarchy.inport / hierarchy.outport blocks inside its body.
  *
  * Returns a new ModelDocument with the subsystem block updated.
  */
@@ -185,63 +240,29 @@ export function syncSubsystemPorts(
   subsystemBlockId: string,
 ): ModelDocument {
   const doc = structuredClone(document);
-
-  // Navigate to the parent model (one level above the subsystem block)
-  const parentModel = resolveModelAtPath(doc.model, pathStack);
-  if (!parentModel) return document;
-
-  const blockIndex = parentModel.blocks.findIndex((b) => b.id === subsystemBlockId);
-  if (blockIndex === -1) return document;
-
-  const block = parentModel.blocks[blockIndex];
-  if (!block) return document;
-  if (!block.subsystem) return document;
-
-  const oldPorts: SubsystemPort[] = block.subsystem.ports ?? [];
-  const newPorts = deriveBoundaryPorts(block.subsystem.blocks);
-
-  // Build a rename map: boundary_block → {old id, new id}
-  const portById = new Map(oldPorts.map((p) => [p.boundary_block, p.id]));
-
-  // Update wires in parent model that connect to changed port ids
-  const updatedWires = parentModel.wires
-    .map((wire) => {
-      if (wire.from.block === subsystemBlockId) {
-        const newPort = newPorts.find((p) => {
-          const oldId = portById.get(p.boundary_block);
-          return oldId === wire.from.port;
-        });
-        if (newPort && newPort.id !== wire.from.port) {
-          return { ...wire, from: { ...wire.from, port: newPort.id } };
-        }
-        // If port no longer exists, remove wire
-        if (!newPorts.some((p) => p.id === wire.from.port)) {
-          return null;
-        }
-      }
-      if (wire.to.block === subsystemBlockId) {
-        const newPort = newPorts.find((p) => {
-          const oldId = portById.get(p.boundary_block);
-          return oldId === wire.to.port;
-        });
-        if (newPort && newPort.id !== wire.to.port) {
-          return { ...wire, to: { ...wire.to, port: newPort.id } };
-        }
-        // If port no longer exists, remove wire
-        if (!newPorts.some((p) => p.id === wire.to.port)) {
-          return null;
-        }
-      }
-      return wire;
-    })
-    .filter((w): w is Wire => w !== null);
-
-  // Apply updated wires + new ports to the cloned document
-  parentModel.wires = updatedWires;
-  // biome-ignore lint/style/noNonNullAssertion: guarded by blockIndex check above
-  parentModel.blocks[blockIndex]!.subsystem!.ports = newPorts;
-
+  syncPortsInPlace(doc, pathStack, subsystemBlockId);
   return doc;
+}
+
+/**
+ * Re-derive the ports of every subsystem along `path`, in place and deepest
+ * first.
+ *
+ * This is what makes a parent-side block follow its body. The derivation
+ * itself has existed since grouping was written, but it only ever ran once,
+ * at `Ctrl+G`: a port added, renamed or deleted inside a body afterwards left
+ * the parent block unchanged, with nowhere to attach the wire that should
+ * feed it. Every edit inside a body now ends here.
+ *
+ * `path` is the hierarchy path that was just edited, so editing the root
+ * sheet (`[]`) does nothing, as it should -- the root has no parent block.
+ */
+export function syncAncestorSubsystemPorts(document: ModelDocument, path: string[]): void {
+  for (let depth = path.length - 1; depth >= 0; depth--) {
+    const subsystemBlockId = path[depth];
+    if (subsystemBlockId === undefined) continue;
+    syncPortsInPlace(document, path.slice(0, depth), subsystemBlockId);
+  }
 }
 
 // ---------------------------------------------------------------------------
