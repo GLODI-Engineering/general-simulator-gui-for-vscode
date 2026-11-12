@@ -1,11 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { resolveBlockMetadata } from "../canvas/subckt-metadata";
-import { allowedModelLevels, supportsBlock } from "../library/simulator-compat";
+import { supportsBlock } from "../library/simulator-compat";
 import type { Block, BlockMetadata, ParamValue } from "../model/types";
 import { paramValueFrom } from "../netlist/spice-number";
 import { useGraphStore, useLibraryStore, useUiStore } from "../store";
-import { ADVANCED_MODEL_NOTE, DEVICE_MODELS, getDeviceFamily } from "./device-models";
-import type { ModelLevel, ModelParam } from "./device-models";
+
+/**
+ * One editable row. The engine's catalogue is the only source of parameters
+ * now: it declares each component's params with their defaults, so there is
+ * nothing left to describe them twice.
+ */
+interface ParamRowSpec {
+  name: string;
+  label: string;
+  defaultValue: number | string;
+  description: string;
+  unit?: string;
+}
 
 interface Props {
   blockId: string;
@@ -98,7 +109,7 @@ function ParamRow({
   value,
   onCommit,
 }: {
-  param: ModelParam;
+  param: ParamRowSpec;
   value: string;
   onCommit: (next: ParamValue) => void;
 }) {
@@ -142,17 +153,6 @@ function ParamRow({
   );
 }
 
-function groupParams(params: ModelParam[]): Array<{ name: string; rows: ModelParam[] }> {
-  const groups = new Map<string, ModelParam[]>();
-  for (const p of params) {
-    const key = p.group ?? "Parameters";
-    const list = groups.get(key) ?? [];
-    list.push(p);
-    groups.set(key, list);
-  }
-  return [...groups.entries()].map(([name, rows]) => ({ name, rows }));
-}
-
 export function ComponentParamsPanel({ blockId, onClose }: Props) {
   const hierarchyPath = useUiStore((state) => state.hierarchyPath);
   const document = useGraphStore((state) => state.document);
@@ -173,34 +173,8 @@ export function ComponentParamsPanel({ blockId, onClose }: Props) {
     ? (resolveBlockMetadata(block, catalog, activeModel.subckt_defs) ?? undefined)
     : undefined;
 
-  const family = block ? getDeviceFamily(block.type) : null;
-  const rawDeviceConfig = family ? DEVICE_MODELS[family] : null;
   const activeSimulator = useLibraryStore((state) => state.activeSimulator);
 
-  /**
-   * The model levels the *active* simulator can actually run.
-   *
-   * Every level of every device used to be offered to every simulator,
-   * labelled with which simulator it belongs to and otherwise unguarded. A
-   * sheet targeting a solver that models switches as ideal was still shown
-   * ngspice's SW and CSW model cards, with a full parameter set that would
-   * be silently dropped on the way to the netlist. Offering a choice that
-   * cannot be honoured is worse than offering none.
-   */
-  const deviceConfig = useMemo(() => {
-    if (!rawDeviceConfig || !family) return null;
-    const allowed = allowedModelLevels(
-      activeSimulator,
-      family,
-      rawDeviceConfig.levels.map((l) => l.level),
-    );
-    const levels = rawDeviceConfig.levels.filter((l) => allowed.includes(l.level));
-    if (levels.length === 0) return null;
-    return { ...rawDeviceConfig, levels };
-  }, [rawDeviceConfig, family, activeSimulator]);
-
-  /** This device exists for the simulator, but only as an ideal element. */
-  const idealOnly = Boolean(rawDeviceConfig) && deviceConfig === null;
   const unsupported = block ? !supportsBlock(activeSimulator, block.type) : false;
 
   const variantFamily = block ? familyKey(block.type) : null;
@@ -216,27 +190,6 @@ export function ComponentParamsPanel({ blockId, onClose }: Props) {
     }
     return [...byName.values()].sort((a, b) => a.label.localeCompare(b.label));
   }, [catalog, variantFamily]);
-
-  const storedLevel = block?.params?._level;
-  const currentLevel =
-    typeof storedLevel === "number" ? storedLevel : (deviceConfig?.defaultLevel ?? 0);
-  const levelInfo: ModelLevel | undefined = deviceConfig?.levels.find(
-    (l) => l.level === currentLevel,
-  );
-
-  const [filter, setFilter] = useState("");
-
-  const visibleParams = useMemo(() => {
-    if (!levelInfo) return [];
-    const q = filter.trim().toLowerCase();
-    if (!q) return levelInfo.params;
-    return levelInfo.params.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.label.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q),
-    );
-  }, [levelInfo, filter]);
 
   if (!block || !metadata) {
     return null;
@@ -282,8 +235,6 @@ export function ComponentParamsPanel({ blockId, onClose }: Props) {
       });
     });
   };
-
-  const grouped = groupParams(visibleParams);
 
   return (
     <div className="params-modal-backdrop" onMouseDown={onClose} aria-label="Component parameters">
@@ -339,93 +290,10 @@ export function ComponentParamsPanel({ blockId, onClose }: Props) {
               This component is not supported by the active simulator. It can be placed and saved,
               but a run will not compile it.
             </p>
-          ) : idealOnly ? (
-            <p className="params-modal__contract">
-              The active simulator models this device as ideal, so it has instance parameters and no
-              model card. Model levels appear here for a simulator that can run them.
-            </p>
-          ) : null}
-
-          {/* Level selector for device families */}
-          {deviceConfig ? (
-            <section className="params-modal__section">
-              <label className="params-modal__row params-modal__row--level">
-                <span className="params-modal__row-label">Model level</span>
-                <select
-                  className="params-modal__input"
-                  value={currentLevel}
-                  onChange={(event) => {
-                    const next = Number(event.currentTarget.value);
-                    commitParam("_level", next);
-                  }}
-                >
-                  {deviceConfig.levels.map((l) => (
-                    <option key={l.level} value={l.level}>
-                      Level {l.level} — {l.name} [{l.simulator}]
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="params-modal__row">
-                <span className="params-modal__row-label">Model name</span>
-                <input
-                  type="text"
-                  className="params-modal__input"
-                  placeholder="e.g. Q2N2222 or DEFAULT"
-                  value={paramValueToString(block.params._model_name)}
-                  onChange={(event) => commitParam("_model_name", event.currentTarget.value)}
-                />
-              </label>
-            </section>
-          ) : null}
-
-          {/* Search */}
-          {levelInfo && !levelInfo.raw && levelInfo.params.length > 8 ? (
-            <input
-              className="params-modal__filter"
-              type="search"
-              placeholder="Filter parameters…"
-              value={filter}
-              onChange={(event) => setFilter(event.currentTarget.value)}
-            />
-          ) : null}
-
-          {/* Param groups */}
-          {levelInfo && !levelInfo.raw
-            ? grouped.map((group) => (
-                <section key={group.name} className="params-modal__section">
-                  <h3 className="params-modal__group-label">{group.name}</h3>
-                  <div className="params-modal__grid">
-                    {group.rows.map((p) => (
-                      <ParamRow
-                        key={p.name}
-                        param={p}
-                        value={paramValueToString(block.params[p.name])}
-                        onCommit={(next) => commitParam(p.name, next)}
-                      />
-                    ))}
-                  </div>
-                </section>
-              ))
-            : null}
-
-          {/* Raw model card fallback */}
-          {levelInfo?.raw ? (
-            <section className="params-modal__section">
-              <h3 className="params-modal__group-label">Model card</h3>
-              <p className="params-modal__hint">{ADVANCED_MODEL_NOTE}</p>
-              <textarea
-                className="params-modal__textarea"
-                rows={8}
-                placeholder=".MODEL MYMODEL NPN LEVEL=234 (IS=1e-16 BF=120 …)"
-                value={paramValueToString(block.params._model_card)}
-                onChange={(event) => commitParam("_model_card", event.currentTarget.value)}
-              />
-            </section>
           ) : null}
 
           {/* Catalog instance params (for non-device blocks like signal/control) */}
-          {!deviceConfig && metadata.params.length > 0 ? (
+          {metadata.params.length > 0 ? (
             <section className="params-modal__section">
               <h3 className="params-modal__group-label">Instance parameters</h3>
               <div className="params-modal__grid">
