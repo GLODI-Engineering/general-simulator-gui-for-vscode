@@ -100,17 +100,3 @@ export function voltageSense(left: number, right: number, bottom: number): React
     </>
   );
 }
-
-/** The sensed current: one lead, with an arrow for the direction it is measured in. */
-export function currentSense(x: number, bottom: number): ReactNode {
-  const stop = bottom - 14;
-  return (
-    <>
-      <line x1={x} y1={bottom} x2={x} y2={stop} stroke={STROKE} strokeWidth={SW} />
-      <polygon
-        points={`${x},${stop - 5} ${x - 4},${stop + 3} ${x + 4},${stop + 3}`}
-        fill={STROKE}
-      />
-    </>
-  );
-}

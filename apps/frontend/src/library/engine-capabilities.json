@@ -25,6 +25,17 @@
       "params": []
     },
     {
+      "type": "routing.junction",
+      "emits": {
+        "card": "nothing"
+      },
+      "node_ports": [],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
       "type": "routing.goto",
       "emits": {
         "card": "nothing"

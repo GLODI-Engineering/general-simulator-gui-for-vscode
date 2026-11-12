@@ -116,6 +116,45 @@ for (const entry of entries) {
     .join("; ");
   offenders.push(`  ${entry.metadata.engineId}: ${why}`);
 }
+/**
+ * A port must sit where artwork can reach it.
+ *
+ * A symbol is drawn inside its bbox, so a port declared on a face *corner*
+ * can only be met by artwork that runs into the corner — which no symbol
+ * does. The port marker then draws as a small circle beside the component
+ * with nothing joining the two, and a reader cannot tell which component the
+ * terminal belongs to.
+ *
+ * That is not hypothetical. Both current-controlled sources declared `p` and
+ * `n` on the right face at offsets 1 and 59 of 60 — the two corners — while
+ * their diamond drew leads out of the left and right vertices at mid-height.
+ * Neither terminal touched the symbol. The comparator carried `vn` at offset
+ * 40 of a 40-tall face, outside a triangle that ends at y=38, and the MESFET
+ * put drain and source on the far corner of faces every other FET centres.
+ *
+ * Two units of margin, because a port exactly on a corner and a port one unit
+ * from it are the same mistake.
+ */
+const CORNER_MARGIN = 2;
+for (const entry of entries) {
+  const meta = entry.metadata;
+  const bbox = meta.symbol?.bbox;
+  if (!bbox) continue;
+  const [width, height] = bbox;
+  for (const group of ["inputs", "outputs"]) {
+    for (const port of meta.ports?.[group] ?? []) {
+      if (port.side == null || port.offset == null) continue;
+      const face = port.side === "left" || port.side === "right" ? height : width;
+      if (port.offset <= CORNER_MARGIN || port.offset >= face - CORNER_MARGIN) {
+        offenders.push(
+          `  ${meta.engineId}: port '${port.id}' sits on a corner of the ${port.side} ` +
+            `face (offset ${port.offset} of ${face}) — no artwork can reach it`,
+        );
+      }
+    }
+  }
+}
+
 if (offenders.length > 0) {
   console.error(
     `gen-engine-catalog: ${offenders.length} of ${entries.length} components do not satisfy ` +
