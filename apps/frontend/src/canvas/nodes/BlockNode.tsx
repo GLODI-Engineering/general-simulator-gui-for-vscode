@@ -12,8 +12,48 @@ function BlockNodeImpl({ data, selected }: NodeProps<FlowBlockData>) {
   if (data.block.type === "routing.junction") {
     return (
       <div className="canvas-node canvas-node--junction" data-block-id={data.block.id}>
-        <Handle id="node" type="source" position={Position.Right} isConnectable={false} />
-        <Handle id="node" type="target" position={Position.Left} isConnectable={false} />
+        {/* Both handles sit on the junction point itself, and both are pinned to
+            1x1 including `min*`.
+
+            Without the `min*` pins ReactFlow's own `.react-flow__handle` CSS
+            forces a 5px floor — the same floor the ported blocks below already
+            compensate for — and on a node that is itself 1px the handle box
+            overflows it by a couple of px in each direction. ReactFlow then
+            reports a connection point that misses the junction on *both* axes,
+            `isOrthogonalPolyline` fails its 6px tolerance, and `WireEdge` falls
+            through to `autoOrthogonalPath`: an L invented from two drifted
+            endpoints. That is the little staple standing above a node, and the
+            step beside a pin — a detour around nothing, drawn because the two
+            ends of a straight wire did not agree where they were.
+
+            Left and Right rather than one handle because ReactFlow wants a
+            distinct source and target; placing both at 50%/50% makes the side
+            immaterial, which is right for a point that has no sides. */}
+        {(
+          [
+            ["source", Position.Right],
+            ["target", Position.Left],
+          ] as const
+        ).map(([type, position]) => (
+          <Handle
+            key={type}
+            id="node"
+            type={type}
+            position={position}
+            isConnectable={false}
+            style={{
+              left: "50%",
+              top: "50%",
+              width: 1,
+              height: 1,
+              minWidth: 1,
+              minHeight: 1,
+              border: 0,
+              opacity: 0,
+              pointerEvents: "none",
+            }}
+          />
+        ))}
       </div>
     );
   }

@@ -10,10 +10,18 @@ algorithm, not just checked for self-consistency.
 
 from __future__ import annotations
 
+import pathlib
+
 import pytest
 
 from gsim_model.catalog import load_symbol_geometry
-from gsim_model.layout import PortGeometry, exit_direction, manhattan_waypoints, port_center
+from gsim_model.layout import (
+    SYMBOL_SCALE,
+    PortGeometry,
+    exit_direction,
+    manhattan_waypoints,
+    port_center,
+)
 
 
 def _engine_catalogue_available() -> bool:
@@ -43,8 +51,30 @@ def test_port_center_unrotated() -> None:
     left = PortGeometry(side="left", offset=20.0)
     right = PortGeometry(side="right", offset=20.0)
 
-    assert port_center((100.0, 100.0), 0, "none", left, bbox) == (100.0, 132.0)
-    assert port_center((100.0, 100.0), 0, "none", right, bbox) == (196.0, 132.0)
+    # offset * SYMBOL_SCALE, and the right face at width * SYMBOL_SCALE.
+    assert port_center((100.0, 100.0), 0, "none", left, bbox) == (100.0, 140.0)
+    assert port_center((100.0, 100.0), 0, "none", right, bbox) == (220.0, 140.0)
+
+
+def test_symbol_scale_matches_the_frontend() -> None:
+    """The one number both sides must agree on, read from the source of truth.
+
+    These constants drifted: this module sat at 1.6 long after the canvas moved
+    to 2, so every port position computed here was short by that ratio and
+    anything laid out from Python produced pins that did not line up. Hard-coding
+    the expected value on each side is what let that happen -- the parity test
+    below was written against 1.6 and kept passing. So read the real one.
+    """
+    import re
+
+    here = pathlib.Path(__file__).resolve()
+    repo = next(p for p in here.parents if (p / "apps" / "frontend").is_dir())
+    src = (repo / "apps/frontend/src/canvas/nodes/port-hit-test.ts").read_text(encoding="utf-8")
+    m = re.search(r"export const SYMBOL_SCALE\s*=\s*([0-9.]+)", src)
+    assert m, "could not find SYMBOL_SCALE in port-hit-test.ts"
+    assert float(m.group(1)) == float(SYMBOL_SCALE), (
+        f"frontend SYMBOL_SCALE is {m.group(1)}, gsim_model.layout has {SYMBOL_SCALE}"
+    )
 
 
 def test_port_center_rotated_90_matches_frontend_algorithm() -> None:
@@ -57,8 +87,8 @@ def test_port_center_rotated_90_matches_frontend_algorithm() -> None:
     p_left = port_center((100.0, 100.0), 90, "none", left, bbox)
     p_right = port_center((100.0, 100.0), 90, "none", right, bbox)
 
-    assert p_left == (132.0, 100.0)
-    assert p_right == (132.0, 196.0)
+    assert p_left == (140.0, 100.0)
+    assert p_right == (140.0, 220.0)
 
 
 def test_port_center_mirror_x_flips_vertical_offset() -> None:
@@ -68,8 +98,8 @@ def test_port_center_mirror_x_flips_vertical_offset() -> None:
     normal = port_center((0.0, 0.0), 0, "none", left, bbox)
     mirrored = port_center((0.0, 0.0), 0, "x", left, bbox)
 
-    assert normal == (0.0, 16.0)
-    assert mirrored == (0.0, 48.0)  # (h - offset) * SYMBOL_SCALE = (40-10)*1.6
+    assert normal == (0.0, 20.0)
+    assert mirrored == (0.0, 60.0)  # (h - offset) * SYMBOL_SCALE = (40-10)*2
 
 
 def test_exit_direction_rotates_with_block() -> None:
