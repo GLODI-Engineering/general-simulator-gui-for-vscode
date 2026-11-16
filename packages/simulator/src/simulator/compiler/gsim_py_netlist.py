@@ -48,7 +48,11 @@ from typing import Any
 # behind every Schematic method that needs it) with a message naming the build step.
 from gsim_tools.schematic import GsimPyNotAvailable
 
-__all__ = ["GsimPyNotAvailable", "compile_gsim_document"]
+__all__ = [
+    "GsimPyNotAvailable",
+    "compile_gsim_document",
+    "compile_gsim_document_full",
+]
 
 
 #: `gsim_py.load_document` (via `gsim_tools.schematic.Schematic.load`) requires the *full*
@@ -113,6 +117,23 @@ def compile_gsim_document(gsim_doc: Any, target: str = "general-simulator") -> s
     `UnknownTypeError`, ...) if the document itself doesn't compile — both are real,
     actionable failures the caller should surface to the user, not swallow.
     """
+    netlist, _notes = compile_gsim_document_full(gsim_doc, target)
+    return netlist
+
+
+def compile_gsim_document_full(
+    gsim_doc: Any, target: str = "general-simulator"
+) -> tuple[str, list[str]]:
+    """Like :func:`compile_gsim_document`, but also returns the compiler's own
+    info-level notes.
+
+    The notes are decisions the compiler made *for* the user rather than errors:
+    the reference net it picked when none was declared, and the DC references it
+    added for nodes nothing else ties down. The second kind matters because the
+    alternative is silent — an unreferenced node does not fail the solve, it
+    returns a different answer — so a caller with somewhere to show them should
+    use this and not `compile_gsim_document`.
+    """
     from gsim_tools.schematic import Schematic
 
     doc = json.loads(gsim_doc) if isinstance(gsim_doc, str) else copy.deepcopy(gsim_doc)
@@ -120,7 +141,7 @@ def compile_gsim_document(gsim_doc: Any, target: str = "general-simulator") -> s
     doc["model"] = _retargeted_to_gsim_core(doc["model"])
     text = json.dumps(doc)
     sch = Schematic.load(text)
-    # gsim_tools ships no type stubs, so `.compile()`'s real `-> str` return type is Any
-    # to mypy; str() makes this function's own declared return type honest without ignoring
-    # the check outright.
-    return str(sch.compile(target))
+    # gsim_tools ships no type stubs, so the real return types are Any to mypy; the
+    # conversions below make this function's own declared type honest.
+    result = sch.compile_full(target)
+    return str(result.netlist), [str(n) for n in result.notes]

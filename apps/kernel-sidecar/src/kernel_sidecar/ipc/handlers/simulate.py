@@ -88,11 +88,12 @@ async def _do_simulate(ws: Any, msg: Message, ctx: Any, cancel_token: Any) -> No
         ).to_json()
     )
 
+    compiler_notes: list[str] = []
     try:
         try:
             from simulator.compiler.gsim_py_netlist import (
                 GsimPyNotAvailable,
-                compile_gsim_document,
+                compile_gsim_document_full,
             )
         except ImportError as exc:
             # `gsim_tools` is hand-installed, not locked (it lives in a private
@@ -260,7 +261,11 @@ async def _do_simulate(ws: Any, msg: Message, ctx: Any, cancel_token: Any) -> No
             # the design this project moved off. They are gone, not disabled, so
             # there is no second description of a block left to drift.
             try:
-                netlist = compile_gsim_document(gsim_doc)
+                # `_full` so the compiler's info-level notes survive to the UI. They
+                # carry the DC references it added for nodes nothing else ties down,
+                # and that decision has to be visible: an unreferenced node does not
+                # fail the solve, it quietly changes the answer.
+                netlist, compiler_notes = compile_gsim_document_full(gsim_doc)
             except GsimPyNotAvailable as exc:
                 await _emit_error(ws, request_id, "SolverUnavailable", str(exc))
                 return
@@ -387,6 +392,8 @@ async def _do_simulate(ws: Any, msg: Message, ctx: Any, cancel_token: Any) -> No
             ],
             "status": "ok",
         }
+        if compiler_notes:
+            simulate_result_payload["compiler_notes"] = compiler_notes
         if dc_op_payload is not None:
             simulate_result_payload["dc_op_table"] = dc_op_payload
 
