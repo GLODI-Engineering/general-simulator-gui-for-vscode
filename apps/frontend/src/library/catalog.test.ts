@@ -11,8 +11,6 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import Ajv from "ajv";
-import yaml from "js-yaml";
 
 import { describe, expect, it } from "vitest";
 import loadCatalogImpl from "./catalog";
@@ -57,61 +55,12 @@ const V1_BLOCK_NAMES = [
   "scope",
 ];
 
-describe("FE-23: block catalog — YAML metadata files", () => {
-  let validate: Ajv["validate"] | null = null;
-
-  try {
-    const blockMetaSchema = loadSchema("blocks/block-metadata.schema.json");
-    const portKindSchema = loadSchema("model/port-kind.schema.json");
-    const ajv = new Ajv({ strict: true, allErrors: true });
-    ajv.addSchema(
-      portKindSchema,
-      "https://general-simulator.dev/schemas/model/port-kind.schema.json",
-    );
-    validate = ajv.compile(blockMetaSchema);
-  } catch {
-    /* schema not yet authored */
-  }
-
-  it("all 10 v1 metadata.yaml files exist", () => {
-    const files = findMetadataFiles(BLOCKS_DIR);
-    const names = files.map((f) => f.split("/").slice(-2)[0]);
-    for (const name of V1_BLOCK_NAMES) {
-      expect(names, `Missing metadata.yaml for ${name}`).toContain(name);
-    }
-  });
-
-  it("all 10 v1 metadata.yaml files parse as YAML without error", () => {
-    const files = findMetadataFiles(BLOCKS_DIR);
-    for (const file of files) {
-      const name = file.split("/").slice(-2)[0];
-      if (!V1_BLOCK_NAMES.includes(name)) continue;
-      expect(() => yaml.load(readFileSync(file, "utf-8"))).not.toThrow();
-    }
-  });
-
-  it("all 10 v1 metadata.yaml files validate against block-metadata schema", () => {
-    if (!validate) {
-      console.warn("block-metadata.schema.json not yet authored — skipping validation");
-      return;
-    }
-    const files = findMetadataFiles(BLOCKS_DIR);
-    for (const file of files) {
-      const name = file.split("/").slice(-2)[0];
-      if (!V1_BLOCK_NAMES.includes(name)) continue;
-      const data = yaml.load(readFileSync(file, "utf-8"));
-      const ok = validate(data);
-      expect(ok, `${name}/metadata.yaml errors: ${JSON.stringify(validate.errors)}`).toBe(true);
-    }
-  });
-
-  it("transfer_function has state_count: dynamic", () => {
-    const tfFile = resolve(BLOCKS_DIR, "control/transfer_function/metadata.yaml");
-    const data = yaml.load(readFileSync(tfFile, "utf-8")) as Record<string, unknown>;
-    const behavior = data.behavior as Record<string, unknown>;
-    expect(behavior?.state_count).toBe("dynamic");
-  });
-});
+// The YAML-metadata suite that stood here asserted that
+// `packages/blocks/**/metadata.yaml` existed, parsed and validated. Those
+// files were a second description of components the engine already
+// describes, and they are gone -- the engine is the catalogue. What the
+// remaining suites below check is the engine's own declaration, which is
+// the only one left to be wrong.
 
 describe("FE-23: block catalog loader cross-field rules", () => {
   const loadCatalog: Function = loadCatalogImpl;

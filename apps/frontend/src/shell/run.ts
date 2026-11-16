@@ -225,7 +225,6 @@ export async function triggerRun(): Promise<void> {
       analysis_type: detectAnalysisTypeFromNetlist(importedNetlist),
       t_end: settings.tEnd,
       t_step: settings.tStep,
-      ...(activeSimulator !== "all" ? { solver: activeSimulator } : {}),
     };
   } else {
     // The ordinary case: send the raw document and let the backend compile
@@ -242,7 +241,6 @@ export async function triggerRun(): Promise<void> {
       analysis_type: settings.analysisType as SimulateRequest["analysis_type"],
       t_end: settings.tEnd,
       t_step: settings.tStep,
-      ...(activeSimulator !== "all" ? { solver: activeSimulator } : {}),
     };
   }
 
@@ -321,7 +319,6 @@ export async function triggerRunAnalysis(analysisId: string): Promise<void> {
         ? { netlist: directNetlist }
         : { model: useGraphStore.getState().document.model }),
       ...buildAnalysisPayload(analysisId),
-      ...(activeSimulator !== "all" ? { solver: activeSimulator } : {}),
     };
 
     useIpcStore.getState().setSimProgress(0, "Starting simulation…");

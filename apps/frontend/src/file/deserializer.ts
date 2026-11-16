@@ -1,4 +1,5 @@
 import type { ModelDocument } from "../model/types";
+import { canonicalizeBlockTypes } from "./canonical-types";
 import { validateModelDocument } from "./schema";
 
 function decodeBytes(input: string | Uint8Array): string {
@@ -14,7 +15,9 @@ export function deserialize(input: string | Uint8Array): ModelDocument {
     throw new Error(`/: ${message}`);
   }
 
-  return validateModelDocument(parsed);
+  // Aliases resolve to canonical names here, once, at the only door every
+  // document comes through. See `canonical-types.ts`.
+  return canonicalizeBlockTypes(validateModelDocument(parsed));
 }
 
 export const deserializeModel = deserialize;

@@ -10,8 +10,32 @@ algorithm, not just checked for self-consistency.
 
 from __future__ import annotations
 
+import pytest
+
 from gsim_model.catalog import load_symbol_geometry
 from gsim_model.layout import PortGeometry, exit_direction, manhattan_waypoints, port_center
+
+
+def _engine_catalogue_available() -> bool:
+    """Whether the engine's catalogue can be read at all.
+
+    `load_symbol_geometry` reads it through `gsim_py`, which is a one-time `maturin build`
+    per interpreter and is deliberately absent from a plain `uv sync` -- so on a checkout
+    without it these two tests raised `CatalogUnavailableError` (and, for the negative case,
+    it instead of the `FileNotFoundError` being asserted) rather than skipping. Every other
+    test in this workspace that needs the engine skips when it is missing; these now do too.
+    """
+    try:
+        import gsim_py  # noqa: F401
+    except ImportError:
+        return False
+    return True
+
+
+requires_engine_catalogue = pytest.mark.skipif(
+    not _engine_catalogue_available(),
+    reason="gsim_py not built for this interpreter, so the engine catalogue cannot be read",
+)
 
 
 def test_port_center_unrotated() -> None:
@@ -67,6 +91,7 @@ def test_manhattan_waypoints_bends_toward_target() -> None:
     assert manhattan_waypoints((0.0, 0.0), (0, 1), (100.0, 80.0)) == [(0, 80)]
 
 
+@requires_engine_catalogue
 def test_load_symbol_geometry_resistor() -> None:
     geom = load_symbol_geometry("physical-electrical.passive.resistor")
     assert geom.bbox == (60, 40)
@@ -74,8 +99,7 @@ def test_load_symbol_geometry_resistor() -> None:
     assert geom.ports["n"] == PortGeometry(side="right", offset=20)
 
 
+@requires_engine_catalogue
 def test_load_symbol_geometry_unknown_type_raises() -> None:
-    import pytest
-
     with pytest.raises(FileNotFoundError):
         load_symbol_geometry("physical-electrical.does_not_exist")

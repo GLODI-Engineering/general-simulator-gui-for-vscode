@@ -1,8 +1,9 @@
 name: backend-v2-e2e
 
-# Runs the v2 end-to-end and roundtrip gate tests (BE-41) on every PR and push.
-# These tests exercise the full v2 pipeline: load → flatten → resolve_goto_from
-# → substitute_params → build_ir1 → extract_simulation → lower_ir2 → compile → solve.
+# Runs the v2 end-to-end roundtrip gate test (BE-41) on every PR and push.
+# It exercises the v2 pipeline: load → flatten → resolve_goto_from → substitute_params
+# → compile → solve. (`build_ir1`/`lower_ir2` were the Python-simulator lowering stages, which
+# went with the backend refactor; gsim-core compiles the document now.)
 # No host SPICE simulator is required.
 
 on:
@@ -35,10 +36,13 @@ jobs:
       - name: mypy (simulator)
         run: uv run mypy packages/simulator/src/
 
-      - name: v2 comprehensive e2e test
+      # test_v2_comprehensive.py was one of five e2e files the backend refactor deleted along
+      # with the SPICE paths they covered. Naming a file that no longer exists made pytest exit
+      # "file or directory not found" before running anything, so this gate had been failing
+      # without testing a thing.
+      - name: v2 e2e roundtrip test
         run: |
           uv run pytest \
-            tests/backend/e2e/test_v2_comprehensive.py \
             tests/backend/e2e/test_v2_roundtrip.py \
             -v --tb=short
 

@@ -6,7 +6,6 @@ requires-python = ">=3.11"
 dependencies = [
     "schemas",
     "components",
-    "blocks",
     # `gsim-tools` is deliberately *not* declared here. It lives in a private
     # sibling repository, so no CI checkout can resolve a path source to it, and
     # an optional extra does not help: uv locks every extra, so the path has to
@@ -32,5 +31,5 @@ packages = ["src/simulator"]
 
 [tool.pytest.ini_options]
 markers = [
-    "integration: requires external simulator binaries (ngspice, Xyce) on the host",
+    "integration: requires the general-simulator binary on the host",
 ]

@@ -134,18 +134,6 @@ describe("FE-37: Simulate flow", () => {
     expect(mockSetActiveEditorTab).toHaveBeenCalledWith("core.waveform");
   });
 
-  it("includes solver in simulate payload when a simulator is selected", async () => {
-    activeSimulator = "xyce";
-    mockExecute.mockResolvedValue({ manifest: { sim_id: "s1", signals: ["y"] } });
-
-    await act(async () => {
-      await triggerRun();
-    });
-
-    const payload = mockExecute.mock.calls[0][0];
-    expect(payload).toMatchObject({ type: "simulate", solver: "xyce" });
-  });
-
   it("a run whose manifest reports zero signals still clears a previous run's stale traces from the axes", async () => {
     // First run: populates a figure/axes with s1's signals — mirrors what a
     // schematic-based run leaves on screen.

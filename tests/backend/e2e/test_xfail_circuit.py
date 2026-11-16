@@ -1,19 +1,24 @@
-"""BE-28 — xfail circuit test updated for the classic SPICE path.
+"""A circuit-element model either solves, or says which component is missing.
 
-BE-23 originally asserted that circuit-element models produce status="error"
-with a "Phase 2" message. BE-28 changes this contract:
+Originally BE-23/BE-28, written when this repository could target ngspice or Xyce: the
+contract was "status=ok if a SPICE simulator is installed, else an error naming it".
+Those backends are gone -- general-simulator is the only one -- so the surviving contract
+is the useful half: the reply is either a real solve, or an error that names the missing
+piece rather than being opaque.
 
-- When ngspice or Xyce is installed: expect status="ok" (real solve).
-- When neither simulator is found: expect status="error" with a message that
-  mentions "No SPICE simulator" (not "Phase 2").
-
-The "Phase 2" assertion is intentionally removed.
+The model is a fixture rather than a literal in this file. It used to be built inline as a
+schema_version 1 document, which no reader accepts (there is no v1 reader, by design), with
+no `paradigm` on its blocks, no `kind` on its wires, no ground, and the catalogue's `p`/`n`
+port spelling for two-pin passives where the compiler wants `p1`/`p2`
+(GLODI-Engineering/gsim-core#4). It is now generated through gsim_py, so the schema and the
+spelling come from the engine.
 """
 
 from __future__ import annotations
 
 import asyncio
 import json
+import pathlib
 
 import pytest
 
@@ -22,60 +27,13 @@ from tests.backend.e2e._ws_helpers import recv_json
 pytestmark = pytest.mark.asyncio
 
 
+FIXTURES = pathlib.Path(__file__).parent.parent / "fixtures"
+RC_MODEL = FIXTURES / "models" / "rc_circuit.gsim"
+
+
 def _rc_circuit_model() -> dict:  # type: ignore[type-arg]
-    """A minimal .gsim RC circuit using classic-path block types."""
-    return {
-        "schema_version": 1,
-        "model": {
-            "id": "rc-circuit-model",
-            "name": "RC Circuit",
-            "grid": 10,
-            "blocks": [
-                {
-                    "id": "v1",
-                    "type": "source.voltage.dc",
-                    "position": [0, 0],
-                    "rotation": 0,
-                    "mirror": "none",
-                    "params": {"V": 5.0},
-                },
-                {
-                    "id": "r1",
-                    "type": "passive.resistor",
-                    "position": [100, 0],
-                    "rotation": 0,
-                    "mirror": "none",
-                    "params": {"R": 1000.0},
-                },
-                {
-                    "id": "c1",
-                    "type": "passive.capacitor",
-                    "position": [200, 0],
-                    "rotation": 0,
-                    "mirror": "none",
-                    "params": {"C": 1e-6},
-                },
-            ],
-            "wires": [
-                {
-                    "id": "w1",
-                    "from": {"block": "v1", "port": "p"},
-                    "to": {"block": "r1", "port": "p"},
-                },
-                {
-                    "id": "w2",
-                    "from": {"block": "r1", "port": "n"},
-                    "to": {"block": "c1", "port": "p"},
-                },
-                {
-                    "id": "w3",
-                    "from": {"block": "c1", "port": "n"},
-                    "to": {"block": "v1", "port": "n"},
-                },
-            ],
-            "metadata": {},
-        },
-    }
+    """The minimal RC circuit, as a schema_version 2 document."""
+    return json.loads(RC_MODEL.read_text(encoding="utf-8"))  # type: ignore[no-any-return]
 
 
 async def test_circuit_element_result_is_ok_or_no_simulator(e2e_server: dict) -> None:

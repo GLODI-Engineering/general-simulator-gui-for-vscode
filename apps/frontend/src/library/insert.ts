@@ -1,6 +1,7 @@
 import type { Block, BlockMetadata, ParamValue } from "../model/types";
 
 import { useGraphStore, useLibraryStore, useUiStore } from "../store";
+import { blockDomainOf } from "./block-domain";
 import { assignRefdes } from "./refdes";
 
 export { assignRefdes } from "./refdes";
@@ -34,23 +35,6 @@ function inferParadigm(type: string): Block["paradigm"] {
   return "signal-flow";
 }
 
-const SHORT_DOMAIN_MAP: Record<string, Block["domain"]> = {
-  electrical: "physical-electrical",
-  thermal: "physical-thermal",
-  mechanical: "physical-translational",
-};
-
-function normalizeDomain(raw: string): Block["domain"] {
-  return (SHORT_DOMAIN_MAP[raw] as Block["domain"]) ?? (raw as Block["domain"]);
-}
-
-function inferDomain(metadata: BlockMetadata): Block["domain"] {
-  const firstPort = metadata.ports.outputs[0] ?? metadata.ports.inputs[0];
-  if (firstPort?.kind.domain) return normalizeDomain(firstPort.kind.domain);
-  if (metadata.behavior.domain) return normalizeDomain(metadata.behavior.domain);
-  return "signal";
-}
-
 export function createBlockFromMetadata(
   metadata: BlockMetadata,
   position = nextInsertPosition(),
@@ -65,7 +49,7 @@ export function createBlockFromMetadata(
     id: `${sanitizeId(metadata.name)}-${crypto.randomUUID()}`,
     type: metadata.name,
     paradigm: inferParadigm(metadata.name),
-    domain: inferDomain(metadata),
+    domain: blockDomainOf(metadata),
     fidelity: inferParadigm(metadata.name) === "physical-network" ? "ideal" : "n_a",
     position,
     rotation: 0,

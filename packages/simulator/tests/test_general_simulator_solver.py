@@ -17,8 +17,18 @@ import pytest
 
 
 def _gsim_py_available() -> bool:
+    """Whether the compile path these tests exercise can import everything it needs.
+
+    `gsim_py` alone is not enough: `gsim_py_netlist` also imports `gsim_tools.schematic`
+    (for `GsimPyNotAvailable`), and `gsim-tools` is a commented-out path dependency, so it
+    is absent from a plain `uv sync`. Checking only `gsim_py` made an interpreter that had
+    one and not the other fail with a bare `ModuleNotFoundError: gsim_tools` instead of
+    skipping -- which is what happens on any checkout where the engine wheel was installed
+    by hand.
+    """
     try:
         import gsim_py  # noqa: F401
+        import gsim_tools.schematic  # noqa: F401
     except ImportError:
         return False
     return True

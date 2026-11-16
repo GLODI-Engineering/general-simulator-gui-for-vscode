@@ -12,9 +12,7 @@ members = [
     "packages/simulator",
     "packages/gsim-model",
     "packages/components",
-    "packages/blocks",
     "packages/synthesis",
-    "packages/engine-xyce",
 ]
 
 [tool.uv.sources]
@@ -23,9 +21,7 @@ schemas = { workspace = true }
 simulator = { workspace = true }
 gsim-model = { workspace = true }
 components = { workspace = true }
-blocks = { workspace = true }
 synthesis = { workspace = true }
-engine-xyce = { workspace = true }
 # `gsim-tools` and `gsim_py` are both installed by hand, not locked.
 #
 # `gsim_py` because it is a compiled PyO3 extension (gsim-core/crates/gsim-py):
@@ -49,9 +45,15 @@ engine-xyce = { workspace = true }
 # gsim-tools = { path = "../gsim-tools" }
 
 [dependency-groups]
+# `uv.lock` is gitignored (it pins the sibling path deps by absolute path, so it is
+# machine-specific), which means CI resolves this group fresh on every run. A lower bound on a
+# *linter* therefore floats to whatever is newest, and CI goes red with no commit touching it:
+# ruff 0.17.5 added an `I001` that 0.17.4 did not raise, and reddened a branch that had passed.
+# So the two tools whose findings are version-dependent are pinned exactly; the rest, whose
+# behaviour does not change what counts as a failure, keep their lower bounds.
 dev = [
-    "ruff>=0.7.4",
-    "mypy>=1.13",
+    "ruff==0.17.5",
+    "mypy==2.4.1",
     "pre-commit>=4.0",
     "pytest>=8.3",
     "pytest-asyncio>=0.24",
@@ -99,9 +101,6 @@ ignore = [
 "packages/**/tests/**/*.py" = ["N802", "N803", "N806", "UP038", "SIM105", "SIM222", "F841", "B904"]
 
 # Block equation templates intentionally use conventional electrical notation (V_GS, I_D, etc.).
-"packages/blocks/src/blocks/**/*_ideal.py" = ["N806"]
-"packages/blocks/src/blocks/**/*_behavioral.py" = ["N806"]
-"packages/blocks/src/blocks/**/*_spice.py" = ["N806"]
 
 # generate_reference.py patches sys.path before imports.
 "tests/backend/fixtures/generate_reference.py" = ["E402"]
@@ -127,9 +126,7 @@ no_implicit_optional = true
 # ("There are no .py[i] files in directory"). A new Python package needs a line here.
 files = [
     "apps/kernel-sidecar/src",
-    "packages/blocks/src",
     "packages/components/src",
-    "packages/engine-xyce/src",
     "packages/gsim-model/src",
     "packages/kernel-core/src",
     "packages/simulator/src",
@@ -142,8 +139,6 @@ exclude = [
     "packages/schemas/generated/",
     # Tiered equation templates live under hyphenated directories and are dynamically imported by path,
     # not as Python packages. Exclude them to avoid mypy module name collisions.
-    "packages/blocks/src/blocks/physical-",
-    "packages/blocks/src/blocks/signal-flow/",
 ]
 
 [[tool.mypy.overrides]]
@@ -159,7 +154,7 @@ ignore_missing_imports = true
 # note in `[tool.uv.sources]`), so on a checkout without the private sibling repo
 # it is missing outright. Either way mypy must not treat that as an error.
 [[tool.mypy.overrides]]
-module = ["gsim_tools.*"]
+module = ["gsim_tools.*", "gsim_py", "gsim_py.*"]
 ignore_missing_imports = true
 
 # ---------------------------------------------------------------------------

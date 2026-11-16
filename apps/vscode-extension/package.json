@@ -137,18 +137,6 @@
           "markdownDescription": "Absolute path to the `general-simulator` binary — the engine that actually runs a simulation.\n\nLeave empty to search, in order: this setting, `GENSIM_GENERAL_SIMULATOR_PATH`, then `PATH`, then a sibling `general-simulator` checkout beside the workspace. Build it with `cargo build --release -p general-simulator-cli` and point here at `target/release/general-simulator`.",
           "scope": "machine-overridable"
         },
-        "generalSimulator.ngspicePath": {
-          "type": "string",
-          "default": "",
-          "markdownDescription": "Absolute path to the `ngspice` binary. Only needed for schematics run with the ngspice solver; the default engine does not use it. Empty searches `GENSIM_NGSPICE_PATH` then `PATH`.",
-          "scope": "machine-overridable"
-        },
-        "generalSimulator.xycePath": {
-          "type": "string",
-          "default": "",
-          "markdownDescription": "Absolute path to the `Xyce` binary. Only needed for schematics run with the Xyce solver. Empty searches `GENSIM_XYCE_PATH` then `PATH`.",
-          "scope": "machine-overridable"
-        },
         "generalSimulator.octaveCliPath": {
           "type": "string",
           "default": "",
@@ -450,7 +438,6 @@
     "schematic",
     "power-electronics",
     "circuit",
-    "ngspice",
     "control-systems"
   ],
   "dependencies": {

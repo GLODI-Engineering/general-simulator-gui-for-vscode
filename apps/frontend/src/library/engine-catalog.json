@@ -8495,8 +8495,8 @@
       },
       "version": 1,
       "engineId": "passive.inductor.coupled",
-      "engineType": null,
-      "compilable": false
+      "engineType": "passive.inductor.coupled",
+      "compilable": true
     }
   },
   {
@@ -9757,7 +9757,7 @@
               "domain": "physical-electrical"
             },
             "label": "V+",
-            "offset": 20,
+            "offset": 14,
             "side": "left"
           },
           {
@@ -9766,7 +9766,7 @@
               "domain": "physical-electrical"
             },
             "label": "V-",
-            "offset": 40,
+            "offset": 26,
             "side": "left"
           }
         ],
@@ -10283,8 +10283,8 @@
       },
       "version": 1,
       "engineId": "physical-electrical.passive.mutual_inductor",
-      "engineType": null,
-      "compilable": false
+      "engineType": "physical_electrical.passive.mutual_inductor",
+      "compilable": true
     }
   },
   {
@@ -10386,8 +10386,8 @@
       },
       "version": 1,
       "engineId": "physical-electrical.passive.transformer",
-      "engineType": null,
-      "compilable": false
+      "engineType": "physical_electrical.passive.transformer",
+      "compilable": true
     }
   },
   {
@@ -18697,7 +18697,7 @@
               "domain": "physical-electrical"
             },
             "label": "Gate",
-            "offset": 56,
+            "offset": 53,
             "side": "left"
           }
         ],
@@ -18708,7 +18708,7 @@
               "domain": "physical-electrical"
             },
             "label": "Drain",
-            "offset": 56,
+            "offset": 28,
             "side": "top"
           },
           {
@@ -18717,7 +18717,7 @@
               "domain": "physical-electrical"
             },
             "label": "Source",
-            "offset": 56,
+            "offset": 28,
             "side": "bottom"
           }
         ]
@@ -25674,8 +25674,8 @@
               "domain": "physical-electrical"
             },
             "label": "+",
-            "offset": 1,
-            "side": "right"
+            "offset": 30,
+            "side": "left"
           }
         ],
         "outputs": [
@@ -25685,7 +25685,7 @@
               "domain": "physical-electrical"
             },
             "label": "-",
-            "offset": 59,
+            "offset": 30,
             "side": "right"
           }
         ]
@@ -25761,8 +25761,8 @@
               "domain": "physical-electrical"
             },
             "label": "+",
-            "offset": 1,
-            "side": "right"
+            "offset": 30,
+            "side": "left"
           }
         ],
         "outputs": [
@@ -25772,7 +25772,7 @@
               "domain": "physical-electrical"
             },
             "label": "-",
-            "offset": 59,
+            "offset": 30,
             "side": "right"
           }
         ]
