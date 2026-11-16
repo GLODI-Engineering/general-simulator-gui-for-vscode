@@ -1,0 +1,141 @@
+{
+  "schema_version": 2,
+  "model": {
+    "id": "rc-circuit-model",
+    "name": "RC Circuit",
+    "grid": 10,
+    "params": [],
+    "blocks": [
+      {
+        "id": "v1",
+        "type": "source.voltage.dc",
+        "paradigm": "physical-network",
+        "domain": "electrical",
+        "fidelity": "ideal",
+        "position": [
+          0,
+          0
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "V": 5.0
+        },
+        "ic": {}
+      },
+      {
+        "id": "r1",
+        "type": "passive.resistor",
+        "paradigm": "physical-network",
+        "domain": "electrical",
+        "fidelity": "ideal",
+        "position": [
+          100,
+          0
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "R": 1000.0
+        },
+        "ic": {}
+      },
+      {
+        "id": "c1",
+        "type": "passive.capacitor",
+        "paradigm": "physical-network",
+        "domain": "electrical",
+        "fidelity": "ideal",
+        "position": [
+          200,
+          0
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {
+          "C": 1e-06
+        },
+        "ic": {}
+      },
+      {
+        "id": "gnd",
+        "type": "routing.ground",
+        "paradigm": "physical-network",
+        "domain": "electrical",
+        "fidelity": "ideal",
+        "position": [
+          100,
+          100
+        ],
+        "rotation": 0,
+        "mirror": "none",
+        "params": {},
+        "ic": {}
+      }
+    ],
+    "wires": [
+      {
+        "id": "wire1",
+        "from": {
+          "block": "v1",
+          "port": "p"
+        },
+        "to": {
+          "block": "r1",
+          "port": "p1"
+        },
+        "kind": "physical-electrical",
+        "waypoints": [],
+        "pinned": false
+      },
+      {
+        "id": "wire2",
+        "from": {
+          "block": "r1",
+          "port": "p2"
+        },
+        "to": {
+          "block": "c1",
+          "port": "p1"
+        },
+        "kind": "physical-electrical",
+        "waypoints": [],
+        "pinned": false,
+        "net": "out"
+      },
+      {
+        "id": "wire3",
+        "from": {
+          "block": "c1",
+          "port": "p2"
+        },
+        "to": {
+          "block": "gnd",
+          "port": "p"
+        },
+        "kind": "physical-electrical",
+        "waypoints": [],
+        "pinned": false
+      },
+      {
+        "id": "wire4",
+        "from": {
+          "block": "v1",
+          "port": "n"
+        },
+        "to": {
+          "block": "gnd",
+          "port": "p"
+        },
+        "kind": "physical-electrical",
+        "waypoints": [],
+        "pinned": false
+      }
+    ],
+    "subckt_defs": [],
+    "lines": [],
+    "nets": [],
+    "simulation": {},
+    "metadata": {}
+  }
+}
