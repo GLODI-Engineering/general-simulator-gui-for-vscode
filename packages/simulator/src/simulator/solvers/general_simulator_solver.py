@@ -36,7 +36,11 @@ from typing import Any, ClassVar
 
 from simulator.parsers.general_simulator_csv import parse_general_simulator_csv
 from simulator.solvers._subprocess_run import default_solver_timeout_seconds, run_cancellable
-from simulator.solvers.path_discovery import SolverNotFoundError, find_solver
+from simulator.solvers.path_discovery import (
+    SolverNotFoundError,
+    candidate_names,
+    find_solver,
+)
 from simulator.solvers.protocol import (
     CancelToken,
     PartialCallback,
@@ -67,9 +71,14 @@ def discover_general_simulator() -> pathlib.Path | None:
     # one level up into the shared parent directory, then into a directory literally
     # named "general-simulator".
     this_repo_root = pathlib.Path(__file__).resolve().parents[5]
-    candidate = this_repo_root.parent / _SIBLING_REPO_NAME / _SIBLING_BINARY_RELATIVE
-    if candidate.exists() and candidate.is_file():
-        return candidate
+    sibling_build_dir = this_repo_root.parent / _SIBLING_REPO_NAME / _SIBLING_BINARY_RELATIVE.parent
+    # `.exe` first on Windows: the released archive and a local `cargo build` both produce
+    # `general-simulator.exe` there, so looking only for the bare name found nothing and this
+    # fallback failed on Windows exactly as `find_solver` did.
+    for name in candidate_names(_SIBLING_REPO_NAME):
+        candidate = sibling_build_dir / name
+        if candidate.is_file():
+            return candidate
     return None
 
 

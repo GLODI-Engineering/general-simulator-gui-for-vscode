@@ -13,7 +13,6 @@ from __future__ import annotations
 import os
 import pathlib
 import shutil
-import subprocess
 from typing import Any
 
 
@@ -48,28 +47,44 @@ def _env_var_names(solver_name: str) -> list[str]:
     return names
 
 
+def candidate_names(solver_name: str) -> list[str]:
+    """The filenames this solver's binary may have, best first.
+
+    On Windows the released `general-simulator` archive contains
+    `general-simulator.exe`, so a lookup for the bare name finds nothing. `shutil.which`
+    applies PATHEXT for us, but a *directory* walk does not, so the suffix has to be
+    spelled out wherever a path is built by hand.
+    """
+    if os.name == "nt":
+        return [f"{solver_name}.exe", solver_name]
+    return [solver_name]
+
+
 def _validate_executable(path: pathlib.Path, version_regex: str | None = None) -> bool:
-    """Return True if path exists, is executable, and --version succeeds."""
-    if not path.exists():
+    """Return True if `path` is a runnable solver binary.
+
+    It deliberately does **not** require `--version` to succeed.
+    `general-simulator` has no such flag -- it treats any argument as a netlist path, so
+    `general-simulator --version` exits 1 with
+    `error: reading --version: No such file or directory`. Gating on that rejected every
+    perfectly good binary, and because `discover_general_simulator` falls back to a
+    sibling-checkout path afterwards, the breakage was invisible to anyone whose repos sit
+    side by side and total for everyone else: on Windows both paths failed, so the
+    extension could not find a solver at all.
+
+    What is checked is what can be checked without assuming a CLI contract: the path
+    exists, is a file, and on POSIX carries the execute bit. `os.access(X_OK)` is
+    meaningless on Windows -- it reports success for any readable file -- so it is skipped
+    there rather than relied on.
+
+    `version_regex` is accepted for callers that still pass it and is not used; no solver
+    reaching this function today publishes a version string in a documented shape.
+    """
+    if not path.is_file():
         return False
-    if not os.access(path, os.X_OK):
-        return False
-    env = os.environ.copy()
-    lib_dir = path.parent.parent / "lib"
-    if lib_dir.is_dir():
-        existing = env.get("LD_LIBRARY_PATH", "")
-        env["LD_LIBRARY_PATH"] = f"{lib_dir}:{existing}" if existing else str(lib_dir)
-    version_flag = "-v" if path.name.lower() == "xyce" else "--version"
-    try:
-        result = subprocess.run(
-            [str(path), version_flag],
-            capture_output=True,
-            timeout=5,
-            env=env,
-        )
-        return result.returncode == 0
-    except (subprocess.TimeoutExpired, OSError):
-        return False
+    # `os.access(X_OK)` is meaningless on Windows -- it reports success for any readable
+    # file -- so the execute bit is only consulted where it means something.
+    return os.name == "nt" or os.access(path, os.X_OK)
 
 
 def find_solver(

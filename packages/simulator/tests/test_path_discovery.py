@@ -167,3 +167,66 @@ def test_not_found_error_enumerates_sources(monkeypatch: pytest.MonkeyPatch) -> 
         if keyword.lower() in str(sources).lower()
     )
     assert count >= 2, f"Error must enumerate sources; got: {sources!r}"
+
+
+def test_a_binary_without_a_version_flag_is_still_accepted(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The regression that made the extension unable to find a solver at all.
+
+    `_validate_executable` used to run `<binary> --version` and require exit 0.
+    `general-simulator` has no such flag -- it treats any argument as a netlist path, so
+    the probe exits 1 with `error: reading --version: No such file or directory` and every
+    good binary was rejected. On this machine the breakage was hidden by
+    `discover_general_simulator`'s sibling-checkout fallback; on Windows, where that
+    fallback also missed because it looked for a name without `.exe`, nothing was found.
+
+    The stand-in here is a script that exits non-zero for *any* argument, which is exactly
+    how the real CLI behaves when handed a flag it does not know.
+    """
+    find_solver, _ = _import_discovery()
+
+    binary = tmp_path / "general-simulator"
+    binary.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+    binary.chmod(0o755)
+
+    monkeypatch.setenv("GENSIM_GENERAL_SIMULATOR_PATH", str(binary))
+    assert find_solver("general-simulator") == binary
+
+
+def test_a_missing_or_unrunnable_path_is_still_rejected(
+    tmp_path: pathlib.Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Dropping the version probe must not turn the check into "anything goes"."""
+    find_solver, SolverNotFoundError = _import_discovery()
+    monkeypatch.setattr(shutil, "which", lambda *a, **kw: None)
+
+    monkeypatch.setenv("GENSIM_GENERAL_SIMULATOR_PATH", str(tmp_path / "does-not-exist"))
+    with pytest.raises(SolverNotFoundError):
+        find_solver("general-simulator")
+
+    # A directory is not a binary, however much it exists.
+    monkeypatch.setenv("GENSIM_GENERAL_SIMULATOR_PATH", str(tmp_path))
+    with pytest.raises(SolverNotFoundError):
+        find_solver("general-simulator")
+
+
+def test_candidate_names_spells_the_exe_suffix_on_windows(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """`shutil.which` applies PATHEXT; a hand-built directory path does not.
+
+    The released Windows archive contains `general-simulator.exe`, and so does a local
+    `cargo build`, so any lookup that joins a directory to a bare solver name has to try
+    the suffix itself.
+    """
+    import simulator.solvers.path_discovery as pd
+
+    monkeypatch.setattr(pd.os, "name", "nt")
+    assert pd.candidate_names("general-simulator") == [
+        "general-simulator.exe",
+        "general-simulator",
+    ]
+
+    monkeypatch.setattr(pd.os, "name", "posix")
+    assert pd.candidate_names("general-simulator") == ["general-simulator"]
