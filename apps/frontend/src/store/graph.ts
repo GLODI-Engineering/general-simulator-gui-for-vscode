@@ -156,14 +156,23 @@ const FOREIGN_NODE_CLEARANCE = 8;
 /**
  * How many grid steps out from a port an approach point may be placed.
  *
- * One step is the natural choice and is tried first. More exist because the
- * step decides which rail the wire runs along to reach the port, and blocks
- * that feed a common destination usually sit in a column: every one of their
- * ports then shares an x, so every wire wants the same rail and they stack.
- * Letting the lead out be a little longer for one of them gives it a rail of
- * its own, which is what anyone drawing this by hand would do.
+ * Zero comes first: two ports already in line want a straight wire, and
+ * forcing a lead out of each of them put a one-step detour on a run that had
+ * nothing to avoid. On a sheet whose parts are aligned — which is most of a
+ * drawn-by-hand schematic — that is a small staircase at every pin, and at a
+ * junction it is a visible staple standing above the node. Offering zero is
+ * safe because `cost` scores a blocked route at 1e6, so the straight path
+ * wins only where it is actually clear; anywhere it would cut through a body,
+ * a stepped lead still beats it.
+ *
+ * One step is the next choice. More exist because the step decides which rail
+ * the wire runs along to reach the port, and blocks that feed a common
+ * destination usually sit in a column: every one of their ports then shares an
+ * x, so every wire wants the same rail and they stack. Letting the lead out be
+ * a little longer for one of them gives it a rail of its own, which is what
+ * anyone drawing this by hand would do.
  */
-const APPROACH_STEPS = [1, 2, 3, 4];
+const APPROACH_STEPS = [0, 1, 2, 3, 4];
 
 /** `steps` grid steps out along the port's own facing. */
 function approachPoint(

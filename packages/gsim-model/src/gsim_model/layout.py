@@ -24,7 +24,22 @@ Position = tuple[float, float]
 BBox = tuple[float, float]
 Side = str  # "left" | "right" | "top" | "bottom"
 
-SYMBOL_SCALE = 1.6
+# Must equal the front end's own `SYMBOL_SCALE` in
+# `apps/frontend/src/canvas/nodes/port-hit-test.ts`. It is the factor between a
+# catalogue bbox and what is actually drawn, and every port position on both
+# sides is computed from it.
+#
+# This read 1.6 long after the front end moved to 2, so every port position
+# computed here was short by that ratio -- a resistor's far terminal came out
+# at (338, 232) where the canvas puts it at (362, 240). Anything laying blocks
+# out from Python therefore placed parts whose pins did not line up, and the
+# canvas drew a step at each one: `WireEdge` falls back to an invented L
+# whenever its two endpoints disagree by more than six pixels, which a 24-pixel
+# error comfortably exceeds. That is the staircase on an auto-arranged sheet.
+#
+# `test_symbol_scale_matches_the_frontend` reads the TypeScript constant so the
+# two cannot drift apart again.
+SYMBOL_SCALE = 2
 
 
 @dataclass(frozen=True)
