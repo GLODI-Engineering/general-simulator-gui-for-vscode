@@ -3629,3 +3629,74 @@ textarea:focus-visible {
   color: #92400e;
   font-weight: 600;
 }
+
+/* Find-in-schematic activity. Ported with the search module from the retired
+   Tauri app; the catalogue's own search keeps its `library-activity__*` rules. */
+.search-activity {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.search-activity__header {
+  padding: 0.5rem;
+}
+
+.search-activity__input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.search-activity__empty {
+  margin: 0;
+  padding: 0 0.5rem 0.5rem;
+  opacity: 0.7;
+}
+
+.search-activity__results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.search-activity__result {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  width: 100%;
+  padding: 0.25rem 0.5rem;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.search-activity__result:hover,
+.search-activity__result:focus-visible {
+  background: var(--vscode-list-hoverBackground, rgba(127, 127, 127, 0.2));
+}
+
+.search-activity__kind {
+  flex: 0 0 auto;
+  opacity: 0.65;
+  font-size: 0.85em;
+  text-transform: lowercase;
+}
+
+.search-activity__detail {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-activity__id {
+  flex: 0 0 auto;
+  opacity: 0.55;
+  font-size: 0.85em;
+}
