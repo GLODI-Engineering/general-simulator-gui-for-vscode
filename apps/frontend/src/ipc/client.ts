@@ -1,3 +1,4 @@
+import { publishCompilerNotes } from "../problems/compiler-notes";
 import { useIpcStore } from "../store/ipc";
 import { CancelledError, type ExecuteResult, type IpcClient, type WaveformSlice } from "./types";
 import { decodeWaveformChunkFrame } from "./waveform-chunk-frame";
@@ -344,7 +345,12 @@ export function createIPCClient({
           value?: number;
           unit?: string;
         }>;
+        compiler_notes?: string[];
       };
+
+      // Published before the error branch so a failed run still clears the
+      // previous run's notes rather than leaving them to look current.
+      publishCompilerNotes(payload.compiler_notes ?? []);
 
       if (payload.status === "error") {
         p.resolve({
