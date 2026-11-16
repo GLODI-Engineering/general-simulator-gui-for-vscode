@@ -15,6 +15,7 @@ import { generateNetlist } from "./netlist/generate";
 import { registerNetlistTab } from "./netlist/register";
 import { CommandPalette } from "./palette/CommandPalette";
 import { registerProblemsSurface } from "./problems/register";
+import { registerSearchActivity } from "./search/register";
 import { resetActivityRegistry } from "./shell/registries/ActivityRegistry";
 import { resetBottomTabRegistry } from "./shell/registries/BottomTabRegistry";
 import { rerouteWiresForBlocks } from "./store/graph";
@@ -76,6 +77,7 @@ function bootRegistries() {
   resetActivityRegistry();
   resetBottomTabRegistry();
   registerLibraryActivity();
+  registerSearchActivity();
   registerCanvasTab();
   registerNetlistTab();
   registerWaveformTab();
