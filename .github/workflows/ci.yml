@@ -137,6 +137,10 @@ jobs:
     # is the newest image Playwright supports; unpin it when it supports 26.04.
     runs-on: ubuntu-24.04
     needs: frontend
+    # A cap, not a budget. Without one the job inherits GitHub's 6-hour default,
+    # so a suite that hangs rather than fails burns six hours of a runner before
+    # anyone notices. The healthy run is well under this.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       # No `version:` here on purpose — package.json's `packageManager`
@@ -148,10 +152,15 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Chromium only. `playwright.config.ts` runs the chromium project unless
+      # GSIM_E2E_BROWSERS=all, so downloading Firefox and WebKit as well is time
+      # spent on browsers no test launches.
       - name: install playwright browsers
-        run: pnpm exec playwright install --with-deps
-      - name: build frontend for preview
-        run: pnpm --filter @gensim/frontend build
+        run: pnpm exec playwright install --with-deps chromium
+      # The frontend build used to happen here *and* again inside Playwright's
+      # own `webServer.command`, which is `build && preview` — the same build
+      # twice per run. The webServer one stays, because a developer running
+      # `pnpm e2e` locally needs it; this step was the duplicate.
       - name: run e2e tests
         run: pnpm e2e
         env:
