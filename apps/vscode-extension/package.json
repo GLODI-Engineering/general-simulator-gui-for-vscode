@@ -78,7 +78,7 @@
       },
       {
         "command": "generalSimulator.openSchematic",
-        "title": "Open Schematic\u2026",
+        "title": "Open Schematic…",
         "category": "General Simulator"
       },
       {
@@ -123,7 +123,7 @@
           "type": "string",
           "default": "uv",
           "description": "Command used to run the kernel sidecar. With the default 'uv', the sidecar is launched as `uv run --project <root> python -m kernel_sidecar`.",
-          "markdownDescription": "Command used to start the Python simulation kernel \u2014 `uv` by default. Set to `python` or an absolute interpreter path if you manage the environment yourself."
+          "markdownDescription": "Command used to start the Python simulation kernel — `uv` by default. Set to `python` or an absolute interpreter path if you manage the environment yourself."
         },
         "generalSimulator.autoStartKernel": {
           "type": "boolean",
@@ -134,13 +134,13 @@
         "generalSimulator.generalSimulatorPath": {
           "type": "string",
           "default": "",
-          "markdownDescription": "Absolute path to the `general-simulator` binary \u2014 the engine that actually runs a simulation.\n\nLeave empty to search, in order: this setting, `GENSIM_GENERAL_SIMULATOR_PATH`, then `PATH`, then a sibling `general-simulator` checkout beside the workspace. Build it with `cargo build --release -p general-simulator-cli` and point here at `target/release/general-simulator`.",
+          "markdownDescription": "Absolute path to the `general-simulator` binary — the engine that actually runs a simulation.\n\nLeave empty to search, in order: this setting, `GENSIM_GENERAL_SIMULATOR_PATH`, then `PATH`, then a sibling `general-simulator` checkout beside the workspace. Build it with `cargo build --release -p general-simulator-cli` and point here at `target/release/general-simulator`.",
           "scope": "machine-overridable"
         },
         "generalSimulator.octaveCliPath": {
           "type": "string",
           "default": "",
-          "markdownDescription": "Absolute path to the `octave-cli` binary, for `octfunc` / `octblock` code blocks.\n\nThe engine looks this up on `PATH` only \u2014 it has no flag for it \u2014 so setting this puts its directory at the front of the `PATH` the simulation process inherits.",
+          "markdownDescription": "Absolute path to the `octave-cli` binary, for `octfunc` / `octblock` code blocks.\n\nThe engine looks this up on `PATH` only — it has no flag for it — so setting this puts its directory at the front of the `PATH` the simulation process inherits.",
           "scope": "machine-overridable"
         },
         "generalSimulator.pythonPath": {
@@ -149,7 +149,7 @@
             "type": "string"
           },
           "default": [],
-          "markdownDescription": "Extra directories to put on `PYTHONPATH` for `pyblock` / `pyfunc` code blocks, so a block can import your own modules.\n\nRelative entries resolve against the workspace folder. This does not change which interpreter runs \u2014 the engine embeds the one it was built against.",
+          "markdownDescription": "Extra directories to put on `PYTHONPATH` for `pyblock` / `pyfunc` code blocks, so a block can import your own modules.\n\nRelative entries resolve against the workspace folder. This does not change which interpreter runs — the engine embeds the one it was built against.",
           "scope": "machine-overridable"
         },
         "generalSimulator.environment": {
@@ -164,7 +164,7 @@
         "generalSimulator.overrideVsCodeKeybindings": {
           "type": "boolean",
           "default": true,
-          "markdownDescription": "While a schematic is the active editor, let the schematic's keyboard shortcuts override VS Code's. **On by default.**\n\nThe schematic binds 28 chords that VS Code also claims at the workbench level \u2014 `Ctrl+R` rotates the selection here and opens VS Code's recent-files list there \u2014 and without this VS Code wins every one of them, because a webview only sees a keystroke the workbench did not take first.\n\nTurn this off to give those chords back to VS Code. The schematic then loses them; the rest of its shortcuts keep working. See `docs/keyboard-conflicts.md` for the full list.\n\nThis only ever applies while a schematic tab is focused. A source file, the explorer and the terminal are untouched either way."
+          "markdownDescription": "While a schematic is the active editor, let the schematic's keyboard shortcuts override VS Code's. **On by default.**\n\nThe schematic binds 28 chords that VS Code also claims at the workbench level — `Ctrl+R` rotates the selection here and opens VS Code's recent-files list there — and without this VS Code wins every one of them, because a webview only sees a keystroke the workbench did not take first.\n\nTurn this off to give those chords back to VS Code. The schematic then loses them; the rest of its shortcuts keep working. See `docs/keyboard-conflicts.md` for the full list.\n\nThis only ever applies while a schematic tab is focused. A source file, the explorer and the terminal are untouched either way."
         }
       }
     },

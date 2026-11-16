@@ -45,9 +45,15 @@ synthesis = { workspace = true }
 # gsim-tools = { path = "../gsim-tools" }
 
 [dependency-groups]
+# `uv.lock` is gitignored (it pins the sibling path deps by absolute path, so it is
+# machine-specific), which means CI resolves this group fresh on every run. A lower bound on a
+# *linter* therefore floats to whatever is newest, and CI goes red with no commit touching it:
+# ruff 0.17.5 added an `I001` that 0.17.4 did not raise, and reddened a branch that had passed.
+# So the two tools whose findings are version-dependent are pinned exactly; the rest, whose
+# behaviour does not change what counts as a failure, keep their lower bounds.
 dev = [
-    "ruff>=0.7.4",
-    "mypy>=1.13",
+    "ruff==0.17.5",
+    "mypy==2.4.1",
     "pre-commit>=4.0",
     "pytest>=8.3",
     "pytest-asyncio>=0.24",

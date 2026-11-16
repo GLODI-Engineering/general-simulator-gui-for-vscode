@@ -8495,8 +8495,8 @@
       },
       "version": 1,
       "engineId": "passive.inductor.coupled",
-      "engineType": null,
-      "compilable": false
+      "engineType": "passive.inductor.coupled",
+      "compilable": true
     }
   },
   {
@@ -10283,8 +10283,8 @@
       },
       "version": 1,
       "engineId": "physical-electrical.passive.mutual_inductor",
-      "engineType": null,
-      "compilable": false
+      "engineType": "physical_electrical.passive.mutual_inductor",
+      "compilable": true
     }
   },
   {
@@ -10386,8 +10386,8 @@
       },
       "version": 1,
       "engineId": "physical-electrical.passive.transformer",
-      "engineType": null,
-      "compilable": false
+      "engineType": "physical_electrical.passive.transformer",
+      "compilable": true
     }
   },
   {

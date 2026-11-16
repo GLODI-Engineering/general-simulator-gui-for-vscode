@@ -280,6 +280,98 @@
       ]
     },
     {
+      "type": "physical_electrical.passive.transformer",
+      "emits": {
+        "card": "composite",
+        "letters": [
+          "E",
+          "F"
+        ]
+      },
+      "node_ports": [],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "n",
+          "field": "value",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "physical_electrical.passive.mutual_inductor",
+      "emits": {
+        "card": "composite",
+        "letters": [
+          "L",
+          "L",
+          "K"
+        ]
+      },
+      "node_ports": [],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "L1",
+          "field": "value",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "L2",
+          "field": "value",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "k",
+          "field": "value",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "passive.inductor.coupled",
+      "emits": {
+        "card": "composite",
+        "letters": [
+          "L",
+          "L",
+          "K"
+        ]
+      },
+      "node_ports": [],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "L1",
+          "field": "value",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "L2",
+          "field": "value",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "K",
+          "field": "value",
+          "required": true,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
       "type": "source.dependent.vcvs",
       "emits": {
         "card": "element",
