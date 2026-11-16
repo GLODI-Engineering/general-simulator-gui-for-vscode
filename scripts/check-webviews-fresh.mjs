@@ -51,7 +51,7 @@ if (bundledAt === null) {
 if (builtAt !== null && bundledAt < builtAt) {
   const ageMinutes = Math.round((builtAt - bundledAt) / 60_000);
   console.error(
-    `check-webviews-fresh: the bundled webview is older than the built one by ` +
+    "check-webviews-fresh: the bundled webview is older than the built one by " +
       `${ageMinutes} minute(s).\n` +
       `  built:   ${built}\n` +
       `  bundled: ${bundled}\n\n` +
