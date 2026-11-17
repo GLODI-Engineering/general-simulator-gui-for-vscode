@@ -59,9 +59,19 @@ What that means in practice:
   a sheet you can run, with nothing in the UI saying so. Closing that gap is
   real work and is not done.
 - Parameter names come from the registry too: a DC source takes `V`, an
-  inductor `L` and `IC`, an ideal switch `r_on`/`g_on`/`g_off`/`v_th`/
-  `v_breakdown`/`g_breakdown`. Inventing friendlier names in the front end
-  re-creates the mess this invariant exists to prevent.
+  inductor `L` and `IC`, an ideal diode `v_f`/`g_on`/`g_off`/`v_breakdown`/
+  `g_breakdown`, and an ideal switch `r_on` for its channel plus
+  `body_v_f`/`body_g_on`/`body_g_off`/`body_v_breakdown`/`body_g_breakdown`
+  for its intrinsic diode and `v_gs_th` for its gate threshold. Inventing
+  friendlier names in the front end re-creates the mess this invariant
+  exists to prevent.
+- Those names are careful on purpose. A switch's body-diode fields used to
+  be spelled exactly as a standalone diode's, and `v_th` in particular read
+  as the MOSFET gate threshold ($V_{GS(th)}$) to every engineer while
+  meaning the body diode's forward drop -- so `v_th=5` written for a 5 V
+  gate gave a switch that still turned on at 0.5 and a body diode with a
+  5 V forward drop. See GLODI-Engineering/general-mna#27. Never reintroduce
+  a name whose owning device is not in the name.
 - Engine rules that look like restrictions are part of the contract. A
   switch gate must be driven through a `converter.sig2phys` in the voltage
   domain; pointing it straight at a signal source fails with

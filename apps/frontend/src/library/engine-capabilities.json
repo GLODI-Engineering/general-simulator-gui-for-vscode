@@ -497,33 +497,39 @@
           "form": "scalar"
         },
         {
-          "param": "g_breakdown",
-          "field": "g_breakdown",
+          "param": "body_g_breakdown",
+          "field": "body_g_breakdown",
           "required": true,
           "form": "scalar"
         },
         {
-          "param": "v_breakdown",
-          "field": "v_breakdown",
+          "param": "body_v_breakdown",
+          "field": "body_v_breakdown",
           "required": true,
           "form": "scalar"
         },
         {
-          "param": "g_off",
-          "field": "g_off",
+          "param": "body_g_off",
+          "field": "body_g_off",
           "required": true,
           "form": "scalar"
         },
         {
-          "param": "v_th",
-          "field": "v_th",
+          "param": "body_v_f",
+          "field": "body_v_f",
           "required": true,
           "form": "scalar"
         },
         {
-          "param": "g_on",
-          "field": "g_on",
+          "param": "body_g_on",
+          "field": "body_g_on",
           "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "v_gs_th",
+          "field": "v_gs_th",
+          "required": false,
           "form": "scalar"
         }
       ]
@@ -562,8 +568,8 @@
           "form": "scalar"
         },
         {
-          "param": "v_th",
-          "field": "v_th",
+          "param": "v_f",
+          "field": "v_f",
           "required": true,
           "form": "scalar"
         },
