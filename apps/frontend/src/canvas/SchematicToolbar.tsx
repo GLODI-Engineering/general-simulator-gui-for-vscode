@@ -5,6 +5,7 @@ import { Btn, Icon, Sep } from "../shell/ToolbarControls";
 import { useGraphStore, useLibraryStore, useToastStore, useUiStore } from "../store";
 import { DND_BLOCK_TYPE, encodeBlockPayload, setActiveDragBlock } from "./dnd";
 import { WireColorsDialog } from "./edges/WireColorsPanel";
+import { keyBindings } from "./keymap";
 import { BlockSymbol } from "./nodes/BlockSymbol";
 
 // ── Icons specific to schematic editing ─────────────────────────────────────
@@ -103,6 +104,22 @@ const FlipVIcon = () => (
     <path d="M22 12h-2" />
   </Icon>
 );
+
+/**
+ * A button's tooltip, with the shortcut read from the keymap instead of typed beside it.
+ *
+ * Three of these had drifted from the bindings they named: "Rotate clockwise  R" against
+ * `Ctrl+R`, "Flip horizontal  X" against `Ctrl+I`, and Rotate CCW showing nothing at all though
+ * `Ctrl+Shift+R` exists. A tooltip that names a key the keymap does not bind is worse than one
+ * that names none, because the user presses it and concludes the command is broken.
+ *
+ * Taking it from `keyBindings` means the hint cannot disagree with what the dispatcher will
+ * accept, and a command with no binding shows no hint rather than a stale one.
+ */
+function tip(description: string, actionId: string): string {
+  const chord = keyBindings.find((binding) => binding.id === actionId)?.chord;
+  return chord ? `${description}  ${chord}` : description;
+}
 
 // ── Component preview button (BlockSymbol on white background) ────────────────
 
@@ -316,23 +333,31 @@ export function SchematicToolbar({ onAction }: SchematicToolbarProps) {
         </button>
       </div>
       <Btn
-        title="Rotate clockwise  R"
+        title={tip("Rotate clockwise", "transform.rotate-cw")}
         label="Rotate CW"
         onClick={() => onAction("transform.rotate-cw")}
       >
         <RotateCwIcon />
       </Btn>
       <Btn
-        title="Rotate counter-clockwise"
+        title={tip("Rotate counter-clockwise", "transform.rotate-ccw")}
         label="Rotate CCW"
         onClick={() => onAction("transform.rotate-ccw")}
       >
         <RotateCcwIcon />
       </Btn>
-      <Btn title="Flip horizontal  X" label="Flip H" onClick={() => onAction("transform.flip")}>
+      <Btn
+        title={tip("Flip horizontal", "transform.flip")}
+        label="Flip H"
+        onClick={() => onAction("transform.flip")}
+      >
         <FlipHIcon />
       </Btn>
-      <Btn title="Flip vertical" label="Flip V" onClick={() => onAction("transform.flip-v")}>
+      <Btn
+        title={tip("Flip vertical", "transform.flip-v")}
+        label="Flip V"
+        onClick={() => onAction("transform.flip-v")}
+      >
         <FlipVIcon />
       </Btn>
 

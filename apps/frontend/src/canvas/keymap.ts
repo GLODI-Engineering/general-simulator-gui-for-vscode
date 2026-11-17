@@ -419,7 +419,14 @@ export const keyBindings: KeyBinding[] = [
   },
 ];
 
-function chordSteps(chord: string): string[] {
+/**
+ * A chord split into the keystrokes it is made of.
+ *
+ * Exported so a test can check each step is a chord some keystroke can actually produce, using
+ * this decomposition rather than a copy of it -- a copy would be the second description of the
+ * same rule, and the two would drift.
+ */
+export function chordSteps(chord: string): string[] {
   if (!chord) {
     return [];
   }
