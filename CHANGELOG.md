@@ -1,5 +1,53 @@
 # Changelog
 
+## 2026-11-17 — A placed block lands on a tier that exists (0.5.0)
+
+### Fixed
+
+- **Dropping a PID, a sum or a sine source from the palette produced a block
+  that could not compile.** `insert.ts` named the tier rather than asking the
+  component for one: every non-electrical block was handed `n_a`, which means
+  "not applicable" and is what a component with no real fidelity levels
+  declares. Thirteen components carried an `n_a` tier *beside* a real one,
+  holding the pre-migration Simulink parameter vocabulary the engine never
+  reads — `amplitude`/`period`/`pulse_width`/`phase_delay` where the emitter
+  wants `v1`/`v2`/`td`/`tr`/`tf`/`pw`/`per`. So the ordinary act of drawing a
+  control loop and pressing Run ended in "missing required parameter". A block
+  now starts on `ideal` when its component has it, else the component's first
+  declared tier, and `n_a` only when the component declares none.
+- **A block's parameters changed the first time its fidelity was touched**,
+  even when set to the tier it already had. They came from the component-level
+  list while the block was labelled with a tier, and a fidelity swap treats a
+  tier's list as definitive — adding what the target declares and removing what
+  it omits. They now come from the tier the block is on.
+- **Transformers, opamps, BJTs, IGBTs, MOSFETs, the gyrator and the memristor
+  had no pins.** 87 tiers in the engine's library declared no ports and 64 no
+  parameters, while the components themselves declared both. A block at such a
+  tier cannot be wired and has no artwork to hang. Fixed in the engine and
+  picked up here with the regenerated catalogue (gsim-core 0.4.0).
+- **Aligning a selection by keyboard did nothing at all.** The four align
+  commands were bound to `Ctrl+Alt+Left`/`Right`/`Up`/`Down` while the
+  dispatcher collapsed every arrow to `Arrow`, so a real press produced
+  `Ctrl+Alt+Arrow`, which nothing was bound to. A chord may now name a
+  direction: the specific spelling is tried first and the generic one second,
+  so nudge, pan and extend-selection keep working through the direction-agnostic
+  spelling they are deliberately written with.
+- **Three toolbar tooltips named keys that do nothing.** "Rotate clockwise  R"
+  against `Ctrl+R`, "Flip horizontal  X" against `Ctrl+I`, and Rotate CCW
+  showing no shortcut though `Ctrl+Shift+R` exists. They now read the chord from
+  the keymap, so a hint cannot disagree with what the dispatcher accepts.
+- **A parameter written in a script was not the parameter the netlist carried.**
+  Document floats were parsed one ULP low. Fixed in the engine (gsim-core
+  0.4.0).
+
+### Upgrading
+
+A sheet saved by an earlier version carries `fidelity: "n_a"` on its
+signal-flow blocks, and for thirteen component types that tier no longer exists.
+Those sheets still open and still draw — the canvas resolves ports from the
+component, not the tier — and a fidelity swap refuses with a plain message
+rather than failing. Pick a tier on the affected blocks to compile them.
+
 ## 2026-11-09 — The engine says what it has (0.4.0)
 
 ### Added
