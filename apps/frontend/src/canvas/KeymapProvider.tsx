@@ -19,26 +19,42 @@ export interface KeymapProviderProps extends PropsWithChildren {
 
 const KeymapContextValue = createContext<KeymapProviderProps | null>(null);
 
-function eventToChord(event: KeyboardEvent): string {
-  const parts: string[] = [];
+/**
+ * The chords a keystroke could mean, most specific first.
+ *
+ * An arrow key yields two: the direction it actually was, then the direction-agnostic `Arrow`.
+ * Both spellings are in the keymap and both are meant. Nudge, pan and extend-selection are
+ * deliberately written `Arrow`, `Shift+Arrow`, `Ctrl+Shift+Arrow` and read the direction off
+ * the event afterwards; the four `positioning.align-*` commands name the direction in the chord
+ * itself, because each is a distinct command that wants to be separately documented and
+ * separately rebindable.
+ *
+ * This returned only `Arrow`, so `Ctrl+Alt+Left` was a chord the keymap declared and no
+ * keystroke could produce: pressing it became `Ctrl+Alt+Arrow`, which nothing is bound to, and
+ * aligning a selection by keyboard was unreachable. The commands themselves worked; only their
+ * bindings were dead.
+ */
+export function eventToChords(event: KeyboardEvent): string[] {
+  const modifiers: string[] = [];
   if (event.ctrlKey || event.metaKey) {
-    parts.push("Ctrl");
+    modifiers.push("Ctrl");
   }
   if (event.altKey) {
-    parts.push("Alt");
+    modifiers.push("Alt");
   }
   if (event.shiftKey) {
-    parts.push("Shift");
+    modifiers.push("Shift");
   }
   const key = event.key.length === 1 ? event.key.toUpperCase() : event.key;
+  const chord = (last: string) => [...modifiers, last].join("+");
   if (key === " ") {
-    parts.push("Space");
-  } else if (key.startsWith("Arrow")) {
-    parts.push("Arrow");
-  } else {
-    parts.push(key);
+    return [chord("Space")];
   }
-  return parts.join("+");
+  if (key.startsWith("Arrow")) {
+    // "ArrowLeft" -> "Left", then the generic spelling.
+    return [chord(key.slice("Arrow".length)), chord("Arrow")];
+  }
+  return [chord(key)];
 }
 
 function isEditableTarget(target: EventTarget | null): boolean {
@@ -102,12 +118,21 @@ export function KeymapProvider({ children, getContexts, onAction }: KeymapProvid
       if (isEditableTarget(event.target) && event.key !== "Escape") {
         return;
       }
-      const chord = eventToChord(event);
       const context: KeyActionContext = {
         activeContexts: getContexts(),
         platform: navigator.platform.toLowerCase().includes("mac") ? "mac" : "other",
       };
-      const resolved = resolveBinding(chord, context, pendingRef.current);
+      // Most specific spelling first, then the generic one. For everything but an arrow there
+      // is only one candidate, so this is the previous behaviour; for an arrow it is what lets
+      // `Ctrl+Alt+Left` and `Shift+Arrow` both resolve without either shadowing the other.
+      const chords = eventToChords(event);
+      let resolved = resolveBinding(chords[0] as string, context, pendingRef.current);
+      for (const chord of chords.slice(1)) {
+        if (resolved.binding || resolved.pending.length > 0) {
+          break;
+        }
+        resolved = resolveBinding(chord, context, pendingRef.current);
+      }
 
       if (resolved.pending.length > 0) {
         pendingRef.current = resolved.pending;
