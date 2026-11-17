@@ -99,13 +99,18 @@ describe("FE-54: signal_flow_palette", () => {
     const payload = decodeBlockPayload(payloadCall[1]);
     expect(payload?.blockName).toBe(gainMetadata.name);
 
-    const gainCatalogEntry = getCatalogEntry("signal-flow.math.gain", "n_a");
+    // Through the tier a placed block actually lands on, rather than a hardcoded one. This
+    // asserted `"n_a"` while `createBlockFromMetadata` also hardcoded that tier for every
+    // signal-flow block, so the pair agreed with each other and not with the catalogue: the
+    // gain declares `ideal`, and `n_a` was migration residue carrying parameter names the
+    // engine never read. Asking for the inserted block's own fidelity is the stronger check --
+    // it fails if a placed block ever lands on a tier the component does not have.
+    const block = createBlockFromMetadata(gainMetadata, [100, 100]);
+    const gainCatalogEntry = getCatalogEntry("signal-flow.math.gain", block.fidelity);
     expect(gainCatalogEntry).not.toBeNull();
     if (!gainCatalogEntry) throw new Error("Missing catalog entry for signal-flow.math.gain");
     expect(gainCatalogEntry.ports.map((port) => port.id)).toEqual(["in", "out"]);
     expect(gainCatalogEntry.params.map((param) => param.id)).toContain("k");
-
-    const block = createBlockFromMetadata(gainMetadata, [100, 100]);
     expect(block.params).toHaveProperty("k");
   });
 });
