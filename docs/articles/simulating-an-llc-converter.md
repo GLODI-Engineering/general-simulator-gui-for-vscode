@@ -37,7 +37,51 @@ You draw. The compiler translates. The simulator solves. The results come back
 to the editor to be plotted. The editor never decides what a component *is* —
 the engine declares that, and the editor displays it faithfully.
 
-### 1.2 Point the extension at the engine
+### 1.2 Install the two pieces
+
+Neither piece needs a build toolchain: both are published as downloads, one
+file each.
+
+**The editor.** Take `general-simulator-gui.vsix` from the
+[editor releases](https://github.com/GLODI-Engineering/general-simulator-gui-for-vscode/releases/latest)
+and install it:
+
+```bash
+code --install-extension general-simulator-gui.vsix
+```
+
+**The engine.** Take the archive for your machine from the
+[simulator releases](https://github.com/GLODI-Engineering/general-simulator/releases/latest):
+
+| Your machine | Archive |
+|---|---|
+| Linux, Intel or AMD | `general-simulator-linux-x86_64.tar.gz` |
+| Linux, ARM | `general-simulator-linux-aarch64.tar.gz` |
+| macOS, Apple silicon | `general-simulator-macos-aarch64.tar.gz` |
+| Windows | `general-simulator-windows-x86_64.zip` |
+
+Unpack it wherever you keep tools and note the path to the `general-simulator`
+binary inside it — `general-simulator.exe` on Windows. That path is the one
+thing the next step cannot guess.
+
+<details>
+<summary>Building from source instead</summary>
+
+If you would rather build it, the engine is a Rust workspace:
+
+```bash
+git clone https://github.com/GLODI-Engineering/general-simulator
+cd general-simulator
+cargo build --release -p general-simulator-cli
+```
+
+The binary is then at `target/release/general-simulator` inside that checkout,
+and the editor is built with `pnpm install && pnpm package` in its own
+checkout. Everything after this section is identical either way.
+
+</details>
+
+### 1.3 Point the extension at the engine
 
 Open your settings (`Ctrl+,`, or `Cmd+,` on a Mac) and search for
 `generalSimulator`. The only setting you must fill in is the path to the
@@ -50,7 +94,7 @@ It is usually faster to edit the JSON directly. Open the command palette
 {
   // The binary that actually runs a simulation. This is the one setting
   // you cannot skip.
-  "generalSimulator.generalSimulatorPath": "/path/to/general-simulator/target/release/general-simulator",
+  "generalSimulator.generalSimulatorPath": "/path/to/general-simulator",
 
   // The checkout that holds pyproject.toml. Leave empty and the extension
   // looks for it next to the open workspace.
@@ -65,12 +109,8 @@ It is usually faster to edit the JSON directly. Open the command palette
 }
 ```
 
-If you built the simulator yourself, the binary is at
-`target/release/general-simulator` inside that checkout. Build it with:
-
-```bash
-cargo build --release -p general-simulator-cli
-```
+That path is the binary you unpacked in §1.2 — the file itself, not the
+folder holding it.
 
 **How to tell it worked.** Open any `.gsim_sch` and press Run. If the path is
 wrong you get a named error — `SolverUnavailable`, with the message saying the
@@ -501,12 +541,12 @@ pass agreed with independent post-processing to nine figures.
 
 ### Reproducing this
 
-```bash
-# the binary
-cargo build --release -p general-simulator-cli
+Install the two downloads from §1.2 — the `.vsix` with
+`code --install-extension general-simulator-gui.vsix`, and the engine archive
+for your platform unpacked anywhere — then set one line of `settings.json`:
 
-# point the extension at it (settings.json)
-"generalSimulator.generalSimulatorPath": ".../target/release/general-simulator"
+```jsonc
+"generalSimulator.generalSimulatorPath": "/path/to/general-simulator"
 ```
 
 Then open [`llc-converter.gsim_sch`](./assets/llc-converter.gsim_sch) and press
