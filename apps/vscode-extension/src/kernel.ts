@@ -128,8 +128,6 @@ export class KernelSidecar implements vscode.Disposable {
       workspaceRoot,
       settings: {
         generalSimulatorPath: settings.get<string>("generalSimulatorPath"),
-        ngspicePath: settings.get<string>("ngspicePath"),
-        xycePath: settings.get<string>("xycePath"),
         octaveCliPath: settings.get<string>("octaveCliPath"),
         pythonPath: settings.get<string[]>("pythonPath"),
         environment: settings.get<Record<string, string>>("environment"),

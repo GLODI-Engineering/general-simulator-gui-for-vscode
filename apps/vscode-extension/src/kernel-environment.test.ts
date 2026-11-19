@@ -14,31 +14,37 @@ describe("solverEnvVar", () => {
     // zsh, so the one solver most people need to point at was unreachable from
     // a terminal. The backend still accepts the hyphenated spelling.
     expect(solverEnvVar("general-simulator")).toBe("GENSIM_GENERAL_SIMULATOR_PATH");
+    // The rule is the transformation, not the list of engines: a name with no hyphen is
+    // already a valid identifier and passes through unchanged.
     expect(solverEnvVar("ngspice")).toBe("GENSIM_NGSPICE_PATH");
-    expect(solverEnvVar("xyce")).toBe("GENSIM_XYCE_PATH");
   });
 });
 
 describe("solver paths", () => {
-  it("passes each configured binary as the variable the backend looks for", () => {
-    const env = build({
-      generalSimulatorPath: "/opt/gs/general-simulator",
-      ngspicePath: "/usr/bin/ngspice",
-      xycePath: "/opt/Xyce/bin/Xyce",
-    });
+  it("passes the configured binary as the variable the backend looks for", () => {
+    const env = build({ generalSimulatorPath: "/opt/gs/general-simulator" });
     expect(env.GENSIM_GENERAL_SIMULATOR_PATH).toBe("/opt/gs/general-simulator");
-    expect(env.GENSIM_NGSPICE_PATH).toBe("/usr/bin/ngspice");
-    expect(env.GENSIM_XYCE_PATH).toBe("/opt/Xyce/bin/Xyce");
   });
 
-  it("leaves a variable unset when the setting is empty or blank", () => {
-    const env = build({ generalSimulatorPath: "   ", ngspicePath: "" });
-    expect(env.GENSIM_GENERAL_SIMULATOR_PATH).toBeUndefined();
+  it("sets nothing for an engine there is no setting for", () => {
+    // `ngspicePath`/`xycePath` were read from settings `package.json` had stopped
+    // declaring, so they were always undefined and the only thing they did was make a
+    // reader of the source believe the settings existed.
+    const env = build({ generalSimulatorPath: "/opt/gs/general-simulator" });
     expect(env.GENSIM_NGSPICE_PATH).toBeUndefined();
+    expect(env.GENSIM_XYCE_PATH).toBeUndefined();
+  });
+
+  it("leaves the variable unset when the setting is empty or blank", () => {
+    const env = build({ generalSimulatorPath: "   " });
+    expect(env.GENSIM_GENERAL_SIMULATOR_PATH).toBeUndefined();
   });
 
   it("does not disturb the rest of the environment", () => {
-    const env = build({ ngspicePath: "/usr/bin/ngspice" }, { HOME: "/home/a", PATH: "/usr/bin" });
+    const env = build(
+      { generalSimulatorPath: "/opt/gs/general-simulator" },
+      { HOME: "/home/a", PATH: "/usr/bin" },
+    );
     expect(env.HOME).toBe("/home/a");
     expect(env.PATH).toBe("/usr/bin");
   });

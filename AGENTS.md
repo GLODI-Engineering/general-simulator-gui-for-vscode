@@ -27,7 +27,7 @@ apps/vscode-extension The extension host: custom editor, views, commands,
                       kernel lifecycle
 apps/kernel-sidecar   Python process the extension spawns; speaks WebSocket
 packages/             Python libraries — schemas, simulator, gsim-model,
-                      components, blocks, synthesis, engine-xyce, kernel-core
+                      components, synthesis, kernel-core, webview-protocol
 docs/                 specs/ (architecture), guides/, decisions/, journal/
 tests/                cross-package integration, e2e, validation
 ```
@@ -198,15 +198,14 @@ xvfb-run -a pnpm test:extension:integration   # real VS Code, @vscode/test-elect
 pnpm package                   # .vsix
 ```
 
-External solver binaries (ngspice / Xyce) are not bundled and are not on
-`PATH`. Point the resolution chain at your own build:
+The engine binary is not bundled and is not on `PATH`. Point the resolution
+chain at your own build:
 
 ```sh
-export GENSIM_NGSPICE_PATH=/path/to/ngspice
-export GENSIM_XYCE_PATH=/path/to/Xyce
+export GENSIM_GENERAL_SIMULATOR_PATH=/path/to/general-simulator
 ```
 
-Without these the two solver integration tests skip; everything else runs.
+Without it the tests that need a real run skip; everything else runs.
 
 ## What NOT to do
 

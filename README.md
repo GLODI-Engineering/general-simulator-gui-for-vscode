@@ -33,9 +33,9 @@ simulation kernel is a child process the extension owns.
 | Schematic editor for `*.gsim_sch` — select / wire / label / annotate / pan tools, orthogonal auto-routing with obstacle avoidance, rotation, mirroring, undo | `apps/frontend/src/canvas/` |
 | Block library (287 entries) with symbol previews and a per-simulator filter | `apps/frontend/src/library/` |
 | Symbol editor — draw a custom component from primitives, place its ports, save it to the library | `apps/frontend/src/symbol-editor/` |
-| Parameter inspector, including ngspice-46-sourced Level-1 device models and a raw `.MODEL` fallback for BSIM/PSP/HICUM-class compact models | `apps/frontend/src/inspector/` |
+| Parameter inspector, including Level-1 device models taken from ngspice 46's own model set and a raw `.MODEL` fallback for BSIM/PSP/HICUM-class compact models | `apps/frontend/src/inspector/` |
 | Waveform viewer — multi-axes figures, cursors, per-signal colour, decimation, PDF export | `apps/frontend/src/waveform/` |
-| Netlist preview and SPICE emission (ngspice, Xyce) | `apps/frontend/src/netlist/`, `packages/simulator/` |
+| Netlist preview and emission, in the engine's own dual grammar | `apps/frontend/src/netlist/`, `packages/simulator/` |
 | Hierarchy: subsystems, `.SUBCKT` definitions and instances, Goto/From routing | `apps/frontend/src/canvas/`, `packages/gsim-model/` |
 
 Signal-flow and physical-electrical blocks coexist in one sheet: a control
@@ -105,14 +105,10 @@ extension will start its own instantly thereafter. `General Simulator: Show
 Kernel Log` in the command palette shows exactly what was spawned when
 something goes wrong.
 
-Solver binaries are not bundled. ngspice and Xyce are optional — the
-general-simulator engine needs neither — but to use them, point the
-resolution chain at your own build:
-
-```sh
-export GENSIM_NGSPICE_PATH=/path/to/ngspice
-export GENSIM_XYCE_PATH=/path/to/Xyce
-```
+The engine binary is not bundled. Point the extension at your own build with
+`omniSchematics.generalSimulatorPath`, or set `GENSIM_GENERAL_SIMULATOR_PATH`
+in the environment the kernel inherits. Nothing else needs a path: the engine
+is the only simulator this editor runs.
 
 ### Developing on it
 
@@ -133,8 +129,6 @@ searched for.
 | Setting | What it is for |
 | --- | --- |
 | `omniSchematics.generalSimulatorPath` | The `general-simulator` binary — the engine that runs a simulation. Build it with `cargo build --release -p general-simulator-cli` and point here at `target/release/general-simulator`. |
-| `omniSchematics.ngspicePath` | The `ngspice` binary. Only for schematics run with that solver. |
-| `omniSchematics.xycePath` | The `Xyce` binary. Only for schematics run with that solver. |
 | `omniSchematics.octaveCliPath` | The `octave-cli` binary, for `octfunc` / `octblock` code blocks. |
 | `omniSchematics.pythonPath` | Extra directories on `PYTHONPATH`, so a `pyblock` / `pyfunc` block can import your own modules. Relative entries resolve against the workspace folder. |
 | `omniSchematics.environment` | Extra environment variables for the kernel and everything it starts. The escape hatch for anything without its own setting. |
