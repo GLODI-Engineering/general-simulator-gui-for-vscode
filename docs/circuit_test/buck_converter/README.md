@@ -22,11 +22,7 @@ It deliberately does **not** route the buck case through IR lowering.
 
 ## Solver
 
-ngspice binary used:
-
-```text
-/mnt/external_drive/Github Works/Électronique/tools/ngspice-46/bin/ngspice
-```
+ngspice binary used: a local ngspice 46 build, outside the repository.
 
 ## Result summary
 

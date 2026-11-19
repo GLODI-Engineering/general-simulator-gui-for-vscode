@@ -1,16 +1,19 @@
 # SPICE Solver Integration Notes
 
+> **Historical.** This records the bugs hit while wiring a classic SPICE path to real `ngspice`
+> and `Xyce` installs. That path was dropped: the editor runs the `general-simulator` engine and
+> asks it what compiles, so there is no solver-discovery layer any more and the two settings this
+> document assumes were removed. Kept for the lessons, which cost real time to learn and apply
+> to any future engine integration.
+
 Short record of the concrete bugs and hurdles hit while wiring the classic
 SPICE path to real `ngspice` and `Xyce` installs.
 
 ## Paths used during validation
 
-- `ngspice`: `/mnt/external_drive/Github Works/Électronique/tools/ngspice-46/bin/ngspice`
-- `Xyce`: `/mnt/external_drive/Github Works/Électronique/tools/xyce-install/bin/Xyce`
-
-Stored locally in:
-
-- `/home/elvis/.local/share/general-simulator/settings.json`
+Both were local builds outside the repository, each pointed at by its own setting; the paths
+themselves were a property of one machine and are not reproduced here. What matters below is how
+each binary behaved, not where it sat.
 
 ## Important lessons
 
@@ -111,8 +114,8 @@ uv run pytest packages/simulator/tests/test_spice_parsers.py packages/simulator/
 Real configured binaries:
 
 ```bash
-GENSIM_NGSPICE_PATH="/mnt/external_drive/Github Works/Électronique/tools/ngspice-46/bin/ngspice" \
-GENSIM_XYCE_PATH="/mnt/external_drive/Github Works/Électronique/tools/xyce-install/bin/Xyce" \
+GENSIM_NGSPICE_PATH="<your ngspice build>/bin/ngspice" \
+GENSIM_XYCE_PATH="<your Xyce install>/bin/Xyce" \
 uv run pytest \
   packages/simulator/tests/test_ngspice_solver.py::test_integration_rc_transient \
   packages/simulator/tests/test_xyce_solver.py::test_integration_rc_transient \
