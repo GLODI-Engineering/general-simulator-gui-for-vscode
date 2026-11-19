@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { installPortValidation } from "./canvas/port-validation";
 import { registerCanvasTab } from "./canvas/register";
+import { wireKindOf } from "./canvas/wire-kind";
 import { serialize } from "./file/serializer";
 import { ComponentParamsPanel } from "./inspector/ComponentParamsPanel";
 import { Inspector } from "./inspector/Inspector";
@@ -819,7 +820,7 @@ function handleAction(actionId: string, event?: KeyboardEvent): void {
           waypoints: [],
           pinned: false,
           net: null,
-          kind: first.domain,
+          kind: wireKindOf(first, fromPort, catalog, model.subckt_defs),
         });
         rerouteWiresForBlocks(active, new Set([first.id, second.id]));
       });
@@ -1135,7 +1136,12 @@ export default function App() {
           ],
           pinned: false,
           net: null,
-          kind: fromBlock.domain,
+          kind: wireKindOf(
+            fromBlock,
+            fromPort,
+            useLibraryStore.getState().catalog,
+            graph.document.model.subckt_defs,
+          ),
         });
       });
     };

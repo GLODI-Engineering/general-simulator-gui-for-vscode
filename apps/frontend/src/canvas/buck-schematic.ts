@@ -2,6 +2,7 @@ import { createBlockFromMetadata } from "../library/insert";
 import type { Block, BlockMetadata, Wire } from "../model/types";
 import { useGraphStore, useLibraryStore, useToastStore, useUiStore } from "../store";
 import { getMetadataPortCenters } from "./nodes/port-hit-test";
+import { wireKindFromMetadata } from "./wire-kind";
 
 type BuckPartKey = "vin" | "mosfet" | "inductor" | "capacitor" | "load";
 
@@ -86,7 +87,7 @@ function makeWire(
     ],
     pinned: false,
     net: null,
-    kind: from.block.domain,
+    kind: wireKindFromMetadata(from.block, from.metadata, from.port),
   };
 }
 

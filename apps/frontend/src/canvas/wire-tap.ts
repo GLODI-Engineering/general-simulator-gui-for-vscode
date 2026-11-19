@@ -98,7 +98,8 @@ export function findWireNear(
 
 /** The branch being drawn, as the canvas tracks it. */
 export interface WireDraw {
-  from: { blockId: string; portId: string; domain: PortKindDomain };
+  /** `kind` is the **port's** kind, not the block's domain — see `wire-kind.ts`. */
+  from: { blockId: string; portId: string; kind: PortKindDomain };
   waypoints: Array<{ x: number; y: number }>;
 }
 
@@ -166,7 +167,10 @@ export function junctionSplice(
         waypoints: [...draw.waypoints.map((p): [number, number] => [p.x, p.y]), [x, y]],
         pinned: false,
         net: existing.net,
-        kind: draw.from.domain,
+        // The branch carries what its own port carries. It was the drawing block's domain,
+        // which is wrong for exactly the components a branch is most often drawn from: a
+        // converter (`mixed`) and a bus block (`signal`). See `wire-kind.ts`.
+        kind: draw.from.kind,
       }),
     ],
   };

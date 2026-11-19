@@ -118,7 +118,7 @@ describe("wires attached to the drawing port", () => {
 describe("splicing a junction into a tapped wire", () => {
   const tapped = wire("w1", "A:out", "B:in");
   const draw = {
-    from: { blockId: "E", portId: "out", domain: "physical-electrical" as const },
+    from: { blockId: "E", portId: "out", kind: "physical-electrical" as const },
     waypoints: [{ x: 40, y: 120 }],
   };
   let n = 0;
