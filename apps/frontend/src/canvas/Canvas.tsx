@@ -58,7 +58,6 @@ interface ResolvedPort {
   kind: PortKindDomain;
   direction: "in" | "out" | "inout" | undefined;
   center: { x: number; y: number };
-  domain: PortKindDomain;
   /** Axis the port faces after mirror+rotation — seeds the route's first segment. */
   exitDir: Direction;
 }
@@ -105,7 +104,6 @@ function resolvePortFromStore(blockId: string, portId: string): ResolvedPort | n
     kind: portDef.kind.domain as PortKindDomain,
     direction,
     center,
-    domain: block.domain,
     exitDir: portEntry.exitDir,
   };
 }
@@ -318,7 +316,10 @@ function commitWireToPort(
       waypoints,
       pinned: false,
       net: null,
-      kind: finalSrc.domain,
+      // The port's kind, not the block's domain: a converter's electrical side is
+      // `physical-electrical` while the converter itself is `mixed`, and a bus port is
+      // `signal-bus` while its block is `signal`. See `wire-kind.ts`.
+      kind: finalSrc.kind,
     });
   });
 }
