@@ -135,6 +135,54 @@ def test_compile_gsim_document_wraps_a_bare_model_and_respells_ports() -> None:
 
 
 @pytest.mark.integration
+def test_integration_a_rule_that_fires_reaches_the_bundle() -> None:
+    """The findings of a run arrive on the result, instead of being deleted with the temp dir.
+
+    #68. The engine writes its event stream beside the netlist, and the netlist is written
+    into a `TemporaryDirectory`, so every event of every run used to be created and removed
+    inside `solve()`. This drives the real binary with a deck whose rule is certain to fire
+    and asserts the events came back.
+    """
+    from simulator.solvers.general_simulator_solver import (
+        GeneralSimulatorSolver,
+        discover_general_simulator,
+    )
+    from simulator.solvers.protocol import SolverOptions
+
+    binary_path = discover_general_simulator()
+    if binary_path is None:
+        pytest.skip(
+            "general-simulator binary not found — build it in the sibling repo "
+            "(cargo build --release -p general-simulator-cli)"
+        )
+
+    # A 5 V node against a rule that allows 1 V: certain to fire, every step. `above`
+    # compares the signed value, so the node voltage is the honest choice -- `I(V1)` is
+    # -5 mA through the source and would never exceed a positive maximum. The rule is at
+    # `warning`, so the process still exits 0: this test is about the events arriving, not
+    # about the exit code, which is #69.
+    netlist = (
+        "V1 n1 0 5\n"
+        "R1 n1 0 1k\n"
+        "R_over kind=rule type=above target=V(n1) max=1 unit=V severity=warning\n"
+    )
+    solver = GeneralSimulatorSolver(binary_path)
+    result = solver.solve(
+        netlist,
+        sim_id="int-rule-events",
+        options=SolverOptions(analysis_type="TRAN", t_start=0.0, t_end=1e-3, n_samples=50),
+    )
+
+    log = result.event_log
+    assert log, "the run reported nothing at all -- the stream was not read back"
+    assert log.unreadable_lines == 0
+    assert any(e.rule == "R_over" for e in log.events), [e.rule for e in log.events]
+    assert log.worst_severity == "warning"
+    # Every rule reports, including the quiet ones: the summary is there either way.
+    assert any(s.rule == "R_over" for s in log.summaries)
+
+
+@pytest.mark.integration
 def test_integration_compile_and_solve_rc_transient(tmp_path: pathlib.Path) -> None:
     if not _gsim_py_available():
         pytest.skip("gsim_py not built for this interpreter — see gsim_py_netlist's own doc")

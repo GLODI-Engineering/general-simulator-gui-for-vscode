@@ -24,6 +24,7 @@ from typing import Any
 
 import numpy as np
 
+from simulator.postprocess.event_log import EventLog
 from simulator.postprocess.hdf5_store import dataset_key, write_hdf5
 
 _SCHEMA_VERSION = 2
@@ -158,6 +159,9 @@ class ResultBundle:
     dc_op_table: list[DcOpEntry] | None = None
     # BE-51: populated only for AC analysis; None for all other analysis types.
     bode_margins: dict[str, object] | None = None
+    #: What the run found -- rule events and per-rule summaries. Carried beside the signals so
+    #: the viewer and the schematic can both reach them (#68); empty for a deck with no rules.
+    event_log: EventLog = field(default_factory=EventLog)
 
     def __post_init__(self) -> None:
         # Normalise: if only t was supplied, copy to time; vice-versa.
@@ -195,6 +199,10 @@ class ResultBundle:
             time=t,
             signals=signals,
             n_points=getattr(bundle, "n_points", len(t)),
+            # `getattr` with a default, because a solver that predates the event stream (or a
+            # hand-built bundle in a test) has no such attribute and an absent log is an empty
+            # one, never an error.
+            event_log=getattr(bundle, "event_log", EventLog()),
         )
 
 
