@@ -194,7 +194,6 @@ describe("paramValueFrom", () => {
   });
 });
 
-
 describe("the same number as the solver, to the last bit", () => {
   // general-mna#41 and omni-schematics#89. `300 * 1e-9` is 3.0000000000000004e-7 while
   // `300e-9` is exactly 3e-7, so a parser that multiplies disagrees with one that appends an
