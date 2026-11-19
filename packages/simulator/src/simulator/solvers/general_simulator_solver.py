@@ -46,9 +46,17 @@ from simulator.solvers.protocol import (
     CancelToken,
     PartialCallback,
     ResultBundle,
+    RunOutcome,
     SimulationError,
     SolverOptions,
 )
+
+#: The engine's own exit codes, named rather than compared as bare integers -- the whole point
+#: of the contract is that `2` and `3` are not failures. `general-simulator`'s
+#: `book/dev-guide/src/output-contract.md` §L1, and `exit::` in its own `main.rs`.
+EXIT_RULE_VIOLATED = 2
+EXIT_STOPPED_BY_RULE = 3
+EXIT_NOT_FINITE = 4
 
 logger = logging.getLogger(__name__)
 
@@ -177,9 +185,33 @@ class GeneralSimulatorSolver:
             if stderr_text.strip():
                 logger.debug("general-simulator stderr:\n%s", stderr_text[:2000])
 
-            if result.returncode != 0:
+            # The engine's exit codes are not a boolean -- see `output-contract.md` §L1.
+            # `2` and `3` are runs that produced a waveform and *found* something, and the
+            # engine deliberately did not reuse `1` for them so a consumer could tell them
+            # apart. Treating every non-zero code as a failure threw away exactly the two
+            # results a user most needs to look at, and made the rules engine working look
+            # like the engine being broken.
+            outcome: RunOutcome
+            if result.returncode == 0:
+                outcome = RunOutcome.COMPLETED
+            elif result.returncode == EXIT_RULE_VIOLATED:
+                outcome = RunOutcome.RULE_VIOLATED
+            elif result.returncode == EXIT_STOPPED_BY_RULE:
+                outcome = RunOutcome.STOPPED_BY_RULE
+            elif result.returncode == EXIT_NOT_FINITE:
+                # Divergence, not a crashed process. A user who meets this once needs to know
+                # which it was: the engine's own message names the signal, the step and the
+                # time it abandoned the run at.
                 raise SimulationError(
-                    stderr_text.strip() or "general-simulator exited with a non-zero status."
+                    stderr_text.strip()
+                    or "The solved state went non-finite and the run was abandoned: nothing "
+                    "in the waveform after that point means anything."
+                )
+            else:
+                raise SimulationError(
+                    stderr_text.strip()
+                    or f"general-simulator exited with status {result.returncode}, "
+                    "which this adapter does not recognise."
                 )
 
             csv_path = tmp_path / f"{sim_id}.csv"
@@ -198,4 +230,20 @@ class GeneralSimulatorSolver:
                     len(event_log.summaries),
                 )
             bundle.event_log = event_log
+            bundle.outcome = outcome
+            if outcome is RunOutcome.STOPPED_BY_RULE:
+                # The engine names the rule on stderr ("stopped by rule 'NAME'"), and the
+                # event stream names it too. Prefer the stream: it is structured, and it is
+                # already parsed. The highest-severity event is the one that ended the run,
+                # since only a `stop` action gets this far.
+                stopping = [
+                    e for e in event_log.events if e.action in ("stop", "stopped")
+                ] or event_log.events
+                bundle.stopped_by = stopping[-1].rule if stopping else None
+                logger.info(
+                    "run %s was stopped by rule %r at t=%s",
+                    sim_id,
+                    bundle.stopped_by,
+                    stopping[-1].time if stopping else "unknown",
+                )
             return bundle

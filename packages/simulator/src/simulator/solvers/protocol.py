@@ -5,6 +5,7 @@ from __future__ import annotations
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from enum import StrEnum
 from typing import Any, Protocol
 
 import numpy as np
@@ -77,6 +78,28 @@ class SimulationError(RuntimeError):
     """User-facing simulation failure."""
 
 
+class RunOutcome(StrEnum):
+    """How a run ended, from the engine's exit code.
+
+    The engine's codes are not a boolean, and the two cases a user most needs to look at are
+    the ones a boolean gets wrong: a rule fired (`2`), or a rule ended the run cleanly (`3`).
+    Both produced a waveform. The engine deliberately did not reuse `1` for them precisely so
+    a consumer could tell them apart -- see `general-simulator`'s
+    `book/dev-guide/src/output-contract.md` §L1.
+
+    A `StrEnum` so it crosses the IPC boundary as its own name without a conversion table.
+    """
+
+    #: Exit 0 -- finished, with nothing to report or warnings only.
+    COMPLETED = "completed"
+    #: Exit 2 -- finished, and a rule of severity `error` or `fatal` fired. The waveform is
+    #: complete; the findings are in `ResultBundle.event_log`.
+    RULE_VIOLATED = "rule-violated"
+    #: Exit 3 -- a rule ended the run early and cleanly: the step finished and every file was
+    #: flushed, so the waveform is valid up to the stop.
+    STOPPED_BY_RULE = "stopped-by-rule"
+
+
 @dataclass
 class SolverOptions:
     analysis_type: str = "TRAN"
@@ -123,6 +146,12 @@ class ResultBundle:
     #: the stream it writes beside the waveform. Empty for a deck with no rules, which is the
     #: common case and not an error. See `simulator.postprocess.event_log`.
     event_log: EventLog = field(default_factory=EventLog)
+    #: How the run ended, from the engine's own exit code -- see `RunOutcome`. A run that a
+    #: rule stopped, or during which a rule fired, produced a waveform and is not a failure;
+    #: this is what lets a consumer say which happened instead of showing a clean run.
+    outcome: RunOutcome = RunOutcome.COMPLETED
+    #: For `RunOutcome.STOPPED_BY_RULE`: the rule that ended the run, when the engine named it.
+    stopped_by: str | None = None
 
     @property
     def time(self) -> np.ndarray:
