@@ -17,16 +17,24 @@
  * `10uF` is 1e-5. Only the first letter (or the `meg` prefix) is read.
  */
 
-/** Multipliers, keyed by the lowercased first letter of the suffix. */
-const FACTORS: Record<string, number> = {
-  t: 1e12,
-  g: 1e9,
-  k: 1e3,
-  m: 1e-3,
-  u: 1e-6,
-  n: 1e-9,
-  p: 1e-12,
-  f: 1e-15,
+/**
+ * Powers of ten, keyed by the lowercased first letter of the suffix.
+ *
+ * Exponents rather than multipliers, because the value is built by appending the exponent to
+ * the base and parsing once — `300n` becomes `300e-9` — instead of multiplying. The solver
+ * does the same, for the same reason: `300 * 1e-9` is 3.0000000000000004e-7 while `300e-9` is
+ * exactly 3e-7, and an echo that says what the solver will read has to agree in the last bit
+ * too. See general-mna#41.
+ */
+const EXPONENTS: Record<string, number> = {
+  t: 12,
+  g: 9,
+  k: 3,
+  m: -3,
+  u: -6,
+  n: -9,
+  p: -12,
+  f: -15,
 };
 
 export interface ParsedNumber {
@@ -63,10 +71,17 @@ export function parseSpiceNumber(raw: string): ParsedNumber | null {
 
   const suffix = text.slice(split);
   const lower = suffix.toLowerCase();
-  const factor = lower.startsWith("meg") ? 1e6 : FACTORS[lower[0] as string];
-  if (factor === undefined) return null;
+  const exponent = lower.startsWith("meg") ? 6 : EXPONENTS[lower[0] as string];
+  if (exponent === undefined) return null;
 
-  return { value: base * factor, factor, suffix };
+  const factor = 10 ** exponent;
+  // Parsed from the concatenation, so the result is the same number the solver reads. A base
+  // the concatenation cannot express falls back to the multiplication — `300.` is a valid
+  // number and `300.e-9` is not — which is the solver's own fallback as well.
+  const concatenated = Number(`${text.slice(0, split)}e${exponent}`);
+  const value = Number.isFinite(concatenated) ? concatenated : base * factor;
+
+  return { value, factor, suffix };
 }
 
 /** Just the number, for callers that do not care how it was written. */

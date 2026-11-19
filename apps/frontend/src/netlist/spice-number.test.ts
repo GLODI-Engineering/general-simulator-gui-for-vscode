@@ -193,3 +193,31 @@ describe("paramValueFrom", () => {
     expect(typeof paramValueFrom("2.2k")).toBe("number");
   });
 });
+
+
+describe("the same number as the solver, to the last bit", () => {
+  // general-mna#41 and omni-schematics#89. `300 * 1e-9` is 3.0000000000000004e-7 while
+  // `300e-9` is exactly 3e-7, so a parser that multiplies disagrees with one that appends an
+  // exponent -- and this file's whole job is to show what the solver will read.
+  it("reads a suffixed number as its exponent spelling exactly", () => {
+    const cases: Array<[string, string]> = [
+      ["300n", "300e-9"],
+      ["1.5u", "1.5e-6"],
+      ["47p", "47e-12"],
+      ["100k", "100e3"],
+      ["2meg", "2e6"],
+      ["7f", "7e-15"],
+      ["3m", "3e-3"],
+    ];
+    for (const [suffixed, exponent] of cases) {
+      expect(spiceValueOf(suffixed)).toBe(Number(exponent));
+    }
+  });
+
+  it("falls back to multiplication for a base the concatenation cannot express", () => {
+    // `300.` parses and `300.e-9` does not, so this one goes through the multiplication and
+    // lands within an ULP rather than on the nose.
+    const value = spiceValueOf("300.n") as number;
+    expect(value).toBeCloseTo(3e-7, 20);
+  });
+});
