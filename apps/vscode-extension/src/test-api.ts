@@ -18,7 +18,7 @@ import type { KernelConfig, WebviewRole } from "./protocol";
  * was renamed, three separate copies of this literal silently stopped
  * matching and the whole integration suite failed in its `before all` hook.
  */
-export const EXTENSION_ID = "gensim.general-simulator-gui";
+export const EXTENSION_ID = "gensim.omni-schematics";
 
 export interface GsimTestApi {
   /** Roles whose React app has reported `gsim/ready`. */

@@ -1,7 +1,7 @@
 {
-  "name": "general-simulator-gui",
-  "displayName": "General Simulator GUI for VS Code",
-  "description": "Schematic capture, component authoring and circuit/system simulation inside VS Code, powered by the general-simulator engine.",
+  "name": "omni-schematics",
+  "displayName": "Omni Schematics",
+  "description": "Schematic capture, component authoring and circuit/system simulation inside VS Code. Runs the general-simulator engine today, and is built to run others.",
   "version": "0.5.0",
   "private": false,
   "publisher": "gensim",
@@ -409,7 +409,7 @@
     "test": "vitest run",
     "test:unit": "vitest run",
     "test:integration": "tsc -p ./ && node ./out/integration/runTests.js",
-    "package": "node ../../scripts/check-webviews-fresh.mjs && vsce package --no-dependencies --out ../../general-simulator-gui.vsix"
+    "package": "node ../../scripts/check-webviews-fresh.mjs && vsce package --no-dependencies --out ../../omni-schematics.vsix"
   },
   "devDependencies": {
     "@types/glob": "^9.0.0",
@@ -426,12 +426,12 @@
   "license": "AGPL-3.0-or-later",
   "repository": {
     "type": "git",
-    "url": "https://github.com/GLODI-Engineering/general-simulator-gui-for-vscode.git"
+    "url": "https://github.com/GLODI-Engineering/omni-schematics.git"
   },
   "bugs": {
-    "url": "https://github.com/GLODI-Engineering/general-simulator-gui-for-vscode/issues"
+    "url": "https://github.com/GLODI-Engineering/omni-schematics/issues"
   },
-  "homepage": "https://github.com/GLODI-Engineering/general-simulator-gui-for-vscode#readme",
+  "homepage": "https://github.com/GLODI-Engineering/omni-schematics#readme",
   "keywords": [
     "spice",
     "simulation",

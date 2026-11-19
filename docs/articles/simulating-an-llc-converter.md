@@ -42,12 +42,12 @@ the engine declares that, and the editor displays it faithfully.
 Neither piece needs a build toolchain: both are published as downloads, one
 file each.
 
-**The editor.** Take `general-simulator-gui.vsix` from the
-[editor releases](https://github.com/GLODI-Engineering/general-simulator-gui-for-vscode/releases/latest)
+**The editor.** Take `omni-schematics.vsix` from the
+[Omni Schematics releases](https://github.com/GLODI-Engineering/omni-schematics/releases/latest)
 and install it:
 
 ```bash
-code --install-extension general-simulator-gui.vsix
+code --install-extension omni-schematics.vsix
 ```
 
 **The engine.** Take the archive for your machine from the
@@ -542,7 +542,7 @@ pass agreed with independent post-processing to nine figures.
 ### Reproducing this
 
 Install the two downloads from §1.2 — the `.vsix` with
-`code --install-extension general-simulator-gui.vsix`, and the engine archive
+`code --install-extension omni-schematics.vsix`, and the engine archive
 for your platform unpacked anywhere — then set one line of `settings.json`:
 
 ```jsonc
