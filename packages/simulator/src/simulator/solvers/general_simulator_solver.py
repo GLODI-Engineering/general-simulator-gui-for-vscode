@@ -35,6 +35,7 @@ import tempfile
 from typing import Any, ClassVar
 
 from simulator.parsers.general_simulator_csv import parse_general_simulator_csv
+from simulator.postprocess.event_log import read_event_log
 from simulator.solvers._subprocess_run import default_solver_timeout_seconds, run_cancellable
 from simulator.solvers.path_discovery import (
     SolverNotFoundError,
@@ -133,7 +134,21 @@ class GeneralSimulatorSolver:
             cir_path = tmp_path / f"{sim_id}.cir"
             cir_path.write_text(netlist, encoding="utf-8")
 
-            cmd = [str(self.binary_path), str(cir_path), "--mode", mode]
+            # Ask for the event stream explicitly, in this directory, and read it back before
+            # the directory goes away. Without `--events` the engine writes it beside the
+            # netlist -- which is here too, so it was created and deleted with the temp dir,
+            # and every finding of every run was discarded (#68). The text twin is not
+            # requested: this adapter reads the JSONL, and a second file nobody opens is a
+            # second thing to keep in step.
+            events_path = tmp_path / f"{sim_id}.events.jsonl"
+            cmd = [
+                str(self.binary_path),
+                str(cir_path),
+                "--mode",
+                mode,
+                "--events",
+                str(events_path),
+            ]
             if mode == "transient":
                 t_end = max(options.t_end - options.t_start, 0.0) or 1.0
                 n_samples = max(options.n_samples, 2)
@@ -169,4 +184,18 @@ class GeneralSimulatorSolver:
 
             csv_path = tmp_path / f"{sim_id}.csv"
             csv_path.write_text(stdout_text, encoding="utf-8")
-            return parse_general_simulator_csv(csv_path, sim_id)
+            bundle = parse_general_simulator_csv(csv_path, sim_id)
+            # Read inside the `with`: the file lives in the directory about to be removed, and
+            # the events travel on the bundle rather than as a path, so nothing downstream
+            # needs the file to survive.
+            event_log = read_event_log(events_path)
+            if event_log.unreadable_lines:
+                logger.warning(
+                    "%d line(s) of the event log could not be read; %d event(s) and "
+                    "%d summary line(s) were",
+                    event_log.unreadable_lines,
+                    len(event_log.events),
+                    len(event_log.summaries),
+                )
+            bundle.event_log = event_log
+            return bundle

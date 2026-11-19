@@ -9,6 +9,8 @@ from typing import Any, Protocol
 
 import numpy as np
 
+from simulator.postprocess.event_log import EventLog
+
 
 class UnsupportedAnalysisError(ValueError):
     """Raised when an analysis type is not supported in v2."""
@@ -117,6 +119,10 @@ class ResultBundle:
     t_start: float = 0.0
     t_end: float = 0.0
     n_points: int = 0
+    #: What the run *found*: the engine's rule events and per-rule summaries, read back from
+    #: the stream it writes beside the waveform. Empty for a deck with no rules, which is the
+    #: common case and not an error. See `simulator.postprocess.event_log`.
+    event_log: EventLog = field(default_factory=EventLog)
 
     @property
     def time(self) -> np.ndarray:
