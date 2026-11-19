@@ -58,6 +58,9 @@ test.describe("Perf budgets", () => {
               | undefined;
             return fn !== undefined;
           },
+          // The page argument. Without it the options below are passed into the predicate and
+          // this wait never times out -- in a perf test, that spends the whole budget waiting.
+          undefined,
           { timeout: 5_000 },
         )
         .catch(() => {
