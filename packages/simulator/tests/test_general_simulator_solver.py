@@ -183,6 +183,45 @@ def test_integration_a_rule_that_fires_reaches_the_bundle() -> None:
 
 
 @pytest.mark.integration
+def test_integration_a_rule_that_stops_the_run_still_returns_its_waveform() -> None:
+    """#69, against the real binary: exit 3 is a result, and it names the rule.
+
+    `action=stop` ends the run at the violation -- the step finishes and every file is
+    flushed, so the waveform is valid up to the stop. The adapter used to raise here and throw
+    that waveform away.
+    """
+    from simulator.solvers.general_simulator_solver import (
+        GeneralSimulatorSolver,
+        discover_general_simulator,
+    )
+    from simulator.solvers.protocol import RunOutcome, SolverOptions
+
+    binary_path = discover_general_simulator()
+    if binary_path is None:
+        pytest.skip(
+            "general-simulator binary not found — build it in the sibling repo "
+            "(cargo build --release -p general-simulator-cli)"
+        )
+
+    netlist = (
+        "V1 n1 0 5\n"
+        "R1 n1 0 1k\n"
+        "R_stop kind=rule type=above target=V(n1) max=1 unit=V severity=error action=stop\n"
+    )
+    solver = GeneralSimulatorSolver(binary_path)
+    result = solver.solve(
+        netlist,
+        sim_id="int-rule-stop",
+        options=SolverOptions(analysis_type="TRAN", t_start=0.0, t_end=1e-3, n_samples=50),
+    )
+
+    assert result.outcome is RunOutcome.STOPPED_BY_RULE
+    assert result.n_points > 0, "the waveform up to the stop is the point of exit 3"
+    assert result.stopped_by == "R_stop", result.stopped_by
+    assert any(e.rule == "R_stop" for e in result.event_log.events)
+
+
+@pytest.mark.integration
 def test_integration_compile_and_solve_rc_transient(tmp_path: pathlib.Path) -> None:
     if not _gsim_py_available():
         pytest.skip("gsim_py not built for this interpreter — see gsim_py_netlist's own doc")

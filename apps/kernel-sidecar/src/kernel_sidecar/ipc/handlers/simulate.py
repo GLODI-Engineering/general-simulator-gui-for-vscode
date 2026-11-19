@@ -24,6 +24,7 @@ from kernel_sidecar.ipc.envelope import (
     WaveformDone,
     encode_waveform_chunk_frame,
 )
+from simulator.postprocess.event_log import EventLog
 
 logger = logging.getLogger(__name__)
 
@@ -365,12 +366,20 @@ async def _do_simulate(ws: Any, msg: Message, ctx: Any, cancel_token: Any) -> No
                 for entry in annotated.dc_op_table
             ]
 
+        # How the run ended, and what it found. A rule firing is the feature working: the
+        # front end needs to be able to say "this ran and found three things" rather than
+        # showing a clean run or an error dialog (#69).
+        outcome = getattr(bundle, "outcome", None)
+        event_log = getattr(bundle, "event_log", None)
         simulate_result_payload: dict[str, object] = {
             "sim_id": annotated.sim_id,
             "t_start": annotated.t_start,
             "t_end": annotated.t_end,
             "n_points": annotated.n_points,
             "manifest_url": manifest_url,
+            "outcome": str(outcome) if outcome is not None else "completed",
+            "stopped_by": getattr(bundle, "stopped_by", None),
+            "findings": _findings_payload(event_log),
             "signals": [
                 {
                     "name": sig.name,
@@ -627,6 +636,39 @@ async def _emit_waveform_stream(
         await asyncio.sleep(0)
 
 
+def _findings_payload(event_log: Any) -> list[dict[str, object]]:
+    """The run's events, as the front end needs them.
+
+    Flat and JSON-only: the webview gets what it must have to draw a marker and jump to it --
+    `time` for the marker, `step` for the seek, `severity` for the colour, `action` for the
+    explanation -- and nothing it would have to re-derive. `duration`/`peak` ride along on a
+    `leave`, where they exist (#68's record contract).
+
+    The summaries are deliberately not sent yet: they decide a findings *panel*, which is #44's
+    family, and sending a shape nobody reads would freeze it before it is designed.
+    """
+    if event_log is None:
+        return []
+    return [
+        {
+            "rule": event.rule,
+            "target": event.target,
+            "kind": event.kind,
+            "severity": event.severity,
+            "action": event.action,
+            "time": event.time,
+            "step": event.step,
+            "value": event.value,
+            "limit": event.limit,
+            "unit": event.unit,
+            "duration": event.duration,
+            "peak": event.peak,
+            "detail": event.detail,
+        }
+        for event in getattr(event_log, "events", [])
+    ]
+
+
 def _annotate_bundle(
     proto_bundle: Any,
     options: Any,
@@ -795,4 +837,8 @@ def _annotate_bundle(
         n_points=getattr(proto_bundle, "n_points", len(t)),
         dc_op_table=dc_op_table,
         bode_margins=bode_margins_dict,
+        # What the run found, and how it ended. Carried through the annotation step so the
+        # writer's bundle has them too; a solver that predates either has neither, and an
+        # absent event log is an empty one (#68, #69).
+        event_log=getattr(proto_bundle, "event_log", EventLog()),
     )
