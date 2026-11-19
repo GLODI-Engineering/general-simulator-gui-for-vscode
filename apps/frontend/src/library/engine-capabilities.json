@@ -1656,6 +1656,79 @@
       ]
     },
     {
+      "type": "source.file",
+      "emits": {
+        "card": "block",
+        "kind": "filewave"
+      },
+      "node_ports": [],
+      "output_ports": [],
+      "dynamic_outputs": true,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "path",
+          "field": "path",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "time",
+          "field": "time",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "cols",
+          "field": "cols",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "interp",
+          "field": "interp",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "after",
+          "field": "after",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "tshift",
+          "field": "tshift",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "scale",
+          "field": "scale",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "offset",
+          "field": "offset",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "skip",
+          "field": "skip",
+          "required": false,
+          "form": "scalar"
+        },
+        {
+          "param": "delim",
+          "field": "delim",
+          "required": false,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
       "type": "extensibility.cscript",
       "emits": {
         "card": "block",
