@@ -37,7 +37,7 @@ import * as vscode from "vscode";
 import type { GsimHost } from "./host";
 import { renderWebview } from "./webview-content";
 
-const PANEL_VIEW_TYPE = "generalSimulator.waveforms";
+const PANEL_VIEW_TYPE = "omniSchematics.waveforms";
 
 export class WaveformPanel implements vscode.Disposable {
   private panel: vscode.WebviewPanel | null = null;

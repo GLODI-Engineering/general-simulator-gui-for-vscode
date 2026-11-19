@@ -23,8 +23,8 @@ function makeWorkspace(): string {
     path.join(dir, ".vscode", "settings.json"),
     JSON.stringify(
       {
-        "generalSimulator.autoStartKernel": false,
-        "generalSimulator.workspaceRoot": path.resolve(__dirname, "../../../.."),
+        "omniSchematics.autoStartKernel": false,
+        "omniSchematics.workspaceRoot": path.resolve(__dirname, "../../../.."),
         "window.restoreWindows": "none",
         "workbench.startupEditor": "none",
         "extensions.autoCheckUpdates": false,

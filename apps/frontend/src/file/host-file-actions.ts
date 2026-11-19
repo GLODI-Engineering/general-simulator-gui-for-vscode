@@ -1,7 +1,7 @@
 /**
  * File actions that the *embedding host* owns, not this app.
  *
- * Inside the VS Code Custom Editor (`generalSimulator.schematic`) the
+ * Inside the VS Code Custom Editor (`omniSchematics.schematic`) the
  * `.gsim_sch` document lifecycle belongs entirely to VS Code:
  * `SchematicEditorProvider` fires `onDidChangeCustomDocument` for every graph
  * mutation the webview reports (see `vscode/schematic-main.tsx`'s

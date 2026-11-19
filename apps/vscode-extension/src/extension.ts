@@ -81,8 +81,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<GsimTe
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("generalSimulator.showWaveforms", () => waveforms.show()),
-    vscode.commands.registerCommand("generalSimulator.restartKernel", async () => {
+    vscode.commands.registerCommand("omniSchematics.showWaveforms", () => waveforms.show()),
+    vscode.commands.registerCommand("omniSchematics.restartKernel", async () => {
       const config = await host.kernel.restart();
       if (config) {
         void vscode.window.showInformationMessage(
@@ -94,7 +94,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<GsimTe
         );
       }
     }),
-    vscode.commands.registerCommand("generalSimulator.showKernelLog", () => log.show()),
+    vscode.commands.registerCommand("omniSchematics.showKernelLog", () => log.show()),
     /**
      * Hand a keyboard shortcut VS Code claimed to the schematic.
      *
@@ -109,7 +109,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<GsimTe
      * with a schematic active, and the webview synthesises a real keydown, so a background
      * schematic tab drops it at the same focus check a physical keystroke would meet.
      */
-    vscode.commands.registerCommand("generalSimulator.forwardChord", (args: unknown) => {
+    vscode.commands.registerCommand("omniSchematics.forwardChord", (args: unknown) => {
       const chord =
         args && typeof args === "object" && typeof (args as { chord?: unknown }).chord === "string"
           ? (args as { chord: string }).chord
@@ -122,7 +122,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<GsimTe
       }
       host.broadcast({ type: "gsim/forwardedChord", chord }, { role: "schematic" });
     }),
-    vscode.commands.registerCommand("generalSimulator.newSchematic", async () => {
+    vscode.commands.registerCommand("omniSchematics.newSchematic", async () => {
       const target = await vscode.window.showSaveDialog({
         filters: { "General Simulator schematic": ["gsim_sch"] },
         saveLabel: "Create schematic",
@@ -131,7 +131,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<GsimTe
       await vscode.workspace.fs.writeFile(target, new TextEncoder().encode(""));
       await vscode.commands.executeCommand("vscode.openWith", target, SCHEMATIC_VIEW_TYPE);
     }),
-    vscode.commands.registerCommand("generalSimulator.openSchematic", async () => {
+    vscode.commands.registerCommand("omniSchematics.openSchematic", async () => {
       const picked = await vscode.window.showOpenDialog({
         canSelectMany: false,
         filters: { "General Simulator schematic": ["gsim_sch"] },
@@ -144,7 +144,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<GsimTe
   );
 
   const autoStart = vscode.workspace
-    .getConfiguration("generalSimulator")
+    .getConfiguration("omniSchematics")
     .get<boolean>("autoStartKernel", true);
   if (autoStart) {
     void host.kernel.start();

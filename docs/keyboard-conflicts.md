@@ -13,7 +13,7 @@ terminal — VS Code keeps them.
 
 ## Choosing who wins
 
-`generalSimulator.overrideVsCodeKeybindings`, default **true**: the schematic's shortcuts
+`omniSchematics.overrideVsCodeKeybindings`, default **true**: the schematic's shortcuts
 override VS Code's while a schematic tab is focused. Set it to `false` to hand every chord
 back to VS Code, at the cost of the schematic shortcuts that collide.
 

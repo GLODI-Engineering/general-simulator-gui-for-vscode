@@ -30,7 +30,7 @@ import { EXTENSION_ID as TEST_API_EXTENSION_ID, getTestApi } from "../../test-ap
 
 // Imported, not re-declared: see test-api.ts.
 const EXTENSION_ID = TEST_API_EXTENSION_ID;
-const SCHEMATIC_VIEW_TYPE = "generalSimulator.schematic";
+const SCHEMATIC_VIEW_TYPE = "omniSchematics.schematic";
 
 interface MountReport {
   role: string;
@@ -79,11 +79,11 @@ suite("General Simulator — VS Code integration", () => {
 
     const commands = await vscode.commands.getCommands(true);
     for (const id of [
-      "generalSimulator.showWaveforms",
-      "generalSimulator.restartKernel",
-      "generalSimulator.showKernelLog",
-      "generalSimulator.newSchematic",
-      "generalSimulator.openSchematic",
+      "omniSchematics.showWaveforms",
+      "omniSchematics.restartKernel",
+      "omniSchematics.showKernelLog",
+      "omniSchematics.newSchematic",
+      "omniSchematics.openSchematic",
     ]) {
       assert.ok(commands.includes(id), `command ${id} is registered`);
     }
@@ -91,14 +91,14 @@ suite("General Simulator — VS Code integration", () => {
     const contributes = extension.packageJSON.contributes;
     assert.equal(contributes.customEditors[0].viewType, SCHEMATIC_VIEW_TYPE);
     assert.equal(contributes.customEditors[0].selector[0].filenamePattern, "*.gsim_sch");
-    assert.equal(contributes.views.generalSimulator[0].id, "generalSimulator.library");
+    assert.equal(contributes.views.omniSchematics[0].id, "omniSchematics.library");
     assert.equal(contributes.views.generalSimulator[0].type, "webview");
   });
 
   // -------------------------------------------------------------------------
   suite("library sidebar webview", () => {
     suiteSetup(async () => {
-      await vscode.commands.executeCommand("generalSimulator.library.focus");
+      await vscode.commands.executeCommand("omniSchematics.library.focus");
       await api.waitForWebview("library");
     });
 
@@ -224,7 +224,7 @@ suite("General Simulator — VS Code integration", () => {
   // -------------------------------------------------------------------------
   suite("cross-webview drag bridge (message-protocol layer)", () => {
     suiteSetup(async () => {
-      await vscode.commands.executeCommand("generalSimulator.library.focus");
+      await vscode.commands.executeCommand("omniSchematics.library.focus");
       await api.waitForWebview("library");
       await vscode.commands.executeCommand("vscode.openWith", schematicUri(), SCHEMATIC_VIEW_TYPE);
       await api.waitForWebview("schematic");
@@ -383,7 +383,7 @@ suite("General Simulator — VS Code integration", () => {
   // -------------------------------------------------------------------------
   suite("waveform panel", () => {
     test("the Show Waveforms command opens a webview that mounts", async () => {
-      await vscode.commands.executeCommand("generalSimulator.showWaveforms");
+      await vscode.commands.executeCommand("omniSchematics.showWaveforms");
       await api.waitForWebview("waveform");
       const report = await api.probe<MountReport>("waveform", "mounted");
       assert.equal(report.role, "waveform");

@@ -19,7 +19,7 @@ import * as vscode from "vscode";
 import type { GsimHost } from "./host";
 import { renderWebview } from "./webview-content";
 
-export const SCHEMATIC_VIEW_TYPE = "generalSimulator.schematic";
+export const SCHEMATIC_VIEW_TYPE = "omniSchematics.schematic";
 
 class SchematicDocument implements vscode.CustomDocument {
   /** Latest text the webview reported; what Save writes out. */

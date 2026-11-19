@@ -94,18 +94,18 @@ It is usually faster to edit the JSON directly. Open the command palette
 {
   // The binary that actually runs a simulation. This is the one setting
   // you cannot skip.
-  "generalSimulator.generalSimulatorPath": "/path/to/general-simulator",
+  "omniSchematics.generalSimulatorPath": "/path/to/general-simulator",
 
   // The checkout that holds pyproject.toml. Leave empty and the extension
   // looks for it next to the open workspace.
-  "generalSimulator.workspaceRoot": "",
+  "omniSchematics.workspaceRoot": "",
 
   // How the kernel sidecar is launched. 'uv' is the default and needs no
   // further setup.
-  "generalSimulator.pythonRunner": "uv",
+  "omniSchematics.pythonRunner": "uv",
 
   // Start the kernel when the extension wakes up, so Run works immediately.
-  "generalSimulator.autoStartKernel": true
+  "omniSchematics.autoStartKernel": true
 }
 ```
 
@@ -546,7 +546,7 @@ Install the two downloads from §1.2 — the `.vsix` with
 for your platform unpacked anywhere — then set one line of `settings.json`:
 
 ```jsonc
-"generalSimulator.generalSimulatorPath": "/path/to/general-simulator"
+"omniSchematics.generalSimulatorPath": "/path/to/general-simulator"
 ```
 
 Then open [`llc-converter.gsim_sch`](./assets/llc-converter.gsim_sch) and press

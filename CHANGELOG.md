@@ -1,5 +1,38 @@
 # Changelog
 
+## 2026-11-19 — Omni Schematics
+
+### Changed — action required if you have custom keybindings
+
+The editor is now **Omni Schematics**, named apart from the engine it drives
+because it is built to drive others. Everything the extension contributes was
+namespaced after the engine and is now namespaced after the product.
+
+**If you bound a key to one of these commands in your own `keybindings.json`,
+the binding no longer matches.** Rename the command and it works again:
+
+| was | now |
+| --- | --- |
+| `generalSimulator.showWaveforms` | `omniSchematics.showWaveforms` |
+| `generalSimulator.restartKernel` | `omniSchematics.restartKernel` |
+| `generalSimulator.showKernelLog` | `omniSchematics.showKernelLog` |
+| `generalSimulator.newSchematic` | `omniSchematics.newSchematic` |
+| `generalSimulator.openSchematic` | `omniSchematics.openSchematic` |
+| `generalSimulator.forwardChord` | `omniSchematics.forwardChord` |
+
+The eight settings moved the same way — `generalSimulator.workspaceRoot` is
+`omniSchematics.workspaceRoot`, and so on. **The keys themselves did not
+change**: it is still `omniSchematics.generalSimulatorPath` that points at the
+`general-simulator` binary, because the engine keeps its name.
+
+The two custom editors changed view type (`generalSimulator.schematic` →
+`omniSchematics.schematic`, `.simResult` likewise), so a `.gsim_sch` or
+`.gsim_sim_result` you had opened with an explicit "Open With" choice will ask
+again the first time.
+
+The packaged artifact is `omni-schematics.vsix`, and the extension id is
+`gensim.omni-schematics`.
+
 ## 2026-11-17 — A placed block lands on a tier that exists (0.5.0)
 
 ### Fixed

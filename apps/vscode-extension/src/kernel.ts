@@ -103,7 +103,7 @@ export class KernelSidecar implements vscode.Disposable {
       return fromEnv;
     }
 
-    const settings = vscode.workspace.getConfiguration("generalSimulator");
+    const settings = vscode.workspace.getConfiguration("omniSchematics");
     const configuredRoot = (settings.get<string>("workspaceRoot") ?? "").trim();
     const runner = (settings.get<string>("pythonRunner") ?? "uv").trim() || "uv";
 
@@ -115,7 +115,7 @@ export class KernelSidecar implements vscode.Disposable {
     if (!workspaceRoot) {
       this.log.appendLine(
         "[kernel] could not locate a general-simulator checkout (no pyproject.toml found). " +
-          "Set generalSimulator.workspaceRoot.",
+          "Set omniSchematics.workspaceRoot.",
       );
       return null;
     }
