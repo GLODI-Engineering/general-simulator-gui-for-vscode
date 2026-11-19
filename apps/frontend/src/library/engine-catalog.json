@@ -22172,8 +22172,8 @@
       },
       "version": 1,
       "engineId": "signal.step",
-      "engineType": null,
-      "compilable": false
+      "engineType": "signal.step",
+      "compilable": true
     }
   },
   {
@@ -25676,8 +25676,8 @@
       },
       "version": 1,
       "engineId": "signal-flow.sink.scope",
-      "engineType": null,
-      "compilable": false
+      "engineType": "signal-flow.sink.scope",
+      "compilable": true
     }
   },
   {
@@ -26228,8 +26228,8 @@
       },
       "version": 1,
       "engineId": "signal-flow.source.step",
-      "engineType": null,
-      "compilable": false
+      "engineType": "signal-flow.source.step",
+      "compilable": true
     }
   },
   {
@@ -27001,8 +27001,8 @@
       },
       "version": 1,
       "engineId": "sinks.scope",
-      "engineType": null,
-      "compilable": false
+      "engineType": "sinks.scope",
+      "compilable": true
     }
   },
   {

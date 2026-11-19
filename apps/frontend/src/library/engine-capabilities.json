@@ -36,6 +36,28 @@
       "params": []
     },
     {
+      "type": "sinks.scope",
+      "emits": {
+        "card": "nothing"
+      },
+      "node_ports": [],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "signal-flow.sink.scope",
+      "emits": {
+        "card": "nothing"
+      },
+      "node_ports": [],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
       "type": "routing.goto",
       "emits": {
         "card": "nothing"
@@ -1705,6 +1727,72 @@
         {
           "param": "phase",
           "field": "phase",
+          "required": false,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "signal.step",
+      "emits": {
+        "card": "block",
+        "kind": "pulsewave"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "before",
+          "field": "v1",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "after",
+          "field": "v2",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "t_step",
+          "field": "td",
+          "required": false,
+          "form": "scalar"
+        }
+      ]
+    },
+    {
+      "type": "signal-flow.source.step",
+      "emits": {
+        "card": "block",
+        "kind": "pulsewave"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "before",
+          "field": "v1",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "after",
+          "field": "v2",
+          "required": true,
+          "form": "scalar"
+        },
+        {
+          "param": "t_step",
+          "field": "td",
           "required": false,
           "form": "scalar"
         }
