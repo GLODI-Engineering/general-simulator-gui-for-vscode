@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "generator": "gsim-core 0.5.0",
   "types": [
     {
@@ -101,6 +101,12 @@
           "required": true,
           "form": "scalar"
         }
+      ],
+      "ratings": [
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -123,6 +129,12 @@
           "required": true,
           "form": "scalar"
         }
+      ],
+      "ratings": [
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -145,6 +157,14 @@
           "required": true,
           "form": "scalar"
         }
+      ],
+      "ratings": [
+        "i_max",
+        "i_sat",
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -167,6 +187,14 @@
           "required": true,
           "form": "scalar"
         }
+      ],
+      "ratings": [
+        "i_max",
+        "i_sat",
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -189,6 +217,12 @@
           "required": true,
           "form": "scalar"
         }
+      ],
+      "ratings": [
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -241,6 +275,14 @@
           "required": true,
           "form": "source_function_field"
         }
+      ],
+      "ratings": [
+        "i_max",
+        "i_sat",
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -299,6 +341,14 @@
           "required": true,
           "form": "source_function_field"
         }
+      ],
+      "ratings": [
+        "i_max",
+        "i_sat",
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -321,6 +371,14 @@
           "required": true,
           "form": "list"
         }
+      ],
+      "ratings": [
+        "i_max",
+        "i_sat",
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -343,6 +401,12 @@
           "required": true,
           "form": "list"
         }
+      ],
+      "ratings": [
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -395,6 +459,14 @@
           "required": true,
           "form": "source_function_field"
         }
+      ],
+      "ratings": [
+        "i_max",
+        "i_sat",
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -447,6 +519,12 @@
           "required": true,
           "form": "source_function_field"
         }
+      ],
+      "ratings": [
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -493,6 +571,14 @@
           "required": true,
           "form": "source_function_field"
         }
+      ],
+      "ratings": [
+        "i_max",
+        "i_sat",
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -539,6 +625,12 @@
           "required": true,
           "form": "source_function_field"
         }
+      ],
+      "ratings": [
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -591,6 +683,12 @@
           "required": true,
           "form": "source_function_field"
         }
+      ],
+      "ratings": [
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -649,6 +747,12 @@
           "required": true,
           "form": "source_function_field"
         }
+      ],
+      "ratings": [
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -765,6 +869,13 @@
           "required": true,
           "form": "scalar"
         }
+      ],
+      "ratings": [
+        "i_max",
+        "i_sat",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -817,6 +928,12 @@
           "required": true,
           "form": "scalar"
         }
+      ],
+      "ratings": [
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -845,6 +962,14 @@
           "required": true,
           "form": "scalar"
         }
+      ],
+      "ratings": [
+        "i_max",
+        "i_sat",
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -904,6 +1029,12 @@
           "required": false,
           "form": "scalar"
         }
+      ],
+      "ratings": [
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -951,6 +1082,12 @@
           "required": true,
           "form": "scalar"
         }
+      ],
+      "ratings": [
+        "v_max",
+        "hold",
+        "on_violation",
+        "severity"
       ]
     },
     {
@@ -2301,5 +2438,32 @@
         }
       ]
     }
-  ]
+  ],
+  "ratings": {
+    "fields": [
+      "i_max",
+      "i_sat",
+      "v_max",
+      "hold",
+      "on_violation",
+      "severity"
+    ],
+    "limits": [
+      "i_max",
+      "i_sat",
+      "v_max"
+    ],
+    "on_violation": [
+      "log",
+      "console",
+      "stop",
+      "pause"
+    ],
+    "severity": [
+      "info",
+      "warning",
+      "error",
+      "fatal"
+    ]
+  }
 }
