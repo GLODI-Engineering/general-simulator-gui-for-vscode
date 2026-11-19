@@ -1,6 +1,6 @@
 import { translateError } from "../ipc/error-map";
 import { getIpcClient, reconnectKernel } from "../ipc/transport";
-import type { ExecuteResult, SimulateRequest } from "../ipc/types";
+import type { ExecuteResult, SignalDetail, SimulateRequest } from "../ipc/types";
 import { detectAnalysisTypeFromNetlist } from "../netlist/generate";
 import { toAnalysisPayload } from "../simulation/SimSettings";
 import { useGraphStore, useIpcStore, useLibraryStore, useUiStore } from "../store";
@@ -429,12 +429,20 @@ function _groupSignalsIntoAxes(signalNames: string[]): string[][] {
  * is no existing figure AND nothing to plot — no point creating an empty one.
  */
 function _populateWaveformViewer(
-  manifest: { sim_id: string; signals: string[] } | null | undefined,
+  manifest: { sim_id: string; signals: string[]; details?: SignalDetail[] } | null | undefined,
 ): void {
   if (!manifest) return;
 
   const store = useWaveformStore.getState();
   const simId = manifest.sim_id;
+
+  // What the run says about its own signals, before anything is drawn. A
+  // signal that streamed live is in the cache already, carrying the
+  // placeholder metadata a chunk frame could supply; this is the only moment
+  // the real analysis, unit and producing block are in hand.
+  if (manifest.details && manifest.details.length > 0) {
+    store.applySignalMetadata(simId, manifest.details);
+  }
 
   // Move the outgoing run into the history before its axes are repopulated.
   // Its samples stay in the cache under their own sim id, so an axes set to

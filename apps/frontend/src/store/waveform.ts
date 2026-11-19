@@ -1,6 +1,8 @@
 import { create } from "zustand";
 
 import { getIpcClient } from "../ipc/transport";
+import type { SignalDetail } from "../ipc/types";
+import { fileSourceBlockIds } from "../waveform/measured";
 import type { MeasurementKey } from "../waveform/measurements";
 import type {
   Axes,
@@ -10,6 +12,7 @@ import type {
   SignalRef,
   WaveformSignal,
 } from "../waveform/types";
+import { useGraphStore } from "./graph";
 
 // Stable palette for signal colors, cycled via index.
 const _COLOR_PALETTE = [
@@ -45,6 +48,17 @@ function _uuid(): string {
 
 function _signalCacheKey(simId: string, signalName: string): string {
   return `${simId}::${signalName}`;
+}
+
+/**
+ * The ids of the blocks in the open document that replay a file.
+ *
+ * Read through `getState()` inside the call, not at module scope: the store is
+ * consulted at the moment a run's metadata arrives, which is the document that
+ * ran.
+ */
+function _fileSourceIds(): Set<string> {
+  return fileSourceBlockIds(useGraphStore.getState().document.model.blocks);
 }
 
 export interface WaveformState {
@@ -107,6 +121,19 @@ export interface WaveformState {
   clearAxes: (axesId: string) => void;
   cacheSignal: (simId: string, name: string, data: WaveformSignal) => void;
   fetchSignal: (simId: string, signalName: string) => Promise<void>;
+  /**
+   * Take what the run's manifest says about its signals.
+   *
+   * Two things were wrong without this. A signal delivered as live chunks is
+   * cached as a stub carrying `analysis: "transient"`, `quantity:
+   * "dimensionless"` and no unit, because a binary chunk frame holds a name
+   * and numbers and nothing else -- and `fetchSignal` returns early for a
+   * signal already in the cache, so the real metadata never replaced it. An
+   * AC run whose signals streamed therefore kept transient labels. And
+   * nothing recorded which block produced a trace, which is the only honest
+   * way to know that one of them is a measurement rather than a result.
+   */
+  applySignalMetadata: (simId: string, details: SignalDetail[]) => void;
 
   // Coupling group actions
   createCouplingGroup: (name: string, lockX: boolean, lockY: boolean) => string;
@@ -511,6 +538,37 @@ export const useWaveformStore = create<WaveformState>((set, get) => ({
     });
   },
 
+  applySignalMetadata: (simId, details) => {
+    if (details.length === 0) return;
+    // The document that produced this run. Asked once, here, rather than at
+    // draw time: see `WaveformSignal.measured`.
+    const captures = _fileSourceIds();
+    set((state) => {
+      let changed = false;
+      const signalCache = new Map(state.signalCache);
+      for (const detail of details) {
+        const key = _signalCacheKey(simId, detail.name);
+        const signal = signalCache.get(key);
+        // Only signals already cached: this corrects what is there and never
+        // invents an entry with no samples, which every consumer would then
+        // have to treat as a signal that exists but cannot be drawn.
+        if (!signal) continue;
+        signalCache.set(key, {
+          ...signal,
+          analysis: detail.analysis ?? signal.analysis,
+          quantity: detail.quantity ?? signal.quantity,
+          unit: detail.unit ?? signal.unit,
+          domain: detail.domain ?? signal.domain,
+          ...(detail.block === undefined ? {} : { blockId: detail.block }),
+          ...(detail.port === undefined ? {} : { portId: detail.port }),
+          measured: detail.block !== undefined && captures.has(detail.block),
+        });
+        changed = true;
+      }
+      return changed ? { signalCache } : {};
+    });
+  },
+
   fetchSignal: async (simId, signalName) => {
     const cacheKey = _signalCacheKey(simId, signalName);
     if (get().signalCache.has(cacheKey)) return;
@@ -534,6 +592,9 @@ export const useWaveformStore = create<WaveformState>((set, get) => ({
         domain: trace.domain ?? "time",
         time: new Float64Array(slice.time),
         values: new Float64Array(trace.values),
+        ...(trace.block === undefined ? {} : { blockId: trace.block }),
+        ...(trace.port === undefined ? {} : { portId: trace.port }),
+        measured: trace.block !== undefined && _fileSourceIds().has(trace.block),
       };
       get().cacheSignal(simId, signalName, signal);
     } catch {

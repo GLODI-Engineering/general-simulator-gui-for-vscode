@@ -2622,6 +2622,20 @@ textarea:focus-visible {
   color: var(--wave-text-muted);
 }
 
+/* A capture's chip. Outlined rather than filled: it has to be noticed beside
+   the signal's name without becoming the loudest thing in a legend that may
+   already carry eight rows, a gain chip and a unit. */
+.axes-legend__measured {
+  border: 1px solid var(--wave-text-muted);
+  border-radius: 3px;
+  padding: 0 3px;
+  color: var(--wave-text-muted);
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+  white-space: nowrap;
+}
+
 .axes-legend__remove {
   border: none;
   background: none;

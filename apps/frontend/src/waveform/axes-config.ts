@@ -1,6 +1,7 @@
 import type uPlot from "uplot";
 
 import { refLabel } from "./history";
+import { MEASURED_DASH, measuredLabel } from "./measured";
 import { CHART_THEME_FALLBACK, type ChartTheme, formatLogTicks, formatTicks } from "./theme";
 import type { SignalRef, WaveformSignal } from "./types";
 
@@ -281,8 +282,14 @@ export function buildSeries(
     const quantity = sig?.quantity ?? "dimensionless";
     const spine = spines.find((s) => s.quantity === quantity);
     series.push({
-      label: refLabel(ref),
+      // A measured trace says so in the legend as well as in how it is drawn.
+      // One or the other alone is not enough: a dash is also what a
+      // user-chosen style could be, and a label nobody reads is not a warning.
+      label: sig?.measured ? measuredLabel(refLabel(ref)) : refLabel(ref),
       stroke: ref.color,
+      // Dashed for a capture, solid for a computed trace -- the simulation is
+      // the thing being judged, so it keeps the unbroken line.
+      ...(sig?.measured ? { dash: MEASURED_DASH } : {}),
       scale: spine?.scaleKey ?? "y",
       // 1.6px: heavy enough to stay solid where a switching waveform packs
       // many edges into few pixels, light enough that eight traces on one

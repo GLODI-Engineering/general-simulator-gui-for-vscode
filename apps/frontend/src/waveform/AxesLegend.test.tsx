@@ -96,3 +96,39 @@ describe("FE-162 AxesLegend", () => {
     expect(screen.getByText("V")).toBeTruthy();
   });
 });
+
+describe("#98 the legend says which trace is a measurement", () => {
+  afterEach(resetStore);
+
+  function cache(name: string, measured: boolean): WaveformSignal {
+    return {
+      simId: "sim-1",
+      name,
+      analysis: "transient",
+      quantity: "voltage",
+      unit: "V",
+      domain: "time",
+      time: new Float64Array([0, 1]),
+      values: new Float64Array([0, 1]),
+      measured,
+    };
+  }
+
+  it("marks the capture and not the computed trace", () => {
+    resetStore();
+    const s = useWaveformStore.getState();
+    const fig = s.createFigure("Figure 1", 1, 1);
+    const axesId = s.createAxes(fig, 0, 0, "time");
+    s.addSignalToAxes(axesId, "sim-1", "SCOPE");
+    s.addSignalToAxes(axesId, "sim-1", "V_out");
+    s.cacheSignal("sim-1", "SCOPE", cache("SCOPE", true));
+    s.cacheSignal("sim-1", "V_out", cache("V_out", false));
+
+    render(<AxesLegend axesId={axesId} />);
+
+    // One chip, on the capture's row.
+    const chips = screen.getAllByText("measured");
+    expect(chips.length).toBe(1);
+    expect(chips[0]?.getAttribute("title")).toMatch(/not computed by the solver/i);
+  });
+});

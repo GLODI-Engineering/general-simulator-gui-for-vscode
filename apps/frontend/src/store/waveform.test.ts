@@ -9,6 +9,8 @@ vi.mock("../ipc/transport", () => ({
   }),
 }));
 
+import type { Block, ModelDocument } from "../model/types";
+import { useGraphStore } from "./graph";
 import { useWaveformStore } from "./waveform";
 
 describe("FE-110/116/118 waveform store", () => {
@@ -443,5 +445,118 @@ describe("FE-110/116/118 waveform store", () => {
     // from the live-streamed [0,1e-6]/[1,2] pair, proving the cache was
     // replaced by a real fetchSignal() call rather than left as-is.
     expect(Array.from(cached?.time ?? [])).toEqual([0, 1]);
+  });
+});
+
+describe("#98 a measured trace is marked as one", () => {
+  function documentWith(blocks: Block[]): ModelDocument {
+    return {
+      schema_version: 2,
+      model: {
+        id: "model-1",
+        name: "Untitled model",
+        grid: 10,
+        params: [],
+        blocks,
+        wires: [],
+        lines: [],
+        nets: [],
+        simulation: {},
+        metadata: {},
+      },
+    } as unknown as ModelDocument;
+  }
+
+  function reset(): void {
+    useWaveformStore.setState({
+      figures: new Map(),
+      axes: new Map(),
+      couplingGroups: new Map(),
+      signalCache: new Map(),
+      streamingSignals: new Set(),
+    });
+    useGraphStore.getState().loadDocument(documentWith([]));
+  }
+
+  function withCapture(blockId: string): void {
+    useGraphStore.getState().loadDocument(
+      documentWith([
+        {
+          id: blockId,
+          type: "source.file",
+          paradigm: "signal-flow",
+          domain: "signal",
+          fidelity: "ideal",
+          position: [0, 0],
+          rotation: 0,
+          mirror: "none",
+          params: { path: "capture.csv", output_names: ["y"] },
+          ic: {},
+        } as Block,
+      ]),
+    );
+  }
+
+  it("marks a signal whose block is a file source, and leaves the others alone", () => {
+    reset();
+    withCapture("scope");
+    const store = useWaveformStore.getState();
+    for (const name of ["SCOPE", "V_out"]) {
+      store.cacheSignal("run-1", name, {
+        simId: "run-1",
+        name,
+        analysis: "transient",
+        quantity: "dimensionless",
+        unit: "",
+        domain: "time",
+        time: new Float64Array([0, 1]),
+        values: new Float64Array([0, 1]),
+      });
+    }
+
+    useWaveformStore.getState().applySignalMetadata("run-1", [
+      { name: "SCOPE", block: "scope", port: "out0", quantity: "voltage", unit: "V" },
+      { name: "V_out", block: "c1", port: "p", quantity: "voltage", unit: "V" },
+    ]);
+
+    const cache = useWaveformStore.getState().signalCache;
+    expect(cache.get("run-1::SCOPE")?.measured).toBe(true);
+    expect(cache.get("run-1::SCOPE")?.blockId).toBe("scope");
+    expect(cache.get("run-1::V_out")?.measured).toBe(false);
+  });
+
+  it("replaces the placeholder metadata a streamed stub was cached with", () => {
+    // A signal delivered as live chunks arrives with `analysis: "transient"`,
+    // `quantity: "dimensionless"` and no unit, because a chunk frame carries
+    // a name and numbers. `fetchSignal` returns early for a signal already
+    // cached, so before this the placeholders were what an AC run was drawn
+    // and labelled with.
+    reset();
+    useWaveformStore.getState().appendChunk("run-2::V_in", [1, 2], [0, 1]);
+    expect(useWaveformStore.getState().signalCache.get("run-2::V_in")?.analysis).toBe("transient");
+
+    useWaveformStore.getState().applySignalMetadata("run-2", [
+      {
+        name: "V_in",
+        block: "v1",
+        analysis: "ac",
+        quantity: "voltage",
+        unit: "V",
+        domain: "frequency",
+      },
+    ]);
+
+    const signal = useWaveformStore.getState().signalCache.get("run-2::V_in");
+    expect(signal?.analysis).toBe("ac");
+    expect(signal?.unit).toBe("V");
+    expect(signal?.domain).toBe("frequency");
+    expect(signal?.measured).toBe(false);
+  });
+
+  it("invents no entry for a signal that has no samples cached", () => {
+    reset();
+    withCapture("scope");
+    useWaveformStore.getState().applySignalMetadata("run-3", [{ name: "SCOPE", block: "scope" }]);
+    expect(useWaveformStore.getState().signalCache.has("run-3::SCOPE")).toBe(false);
   });
 });
