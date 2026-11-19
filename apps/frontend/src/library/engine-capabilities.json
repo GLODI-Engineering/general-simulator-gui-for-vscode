@@ -66,8 +66,8 @@
         "letter": "R"
       },
       "node_ports": [
-        "p1",
-        "p2"
+        "p",
+        "n"
       ],
       "output_ports": [],
       "dynamic_outputs": false,
@@ -88,8 +88,8 @@
         "letter": "C"
       },
       "node_ports": [
-        "p1",
-        "p2"
+        "p",
+        "n"
       ],
       "output_ports": [],
       "dynamic_outputs": false,
@@ -110,8 +110,8 @@
         "letter": "L"
       },
       "node_ports": [
-        "p1",
-        "p2"
+        "p",
+        "n"
       ],
       "output_ports": [],
       "dynamic_outputs": false,
