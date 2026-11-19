@@ -74,8 +74,8 @@ shipped surface, and is excluded from the `.vsix`.
 
 ```sh
 pnpm install
-pnpm package               # builds the webviews + extension, writes general-simulator-gui.vsix
-code --install-extension general-simulator-gui.vsix
+pnpm package               # builds the webviews + extension, writes omni-schematics.vsix
+code --install-extension omni-schematics.vsix
 ```
 
 Then **open this repository as your VS Code workspace folder** and open
@@ -88,7 +88,7 @@ workspace folders. Working in a different folder, set the path explicitly:
 
 ```jsonc
 // settings.json
-"generalSimulator.workspaceRoot": "/path/to/general-simulator-gui-for-vscode"
+"generalSimulator.workspaceRoot": "/path/to/omni-schematics"
 ```
 
 **Warm the Python environment before the first run**, or the first launch
