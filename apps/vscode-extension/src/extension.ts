@@ -1,5 +1,5 @@
 /**
- * General Simulator — VS Code extension entry point.
+ * Omni Schematics — the VS Code extension's entry point.
  *
  * Activation wires up three things:
  *

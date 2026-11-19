@@ -66,7 +66,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 let api: GsimTestApi;
 
-suite("General Simulator — VS Code integration", () => {
+suite("Omni Schematics — VS Code integration", () => {
   suiteSetup(async () => {
     api = await getTestApi();
   });
@@ -92,7 +92,7 @@ suite("General Simulator — VS Code integration", () => {
     assert.equal(contributes.customEditors[0].viewType, SCHEMATIC_VIEW_TYPE);
     assert.equal(contributes.customEditors[0].selector[0].filenamePattern, "*.gsim_sch");
     assert.equal(contributes.views.omniSchematics[0].id, "omniSchematics.library");
-    assert.equal(contributes.views.generalSimulator[0].type, "webview");
+    assert.equal(contributes.views.omniSchematics[0].type, "webview");
   });
 
   // -------------------------------------------------------------------------
