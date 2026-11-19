@@ -10,7 +10,7 @@ import type * as vscode from "vscode";
 import type { GsimHost } from "./host";
 import { renderWebview } from "./webview-content";
 
-export const LIBRARY_VIEW_ID = "generalSimulator.library";
+export const LIBRARY_VIEW_ID = "omniSchematics.library";
 
 export class LibraryViewProvider implements vscode.WebviewViewProvider {
   constructor(

@@ -260,10 +260,10 @@ export class GsimHost implements vscode.Disposable {
       // message necessarily came from the focused webview, and only the
       // schematic surface renders the File toolbar at all.
       case "gsim/newSchematic":
-        void vscode.commands.executeCommand("generalSimulator.newSchematic");
+        void vscode.commands.executeCommand("omniSchematics.newSchematic");
         return true;
       case "gsim/openSchematic":
-        void vscode.commands.executeCommand("generalSimulator.openSchematic");
+        void vscode.commands.executeCommand("omniSchematics.openSchematic");
         return true;
       case "gsim/saveDocument":
         void vscode.commands.executeCommand(

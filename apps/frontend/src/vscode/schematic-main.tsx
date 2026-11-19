@@ -1,6 +1,6 @@
 /**
  * Entry point for the schematic webview hosted by the VS Code Custom Editor
- * Provider (`generalSimulator.schematic`, registered for `*.gsim_sch`).
+ * Provider (`omniSchematics.schematic`, registered for `*.gsim_sch`).
  *
  * Responsibilities:
  * - bootstrap the kernel sidecar connection from the extension host,

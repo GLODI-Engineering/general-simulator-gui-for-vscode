@@ -9,9 +9,9 @@ language tooling.
 
 | Contribution | Id | Surface |
 | --- | --- | --- |
-| Activity Bar view container | `generalSimulator` | icon + "General Simulator" |
-| Webview view | `generalSimulator.library` | `library/LibraryActivity.tsx` (no `PrimarySideBar` wrapper — VS Code supplies the sidebar chrome) |
-| Custom editor | `generalSimulator.schematic` for `*.gsim_sch` | `canvas/Canvas.tsx` + the rest of `canvas/**` in a `WebviewPanel`; real `CustomEditorProvider` save / save-as / revert / hot-exit backup |
+| Activity Bar view container | `omniSchematics` | icon + "Omni Schematics" |
+| Webview view | `omniSchematics.library` | `library/LibraryActivity.tsx` (no `PrimarySideBar` wrapper — VS Code supplies the sidebar chrome) |
+| Custom editor | `omniSchematics.schematic` for `*.gsim_sch` | `canvas/Canvas.tsx` + the rest of `canvas/**` in a `WebviewPanel`; real `CustomEditorProvider` save / save-as / revert / hot-exit backup |
 | Command | `General Simulator: Show Waveforms` | `waveform/WaveformTab.tsx` in a webview **panel** — see `src/waveformPanel.ts` for why this is not a second custom editor |
 | Command | `General Simulator: Restart Simulation Kernel` | restarts the kernel-sidecar child process |
 | Command | `General Simulator: Show Kernel Log` | the extension's output channel |
@@ -140,9 +140,9 @@ what catches a bundle that has quietly reintroduced the need for it.
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| `generalSimulator.workspaceRoot` | `""` | Path to the checkout containing `pyproject.toml`. Empty = auto-discover from open workspace folders. |
-| `generalSimulator.pythonRunner` | `uv` | `uv` uses `uv run --project <root> python -m kernel_sidecar`; anything else is treated as a bare interpreter. |
-| `generalSimulator.autoStartKernel` | `true` | Start the sidecar on activation. |
+| `omniSchematics.workspaceRoot` | `""` | Path to the checkout containing `pyproject.toml`. Empty = auto-discover from open workspace folders. |
+| `omniSchematics.pythonRunner` | `uv` | `uv` uses `uv run --project <root> python -m kernel_sidecar`; anything else is treated as a bare interpreter. |
+| `omniSchematics.autoStartKernel` | `true` | Start the sidecar on activation. |
 
 `GENSIM_KERNEL_PORT` + `GENSIM_KERNEL_TOKEN` override auto-spawn entirely, the
 same contract the Tauri shell honours.

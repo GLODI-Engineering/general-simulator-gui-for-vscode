@@ -41,8 +41,8 @@ const CHECK = process.argv.includes("--check");
  * schematic winning, because a schematic where Ctrl+R opens a file picker is the broken case.
  */
 const WHEN =
-  "activeCustomEditorId == 'generalSimulator.schematic' && " +
-  "config.generalSimulator.overrideVsCodeKeybindings";
+  "activeCustomEditorId == 'omniSchematics.schematic' && " +
+  "config.omniSchematics.overrideVsCodeKeybindings";
 
 /** `{ id, label, chord, contexts }` for each binding the schematic declares. */
 function readKeymap() {
@@ -108,7 +108,7 @@ const harmless = conflicts.filter(({ theirs }) => theirs.scope === "editor");
 
 const keybindings = claimed.map(({ chord }) => ({
   key: toVsCodeChord(chord),
-  command: "generalSimulator.forwardChord",
+  command: "omniSchematics.forwardChord",
   when: WHEN,
   args: { chord },
 }));
@@ -154,7 +154,7 @@ terminal — VS Code keeps them.
 
 ## Choosing who wins
 
-\`generalSimulator.overrideVsCodeKeybindings\`, default **true**: the schematic's shortcuts
+\`omniSchematics.overrideVsCodeKeybindings\`, default **true**: the schematic's shortcuts
 override VS Code's while a schematic tab is focused. Set it to \`false\` to hand every chord
 back to VS Code, at the cost of the schematic shortcuts that collide.
 

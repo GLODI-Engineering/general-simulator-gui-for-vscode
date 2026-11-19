@@ -28,7 +28,7 @@ import * as vscode from "vscode";
 import type { GsimHost } from "./host";
 import { renderWebview } from "./webview-content";
 
-export const RESULTS_VIEW_TYPE = "generalSimulator.simResult";
+export const RESULTS_VIEW_TYPE = "omniSchematics.simResult";
 export const RESULTS_EXTENSION = ".gsim_sim_result";
 
 class ResultsDocument implements vscode.CustomDocument {

@@ -1,6 +1,6 @@
 /**
  * Entry point for the block-library webview hosted by VS Code's Activity Bar
- * view container (`generalSimulator.library`, a `type: "webview"` view).
+ * view container (`omniSchematics.library`, a `type: "webview"` view).
  *
  * This is `library/LibraryActivity.tsx` with no `PrimarySideBar` wrapper —
  * VS Code supplies the sidebar chrome, the title and the collapse affordance.

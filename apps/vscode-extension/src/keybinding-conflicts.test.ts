@@ -41,7 +41,7 @@ describe("the schematic takes its chords back from VS Code", () => {
     const rotate = keybindings.find((k) => k.args?.chord === "Ctrl+R");
     expect(rotate, "Ctrl+R is not claimed").toBeDefined();
     expect(rotate?.key).toBe("ctrl+r");
-    expect(rotate?.command).toBe("generalSimulator.forwardChord");
+    expect(rotate?.command).toBe("omniSchematics.forwardChord");
   });
 
   it("claims nothing outside a focused schematic", () => {
@@ -49,10 +49,10 @@ describe("the schematic takes its chords back from VS Code", () => {
     // explorer, a terminal — and Ctrl+S would stop saving a file the user was editing.
     for (const binding of keybindings) {
       expect(binding.when, `${binding.key} has no guard`).toContain(
-        "activeCustomEditorId == 'generalSimulator.schematic'",
+        "activeCustomEditorId == 'omniSchematics.schematic'",
       );
       expect(binding.when, `${binding.key} ignores the setting`).toContain(
-        "config.generalSimulator.overrideVsCodeKeybindings",
+        "config.omniSchematics.overrideVsCodeKeybindings",
       );
     }
   });
@@ -72,7 +72,7 @@ describe("the schematic takes its chords back from VS Code", () => {
 
   it("defaults to the schematic winning", () => {
     const setting =
-      pkg.contributes.configuration.properties["generalSimulator.overrideVsCodeKeybindings"];
+      pkg.contributes.configuration.properties["omniSchematics.overrideVsCodeKeybindings"];
     expect(setting).toBeDefined();
     expect(setting.type).toBe("boolean");
     // A schematic where Ctrl+R opens a file picker is the broken case, so the fix is on by
@@ -97,7 +97,7 @@ describe("the schematic takes its chords back from VS Code", () => {
 
   it("forwards every claimed chord through one command", () => {
     for (const binding of keybindings) {
-      expect(binding.command).toBe("generalSimulator.forwardChord");
+      expect(binding.command).toBe("omniSchematics.forwardChord");
       expect(typeof binding.args?.chord).toBe("string");
     }
   });
