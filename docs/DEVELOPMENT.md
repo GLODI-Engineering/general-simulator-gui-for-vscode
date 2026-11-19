@@ -35,7 +35,7 @@ Python  ≥ 3.11
 uv      ≥ 0.5       (python package manager + workspace runner)
 Node.js ≥ 20 LTS
 pnpm    = 9.12.0    (enforced by packageManager field)
-Rust    stable      (only for Tauri desktop builds)
+Rust    stable      (crates/waveform-store, and the sibling gsim-core)
 ```
 
 Install pnpm via corepack (already bundled with Node):
@@ -54,7 +54,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ### First-time bootstrap
 
 ```bash
-git clone <repo> general-simulator && cd general-simulator
+git clone https://github.com/GLODI-Engineering/omni-schematics && cd omni-schematics
 
 # Python: create .venv and install all workspace members + dev deps
 uv sync
@@ -80,13 +80,17 @@ The workspace root is `pyproject.toml`. Members:
 | Member | Path | Purpose |
 |--------|------|---------|
 | `kernel-sidecar` | `apps/kernel-sidecar/` | IPC server process |
-| `simulator` | `packages/simulator/` | Compiler + solvers + postprocess |
-| `blocks` | `packages/blocks/` | Block equation templates |
+| `simulator` | `packages/simulator/` | Compiler + postprocess |
+| `gsim-model` | `packages/gsim-model/` | The Python document model |
 | `schemas` | `packages/schemas/` | (reserved for Python schema gen) |
 | `components` | `packages/components/` | Device models (future) |
 | `kernel-core` | `packages/kernel-core/` | Shared kernel primitives (future) |
 | `synthesis` | `packages/synthesis/` | Code generation (future) |
-| `engine-xyce` | `packages/engine-xyce/` | Xyce subprocess wrapper (future) |
+
+Read from `pyproject.toml`'s `[tool.uv.workspace] members` on 2026-11-19. Two rows this table
+used to carry are gone: `blocks`, which has no `packages/blocks/`, and `engine-xyce`, which
+never existed as a directory at all — it described a Xyce subprocess wrapper for a direction
+this project dropped.
 
 ### Running Python tools
 
@@ -239,7 +243,7 @@ handle_execute
 __main__.py
   ├─ parse --port, --token, --workdir, --connect-timeout
   ├─ bind ws://127.0.0.1:<port>
-  ├─ print "KERNEL_READY port=<N> token=<hex>"   ← Tauri watches stdout
+  ├─ print "KERNEL_READY port=<N> token=<hex>"   ← the extension host watches stdout
   └─ serve (single-connection rule: second client → code 4000)
        └─ verify_handshake → dispatch → handlers
 ```
@@ -334,10 +338,9 @@ apps/frontend/src/
 │   ├── test-fixtures/
 │   │   └── generators.ts    Random ModelDocument generator (fast-check)
 │   └── adapters/
-│       ├── TauriFsAdapter.ts   Desktop: @tauri-apps/plugin-fs + dialog
-│       ├── IndexedDbAdapter.ts Web: IndexedDB "general-simulator" DB, "models" store
+│       ├── IndexedDbAdapter.ts IndexedDB, for the webview's own secondary state
 │       ├── idb-schema.ts       Object-store schema + version migrations
-│       └── select-adapter.ts   Boot-time: returns Tauri if window.__TAURI__ present
+│       └── select-adapter.ts   Returns the one adapter there is; see its own doc comment
 ├── ipc/
 │   ├── client.ts            WebSocket client; streaming; Promise resolution
 │   ├── binary-frame.ts      128-byte header + raw bytes decoder
@@ -642,7 +645,6 @@ runtime — no registration needed on the Python side.
 | `file/serializer.test.ts` | FE-29 | 3 |
 | `file/deserializer.test.ts` | FE-29 | 3 |
 | `file/file-ops.test.ts` | FE-29 | 2 |
-| `file/adapters/TauriFsAdapter.test.ts` | FE-29 | 2 |
 | `file/adapters/IndexedDbAdapter.test.ts` | FE-29b | 4 |
 | `file/autosave.test.ts` | FE-29b | 1 |
 | `shell/StartupModal.test.tsx` | FE-29b | 1 |
@@ -681,7 +683,7 @@ runtime — no registration needed on the Python side.
 |------|-----------|---------|
 | `smoke.spec.ts` | Quick Insert 3 blocks → wire → Ctrl+T → uPlot shows data | Chromium, Firefox, WebKit |
 | `undo-redo.spec.ts` | Build model → undo to empty → redo to final; byte-equivalent | All 3 |
-| `persistence.spec.ts` | Save → reload → StartupModal → open → byte-equivalent | All 3 (web); 1 (Tauri, planned) |
+| `persistence.spec.ts` | Save → reload → StartupModal → open → byte-equivalent | All 3 |
 | `perf.spec.ts` | canvas p95 ≤16ms; Quick Insert ≤50ms; save ≤100ms | Chromium |
 
 #### The `gs-ui-probe` dependency
@@ -739,8 +741,10 @@ The full gate set (enforced by pre-commit and `.github/workflows/`):
 │    pnpm vitest run                                    │
 └───────────────────────────────────────────────────────┘
 ┌─ E2E ─────────────────────────────────────────────────┐
-│  npx playwright test           web builds             │
-│  (+ Tauri build, planned)      desktop build          │
+│  npx playwright test           the webview app        │
+│  xvfb-run pnpm --filter        the extension, in a    │
+│    ./apps/vscode-extension     real VS Code (CI only) │
+│    test:integration                                   │
 └───────────────────────────────────────────────────────┘
 ┌─ Invariants ──────────────────────────────────────────┐
 │  ./scripts/check-invariants.sh Epetra, async, smooth  │

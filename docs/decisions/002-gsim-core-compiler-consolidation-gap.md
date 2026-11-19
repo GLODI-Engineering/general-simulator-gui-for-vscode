@@ -1,8 +1,19 @@
 # 002 — Why the compile path is not yet routed through `gsim-py`/`gsim-core`
 
-**Status:** accepted (2026-09-04). Findings, not a plan — this records what was measured, so the
-consolidation roadmap is argued from numbers rather than from an assumption about how close the
-two sides are.
+**Status:** **superseded** (2026-11-19). Originally accepted 2026-09-04 as findings, not a plan —
+a record of what was measured, so the consolidation roadmap could be argued from numbers.
+
+**What superseded it.** This document asserts that the live simulate path "dispatches to exactly
+three backends, and none of them is `general-simulator`". That pipeline was removed: the kernel
+sidecar's own `simulate.py` says the backend *is* `general-simulator`, the extension invokes its
+CLI, and the engine declares what compiles. So the gap this document measured is not the gap that
+exists, and its ordered prerequisites are not a backlog. The sibling record,
+`gsim-core/docs/decisions/0003-editor-pipeline-parity.md`, was marked superseded the same day for
+the same reason.
+
+An accepted decision record that is false is worse than a missing one, which is why this header
+is here rather than a quiet edit of the body: the measurements below were true when they were
+taken and are kept as that.
 
 **Companion:** the same document is filed in the sibling repo as
 `gsim-core/docs/decisions/0003-general-simulator-gui-pipeline-parity.md`, because the gaps it
