@@ -66,7 +66,11 @@ test("record RC circuit build demo video (drag blocks + wire + run)", async ({ p
   await dragBlock(sheet, "passive.capacitor", { x: 800, y: 170 });
   await page.waitForTimeout(350);
 
-  await dragBlock(sheet, "physical-electrical.reference.ground", { x: 800, y: 360 });
+  // `routing.ground` is the type; `physical-electrical.reference.ground` is one of its
+  // aliases. Quick Insert resolves aliases, so placing one works under either name -- but the
+  // block that lands on the sheet carries the canonical type, and that is the only name the
+  // wiring hook below answers to. Use the canonical one at both ends.
+  await dragBlock(sheet, "routing.ground", { x: 800, y: 360 });
   await page.waitForTimeout(350);
 
   // Set RC values in frontend model.
@@ -83,19 +87,10 @@ test("record RC circuit build demo video (drag blocks + wire + run)", async ({ p
     win.__gensim_wire_electrical?.("source.voltage.dc", "p", "passive.resistor", "p");
     win.__gensim_wire_electrical?.("passive.resistor", "n", "passive.capacitor", "p");
     // The ground's port is `gnd`, not `g` -- the catalogue says so, and `wire_electrical`
-    // refuses a port that is not there rather than guessing at a near-miss.
-    win.__gensim_wire_electrical?.(
-      "passive.capacitor",
-      "n",
-      "physical-electrical.reference.ground",
-      "gnd",
-    );
-    win.__gensim_wire_electrical?.(
-      "source.voltage.dc",
-      "n",
-      "physical-electrical.reference.ground",
-      "gnd",
-    );
+    // refuses a port that is not there rather than guessing at a near-miss. Its *type* is
+    // `routing.ground`: the hook matches `block.type` exactly and resolves no aliases.
+    win.__gensim_wire_electrical?.("passive.capacitor", "n", "routing.ground", "gnd");
+    win.__gensim_wire_electrical?.("source.voltage.dc", "n", "routing.ground", "gnd");
   });
   await page.waitForTimeout(500);
 

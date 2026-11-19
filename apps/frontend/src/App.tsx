@@ -1122,7 +1122,16 @@ export default function App() {
       const fromBlock = graph.document.model.blocks.find((block) => block.type === fromType);
       const toBlock = graph.document.model.blocks.find((block) => block.type === toType);
       if (!fromBlock || !toBlock) {
-        throw new Error(`Cannot wire ${fromType} to ${toType}`);
+        // Say which end is missing and what is actually on the sheet. This hook matches
+        // `block.type` exactly, while Quick Insert resolves aliases, so a block placed under
+        // an alias is present but unreachable here -- and "Cannot wire A to B" reads as if
+        // the connection were refused rather than the block never found.
+        const missing = [!fromBlock ? fromType : null, !toBlock ? toType : null].filter(Boolean);
+        const present = graph.document.model.blocks.map((block) => block.type).join(", ");
+        throw new Error(
+          `Cannot wire ${fromType} to ${toType}: no block of type ${missing.join(" or ")} ` +
+            `is on the sheet. Present: ${present || "nothing"}.`,
+        );
       }
       const waypointX = Math.round((fromBlock.position[0] + toBlock.position[0]) / 2 / 10) * 10;
       graph.transact(`wire ${fromType} to ${toType}`, () => {

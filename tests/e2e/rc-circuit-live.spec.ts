@@ -91,6 +91,9 @@ async function runAndSnap(
   try {
     await page.waitForFunction(
       () => ((window as unknown as GensimWindow).__gensim_getWaveformPointCount?.() ?? 0) > 0,
+      // `undefined` is the page argument; the options are the third parameter. Omit it and the
+      // timeout below is passed into the browser and the wait becomes unbounded.
+      undefined,
       { timeout: 30000 },
     );
   } catch {

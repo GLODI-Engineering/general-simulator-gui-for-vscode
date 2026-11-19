@@ -82,6 +82,11 @@ async function waitForSamples(page: import("@playwright/test").Page): Promise<bo
   return page
     .waitForFunction(
       () => ((window as unknown as GensimWindow).__gensim_getWaveformPointCount?.() ?? 0) > 0,
+      // The second parameter is the *argument* passed into the page, not the options: without
+      // this `undefined`, `{ timeout: 15_000 }` is handed to the predicate and the options
+      // default to no timeout at all. That is what left this spec hanging until the test
+      // timeout killed it -- the 15 s it appeared to ask for was never asked for.
+      undefined,
       { timeout: 15_000 },
     )
     .then(() => true)
