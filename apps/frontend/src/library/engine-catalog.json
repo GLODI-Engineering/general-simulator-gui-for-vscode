@@ -27632,8 +27632,8 @@
       },
       "version": 1,
       "engineId": "source.current.exp",
-      "engineType": null,
-      "compilable": false
+      "engineType": "source.current.exp",
+      "compilable": true
     }
   },
   {
@@ -27815,8 +27815,8 @@
       },
       "version": 1,
       "engineId": "source.current.pulse",
-      "engineType": null,
-      "compilable": false
+      "engineType": "source.current.pulse",
+      "compilable": true
     }
   },
   {
@@ -27920,8 +27920,8 @@
       },
       "version": 1,
       "engineId": "source.current.pwl",
-      "engineType": null,
-      "compilable": false
+      "engineType": "source.current.pwl",
+      "compilable": true
     }
   },
   {
@@ -28078,8 +28078,8 @@
       },
       "version": 1,
       "engineId": "source.current.sffm",
-      "engineType": null,
-      "compilable": false
+      "engineType": "source.current.sffm",
+      "compilable": true
     }
   },
   {
@@ -28249,8 +28249,8 @@
       },
       "version": 1,
       "engineId": "source.current.sin",
-      "engineType": null,
-      "compilable": false
+      "engineType": "source.current.sin",
+      "compilable": true
     }
   },
   {
@@ -30021,8 +30021,8 @@
       },
       "version": 1,
       "engineId": "source.voltage.exp",
-      "engineType": null,
-      "compilable": false
+      "engineType": "source.voltage.exp",
+      "compilable": true
     }
   },
   {
@@ -30431,8 +30431,8 @@
       },
       "version": 1,
       "engineId": "source.voltage.pwl",
-      "engineType": null,
-      "compilable": false
+      "engineType": "source.voltage.pwl",
+      "compilable": true
     }
   },
   {
@@ -30879,8 +30879,8 @@
       },
       "version": 1,
       "engineId": "source.voltage.sffm",
-      "engineType": null,
-      "compilable": false
+      "engineType": "source.voltage.sffm",
+      "compilable": true
     }
   },
   {

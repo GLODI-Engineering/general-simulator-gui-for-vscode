@@ -302,6 +302,356 @@
       ]
     },
     {
+      "type": "source.voltage.pwl",
+      "emits": {
+        "card": "element",
+        "letter": "V"
+      },
+      "node_ports": [
+        "p",
+        "n"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "points",
+          "field": "PWL.points",
+          "required": true,
+          "form": "list"
+        }
+      ]
+    },
+    {
+      "type": "source.current.pwl",
+      "emits": {
+        "card": "element",
+        "letter": "I"
+      },
+      "node_ports": [
+        "p",
+        "n"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "points",
+          "field": "PWL.points",
+          "required": true,
+          "form": "list"
+        }
+      ]
+    },
+    {
+      "type": "source.voltage.exp",
+      "emits": {
+        "card": "element",
+        "letter": "V"
+      },
+      "node_ports": [
+        "p",
+        "n"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "V1",
+          "field": "EXP.v1",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "V2",
+          "field": "EXP.v2",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "TD1",
+          "field": "EXP.td1",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "TAU1",
+          "field": "EXP.tau1",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "TD2",
+          "field": "EXP.td2",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "TAU2",
+          "field": "EXP.tau2",
+          "required": true,
+          "form": "source_function_field"
+        }
+      ]
+    },
+    {
+      "type": "source.current.exp",
+      "emits": {
+        "card": "element",
+        "letter": "I"
+      },
+      "node_ports": [
+        "p",
+        "n"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "I1",
+          "field": "EXP.v1",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "I2",
+          "field": "EXP.v2",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "TD1",
+          "field": "EXP.td1",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "TAU1",
+          "field": "EXP.tau1",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "TD2",
+          "field": "EXP.td2",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "TAU2",
+          "field": "EXP.tau2",
+          "required": true,
+          "form": "source_function_field"
+        }
+      ]
+    },
+    {
+      "type": "source.voltage.sffm",
+      "emits": {
+        "card": "element",
+        "letter": "V"
+      },
+      "node_ports": [
+        "p",
+        "n"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "VO",
+          "field": "SFFM.vo",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "VA",
+          "field": "SFFM.va",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "FC",
+          "field": "SFFM.fc",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "MDI",
+          "field": "SFFM.mdi",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "FS",
+          "field": "SFFM.fs",
+          "required": true,
+          "form": "source_function_field"
+        }
+      ]
+    },
+    {
+      "type": "source.current.sffm",
+      "emits": {
+        "card": "element",
+        "letter": "I"
+      },
+      "node_ports": [
+        "p",
+        "n"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "VO",
+          "field": "SFFM.vo",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "VA",
+          "field": "SFFM.va",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "FC",
+          "field": "SFFM.fc",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "MDI",
+          "field": "SFFM.mdi",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "FS",
+          "field": "SFFM.fs",
+          "required": true,
+          "form": "source_function_field"
+        }
+      ]
+    },
+    {
+      "type": "source.current.sin",
+      "emits": {
+        "card": "element",
+        "letter": "I"
+      },
+      "node_ports": [
+        "p",
+        "n"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "VO",
+          "field": "SIN.v0",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "VA",
+          "field": "SIN.va",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "FREQ",
+          "field": "SIN.freq",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "TD",
+          "field": "SIN.td",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "THETA",
+          "field": "SIN.theta",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "PHASE",
+          "field": "SIN.phase",
+          "required": true,
+          "form": "source_function_field"
+        }
+      ]
+    },
+    {
+      "type": "source.current.pulse",
+      "emits": {
+        "card": "element",
+        "letter": "I"
+      },
+      "node_ports": [
+        "p",
+        "n"
+      ],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": [
+        {
+          "param": "I1",
+          "field": "PULSE.v1",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "I2",
+          "field": "PULSE.v2",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "TD",
+          "field": "PULSE.td",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "TR",
+          "field": "PULSE.tr",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "TF",
+          "field": "PULSE.tf",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "PW",
+          "field": "PULSE.pw",
+          "required": true,
+          "form": "source_function_field"
+        },
+        {
+          "param": "PER",
+          "field": "PULSE.per",
+          "required": true,
+          "form": "source_function_field"
+        }
+      ]
+    },
+    {
       "type": "physical_electrical.passive.transformer",
       "emits": {
         "card": "composite",
