@@ -19,8 +19,6 @@ import * as path from "node:path";
 /** Settings this module reads. Mirrors `contributes.configuration`. */
 export interface KernelEnvironmentSettings {
   generalSimulatorPath?: string;
-  ngspicePath?: string;
-  xycePath?: string;
   octaveCliPath?: string;
   pythonPath?: string[];
   environment?: Record<string, string>;
@@ -55,14 +53,14 @@ export function buildKernelEnvironment(options: BuildKernelEnvironmentOptions): 
   const delimiter = options.delimiter ?? path.delimiter;
   const env: NodeJS.ProcessEnv = { ...base };
 
-  for (const [solver, configured] of [
-    ["general-simulator", settings.generalSimulatorPath],
-    ["ngspice", settings.ngspicePath],
-    ["xyce", settings.xycePath],
-  ] as const) {
-    const value = trimmed(configured);
-    if (value) env[solverEnvVar(solver)] = value;
-  }
+  // One engine. `ngspice` and `xyce` were read here from settings that
+  // `package.json` stopped declaring, so neither could be set through the
+  // settings UI and both lookups returned undefined every time -- while a
+  // reader who checked the source concluded the settings were real and merely
+  // undocumented. `solverEnvVar` still accepts any name, because the variable
+  // naming rule is the engine's contract rather than this list.
+  const configured = trimmed(settings.generalSimulatorPath);
+  if (configured) env[solverEnvVar("general-simulator")] = configured;
 
   // Octave has no setting on the engine side: `octave-ffi` spawns `octave-cli`
   // found on PATH and nothing else. So pointing at a binary means putting its

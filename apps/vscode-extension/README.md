@@ -144,5 +144,6 @@ what catches a bundle that has quietly reintroduced the need for it.
 | `omniSchematics.pythonRunner` | `uv` | `uv` uses `uv run --project <root> python -m kernel_sidecar`; anything else is treated as a bare interpreter. |
 | `omniSchematics.autoStartKernel` | `true` | Start the sidecar on activation. |
 
-`GENSIM_KERNEL_PORT` + `GENSIM_KERNEL_TOKEN` override auto-spawn entirely, the
-same contract the Tauri shell honours.
+`GENSIM_KERNEL_PORT` + `GENSIM_KERNEL_TOKEN` override auto-spawn entirely: set
+both and the extension attaches to a kernel you started yourself instead of
+spawning one, which is how the integration tests drive it.
