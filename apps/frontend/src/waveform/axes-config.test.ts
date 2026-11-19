@@ -7,6 +7,7 @@ import {
   Y_LABEL_SIZE,
   buildAlignedData,
   buildAxes,
+  buildSeries,
   decimateMinMax,
   formatTimeTicks,
   isBodeAxes,
@@ -745,5 +746,33 @@ describe("FE-165/FE-166 valueExtents", () => {
 
   it("returns null when no cached signal has any data", () => {
     expect(valueExtents([makeRef("v(a)")], new Map())).toBeNull();
+  });
+});
+
+describe("#98 a measured trace is drawn as a measurement", () => {
+  const spines: SpineSpec[] = [{ quantity: "voltage", unit: "V", scaleKey: "y", side: 3 }];
+
+  it("dashes the capture, leaves the computed trace solid, and labels both", () => {
+    const cache = new Map<string, WaveformSignal>([
+      ["sim1::SCOPE", makeSignal({ name: "SCOPE", measured: true, blockId: "scope" })],
+      ["sim1::V_out", makeSignal({ name: "V_out" })],
+    ]);
+
+    const series = buildSeries([makeRef("SCOPE"), makeRef("V_out")], cache, spines);
+
+    // series[0] is uPlot's x-axis placeholder.
+    expect(series[1]?.label).toBe("SCOPE (measured)");
+    expect(series[1]?.dash).toEqual([6, 4]);
+    expect(series[2]?.label).toBe("V_out");
+    expect(series[2]?.dash).toBeUndefined();
+  });
+
+  it("says nothing about a signal the run never described", () => {
+    // A result file opened without the document that produced it, or a
+    // fixture: no claim either way is better than a wrong one.
+    const cache = new Map<string, WaveformSignal>([["sim1::V_out", makeSignal({})]]);
+    const series = buildSeries([makeRef("V_out")], cache, spines);
+    expect(series[1]?.label).toBe("V_out");
+    expect(series[1]?.dash).toBeUndefined();
   });
 });

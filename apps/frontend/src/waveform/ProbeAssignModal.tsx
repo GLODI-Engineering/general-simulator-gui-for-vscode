@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import type { SignalDetail } from "../ipc/types";
 import { useIpcStore } from "../store/ipc";
 import { useWaveformStore } from "../store/waveform";
 import type { Axes, Figure } from "./types";
@@ -16,15 +17,38 @@ export function isProbeBlockType(blockType: string): boolean {
 // ── Signal-name derivation ────────────────────────────────────────────────────
 
 /**
- * Derive the signal name for a probe block from the last simulation manifest.
- * Returns the first manifest signal whose name contains the block_id, or the
- * first signal whose name contains the port_id, or null when no match is found.
+ * The signal a probe block produced, from the last run's manifest.
+ *
+ * The manifest says outright which block and port each signal came from, so
+ * when it carries that (`details`), this is a lookup. It used to be a
+ * substring search over the names -- the comment on it said "exact block-id
+ * match" while the code said `.includes` -- and a search is not a lookup: a
+ * block called `C1` matches the signals `C1`, `VC1` and `IC1` alike, and the
+ * first of those in list order won. A probe could therefore be assigned a
+ * trace belonging to a different block, with nothing on screen to say so.
+ *
+ * The substring search is kept for a manifest with no details: a fixture, a
+ * stub kernel, or a result from an older kernel. It is a guess, and it is only
+ * reached when there is nothing better to use.
  */
-function deriveSignalName(blockId: string, portId: string, signals: string[]): string | null {
-  // Prefer an exact block-id match.
+export function deriveSignalName(
+  blockId: string,
+  portId: string,
+  signals: string[],
+  details?: SignalDetail[],
+): string | null {
+  if (details && details.length > 0) {
+    const exact = details.find((d) => d.block === blockId && d.port === portId);
+    if (exact) return exact.name;
+    // The block, whichever of its ports: a one-output probe is the common
+    // case, and the port id a symbol uses need not be the one the engine
+    // emitted the signal under.
+    const byBlock = details.find((d) => d.block === blockId);
+    if (byBlock) return byBlock.name;
+    return null;
+  }
   const byBlock = signals.find((s) => s.includes(blockId));
   if (byBlock) return byBlock;
-  // Fall back to port-id match.
   const byPort = signals.find((s) => s.includes(portId));
   if (byPort) return byPort;
   return null;
@@ -141,7 +165,9 @@ export function ProbeAssignModal({ blockId, portId, onClose }: ProbeAssignModalP
 
   const figureList = Array.from(figures.values());
   const hasManifest = lastManifest !== null;
-  const signalName = hasManifest ? deriveSignalName(blockId, portId, lastManifest.signals) : null;
+  const signalName = hasManifest
+    ? deriveSignalName(blockId, portId, lastManifest.signals, lastManifest.details)
+    : null;
 
   // ── New Figure handler ────────────────────────────────────────────────────
 

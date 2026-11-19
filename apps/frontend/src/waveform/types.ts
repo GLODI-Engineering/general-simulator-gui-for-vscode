@@ -122,4 +122,17 @@ export interface WaveformSignal {
   domain: string;
   time: Float64Array;
   values: Float64Array;
+  /** The block and port the run says produced this signal. */
+  blockId?: string;
+  portId?: string;
+  /**
+   * This trace is a measurement replayed from a file, not something the
+   * solver worked out.
+   *
+   * Decided when the run's own manifest arrives, against the document that
+   * produced it -- not at draw time against whatever is on the canvas now. A
+   * capture deleted after the run was still a capture when it ran, and a
+   * trace must not change what it claims to be because the sheet was edited.
+   */
+  measured?: boolean;
 }

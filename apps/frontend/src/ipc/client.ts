@@ -35,6 +35,19 @@ type SignalManifestEntry = {
   quantity?: string;
   unit?: string;
   domain?: string;
+  /**
+   * The block and port that produced this signal.
+   *
+   * Both the kernel's `simulate_result` payload and the `manifest.json` it
+   * writes have carried these since BE-47; the front end threw them away, so
+   * the only way back to the block was to look for its id inside the signal's
+   * name (`ProbeAssignModal` still does). A name is not a key -- a block
+   * called `C1` matches `C1` and `VC1` alike -- and nothing downstream could
+   * ask what kind of block a trace came from, which is what tells a measured
+   * capture apart from a computed signal.
+   */
+  block_id?: string;
+  port_id?: string;
 };
 
 type SimulationManifestDoc = {
@@ -338,6 +351,8 @@ export function createIPCClient({
           quantity?: string;
           unit?: string;
           domain?: string;
+          block_id?: string;
+          port_id?: string;
         }>;
         dc_op_table?: Array<{
           node_or_branch?: string;
@@ -383,6 +398,8 @@ export function createIPCClient({
             quantity: s.quantity,
             unit: s.unit,
             domain: s.domain,
+            block_id: s.block_id,
+            port_id: s.port_id,
           }))
           .filter((s) => s.name && s.url),
       });
@@ -403,6 +420,21 @@ export function createIPCClient({
           signals,
           t_start: Number(payload.t_start ?? 0),
           t_end: Number(payload.t_end ?? 0),
+          // The names alone cannot say what a trace is. These are the same
+          // entries, carried through rather than reduced to a string list --
+          // a signal streamed live arrives as a stub with placeholder
+          // metadata, and this is what the run has to say about it.
+          details: (payload.signals ?? [])
+            .filter((entry) => entry.name)
+            .map((entry) => ({
+              name: entry.name as string,
+              block: entry.block_id,
+              port: entry.port_id,
+              analysis: entry.analysis,
+              quantity: entry.quantity,
+              unit: entry.unit,
+              domain: entry.domain,
+            })),
         },
         dc_op_table: dcOpTable.length > 0 ? dcOpTable : undefined,
       });
@@ -499,6 +531,8 @@ export function createIPCClient({
           quantity: entry.quantity,
           unit: entry.unit,
           domain: entry.domain,
+          block: entry.block_id,
+          port: entry.port_id,
         });
       }
 

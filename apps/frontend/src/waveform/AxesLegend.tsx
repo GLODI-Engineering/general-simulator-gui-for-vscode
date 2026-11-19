@@ -46,7 +46,9 @@ export function AxesLegend({ axesId }: AxesLegendProps) {
     <div className="axes-legend">
       {signals.map((sig) => {
         const key = `${sig.simId}::${sig.signalName}`;
-        const unit = signalCache.get(key)?.unit ?? "";
+        const cached = signalCache.get(key);
+        const unit = cached?.unit ?? "";
+        const measured = cached?.measured === true;
         const age = sig.age ?? 0;
         if (age > 0) {
           // A past run's trace is derived from the current one's — there is
@@ -77,6 +79,16 @@ export function AxesLegend({ axesId }: AxesLegendProps) {
               onChange={(color) => setSignalColor(axesId, sig.simId, sig.signalName, color)}
             />
             <span className="axes-legend__name">{sig.signalName}</span>
+            {/* A capture is not a result. The chart draws it dashed; this says
+                so in words, because a dash on its own is only a style. */}
+            {measured && (
+              <span
+                className="axes-legend__measured"
+                title="Measured: replayed from a file, not computed by the solver"
+              >
+                measured
+              </span>
+            )}
             {unit && <span className="axes-legend__unit">{unit}</span>}
             {/* The gain chip is always rendered once a gain is set, and only
                 on hover otherwise. A scaled trace must never be able to pass
