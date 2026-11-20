@@ -1,9 +1,9 @@
 """Compile a `.gsim_sch` document straight to a `general-simulator` netlist via `gsim-py`.
 
 This is the *only* compile path a `simulate` request should take once a document is fully
-authored with `general-simulator`-only catalogue types (see `packages/blocks/src/blocks/**`
-and `apps/frontend/src/library/simulator-compat.yaml`, which already scope the UI's palette
-that way). It deliberately does not go through `gsim_loader`/`ir1_builder`/`ir2_lowering`/
+authored with `general-simulator`-only catalogue types. The palette is scoped that way by the
+engine's own capability manifest, not by any list kept in this repository. It deliberately does
+not go through `gsim_loader`/`ir1_builder`/`ir2_lowering`/
 `spice_netlist_writer`/`scipy_compiler` — that whole older pipeline targets ngspice/Xyce/SciPy,
 a different taxonomy (`passive.resistor` vs. `resistor`, `source.voltage.dc` vs. `voltage_dc`,
 ...) maintained by hand in `spice_netlist_writer.BLOCK_TO_SPICE`. `gsim-core`'s own Rust compile

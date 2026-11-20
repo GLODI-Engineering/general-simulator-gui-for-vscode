@@ -6,14 +6,14 @@
 > **Depends on:** FE-103 (catalog-driven primitive renderer) — GSF's primitive
 > vocabulary is defined as *exactly* the `Primitive` union in
 > `apps/frontend/src/canvas/nodes/primitive-renderer.ts`, not a new one.
-> **Supersedes nothing:** `docs/specs/symbol-editor-spec.md` (FE-104) still
+> **Supersedes nothing:** the deferred symbol-editor design (FE-104) still
 > governs the future in-canvas drawing UI; this document is the data format
 > and the programmatic (Python) authoring API that UI will eventually target.
 > Building that UI is explicitly out of scope here — see §5.
 
 ## 1. Why a new format, and why it isn't a new runtime store
 
-`symbol-editor-spec.md` §4 already forbids a parallel persistence store for
+the deferred symbol-editor design already forbids a parallel persistence store for
 catalog symbols: the catalog's source of truth stays `metadata.yaml` under
 `packages/blocks/src/blocks/**`, machine-compiled into
 `apps/frontend/src/library/catalog-manifest.json`. GSF does not change that.

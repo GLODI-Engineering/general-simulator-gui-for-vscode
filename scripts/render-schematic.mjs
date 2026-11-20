@@ -9,7 +9,7 @@
  * produce the picture and look at it.
  *
  * Usage:
- *   node scripts/render-schematic.mjs --doc docs/circuit_test/buck_converter/buck_converter.gsim_sch
+ *   node scripts/render-schematic.mjs --doc tests/fixtures/gsim_sch/buck_converter.gsim_sch
  *   node scripts/render-schematic.mjs --doc <file> --out /tmp/buck.png --theme dark --width 1600
  *
  * Flags:

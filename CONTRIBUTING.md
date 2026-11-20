@@ -64,7 +64,6 @@ pnpm install
 pnpm build
 pnpm test
 pnpm typecheck
-node scripts/check-simulator-compat.mjs
 ```
 
 Two invariants in `AGENTS.md` decide most review questions:

@@ -9,7 +9,6 @@ file at catalog-load time.
 
 - **Schema:** [`block-metadata.schema.json`](./block-metadata.schema.json)
 - **Cross-references:**
-  - Frontend usage: [`docs/specs/frontend-spec.md`](../../../../docs/specs/frontend-spec.md) §9
   - Epic that consumes it: `progress.yaml` FE-23
   - Port-kind subschema: [`../model/port-kind.schema.json`](../model/port-kind.schema.json)
 

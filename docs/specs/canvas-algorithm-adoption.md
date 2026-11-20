@@ -53,7 +53,7 @@ its reason codes.
 ## D5 — Symbol editor: deferred to a spec
 
 The in-canvas symbol editor was judged too complex to port now. Instead
-`docs/specs/symbol-editor-spec.md` defines how a future editor must work: Form/Draw
+The deferred symbol-editor design defined how a future editor must work: Form/Draw
 workflow, the FE-103 primitive set, block-metadata output (no localStorage blob),
 and routing any custom SPICE template through the smooth-model gate
 (architecture invariant #3 — piecewise rejected at IR-1 → IR-2).
@@ -70,7 +70,7 @@ and routing any custom SPICE template through the smooth-model gate
 | Wire segment dragging with ortho re-normalisation | FE-101 | `canvas/edges/segment-drag.ts` |
 | Domain wire colours + connection-reject flash | FE-102 | `canvas/edges/wire-color.ts`, `canvas/port-compat.ts` |
 | Catalog-driven primitive symbol renderer | FE-103 | `canvas/nodes/primitive-renderer.ts` |
-| Symbol-editor spec (deferred) | FE-104 | `docs/specs/symbol-editor-spec.md` |
+| Symbol-editor spec (deferred) | FE-104 | removed; see the archive note |
 | V/I probes persisted in `.gsim_sch` | FE-105 | `canvas/probes.ts`, `canvas/CanvasOverlay.tsx` |
 | Keymap parity guard | FE-106 | `canvas/keymap.ts`, `canvas/KeymapProvider.tsx` |
 

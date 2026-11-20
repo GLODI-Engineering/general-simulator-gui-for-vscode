@@ -6,7 +6,7 @@
  */
 
 /**
- * Catalog entry for one functional block. One file per block under packages/blocks/src/blocks/<family>/<block_dir>/metadata.yaml. Shared contract: the frontend reads visual + search fields; the simulator reads behavior + equation_template. See docs/specs/frontend-spec.md §9 and progress.yaml FE-23.
+ * Catalog entry for one functional block. One file per block under packages/blocks/src/blocks/<family>/<block_dir>/metadata.yaml. Shared contract: the frontend reads visual + search fields; the simulator reads behavior + equation_template.
  */
 export type BlockMetadata = {
   [k: string]: unknown;

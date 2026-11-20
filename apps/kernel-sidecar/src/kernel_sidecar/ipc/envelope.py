@@ -1,4 +1,4 @@
-"""JSON message envelope dataclasses matching frontend-spec.md §15.2.
+"""JSON message envelope dataclasses for the webview IPC.
 
 Every IPC message has the shape:
     {id: str, type: str, payload: dict}

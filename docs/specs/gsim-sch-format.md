@@ -1,7 +1,8 @@
 # `.gsim_sch` File Format Specification (v2)
 
 > **Status:** authoritative. This document is the contract.
-> **Supersedes:** `docs/gsim-format.md` (v1, `.gsim`).
+> **Supersedes:** the v1 `.gsim` format, whose reference was removed with the rest of the
+> pre-VS-Code documentation.
 > **Migration:** hard cutover. There is no v1 loader and no migration shim.
 > **Schema:** `packages/schemas/definitions/model/gsim_sch.schema.json`
 > (JSON Schema 2020-12).
@@ -476,7 +477,7 @@ For acausal `physical-*` ports: no direction; both endpoints participate in the 
 
 A `signal` wire and a `physical-electrical` wire cannot connect directly. The connection must pass through a `converter.signal-to-physical-electrical` block (or its inverse). Cross-paradigm wires are rejected:
 
-- At wire-draw time by the canvas (immediate red-X feedback; see frontend-spec §11).
+- At wire-draw time by the canvas (immediate red-X feedback).
 - At load time by the schema (kinds must match).
 - At IR-1 build by the compiler (final defence).
 

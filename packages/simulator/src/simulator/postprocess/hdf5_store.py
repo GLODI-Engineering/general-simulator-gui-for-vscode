@@ -2,8 +2,7 @@
 
 Replaces the pre-HDF5 stopgap (one ``time.npy`` plus one ``.npy`` per signal,
 see ``result_writer.py``'s original docstring) with a single ``data.h5`` file
-per simulation, matching the storage design in
-``docs/specs/simulator-architecture-spec.md`` §7: chunked, gzip-compressed,
+per simulation: chunked, gzip-compressed,
 float32 signal data, with a precomputed min/max-decimated LOD pyramid built
 once at write time so the query-time ``/lod`` endpoint doesn't have to
 rescan a full-resolution array on every request.
@@ -50,7 +49,7 @@ if TYPE_CHECKING:
 _CHUNK_THRESHOLD = 2
 _CHUNK_SIZE = 10_000
 
-# LOD pyramid tuning (mirrors simulator-architecture-spec.md §7's table).
+# LOD pyramid tuning. This table is now the only record of it.
 _LOD_DECIMATION_FACTOR = 100
 _LOD_MAX_LEVELS = 3
 # Below this many source points, building a level isn't worth the storage —

@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "model": {
-    "id": "buck-converter-synchronous-pwm",
-    "name": "Synchronous buck converter (PWM)",
+    "id": "buck-converter-synchronous",
+    "name": "Synchronous buck converter",
     "grid": 10,
     "params": [],
     "blocks": [
@@ -12,10 +12,15 @@
         "paradigm": "physical-network",
         "domain": "physical-electrical",
         "fidelity": "ideal",
-        "position": [40, 240],
+        "position": [
+          40,
+          240
+        ],
         "rotation": 90,
         "mirror": "none",
-        "params": { "V": 12 },
+        "params": {
+          "V": 12
+        },
         "ic": {},
         "label": "V1"
       },
@@ -25,10 +30,17 @@
         "paradigm": "physical-network",
         "domain": "physical-electrical",
         "fidelity": "ideal",
-        "position": [300, 80],
+        "position": [
+          300,
+          80
+        ],
         "rotation": 0,
         "mirror": "none",
-        "params": { "model": "NMOS", "W": 0.000001, "L": 1.8e-7 },
+        "params": {
+          "model": "NMOS",
+          "W": 1e-06,
+          "L": 1.8e-07
+        },
         "ic": {},
         "label": "M1"
       },
@@ -38,10 +50,17 @@
         "paradigm": "physical-network",
         "domain": "physical-electrical",
         "fidelity": "ideal",
-        "position": [300, 280],
+        "position": [
+          300,
+          280
+        ],
         "rotation": 0,
         "mirror": "none",
-        "params": { "model": "NMOS", "W": 0.000001, "L": 1.8e-7 },
+        "params": {
+          "model": "NMOS",
+          "W": 1e-06,
+          "L": 1.8e-07
+        },
         "ic": {},
         "label": "M2"
       },
@@ -51,17 +70,20 @@
         "paradigm": "physical-network",
         "domain": "physical-electrical",
         "fidelity": "ideal",
-        "position": [140, 80],
+        "position": [
+          140,
+          80
+        ],
         "rotation": 90,
         "mirror": "none",
         "params": {
           "V1": 0,
           "V2": 10,
           "TD": 0,
-          "TR": 1e-7,
-          "TF": 1e-7,
-          "PW": 4.2e-5,
-          "PER": 1e-4
+          "TR": 1e-07,
+          "TF": 1e-07,
+          "PW": 4.2e-05,
+          "PER": 0.0001
         },
         "ic": {},
         "label": "V3"
@@ -72,17 +94,20 @@
         "paradigm": "physical-network",
         "domain": "physical-electrical",
         "fidelity": "ideal",
-        "position": [140, 320],
+        "position": [
+          140,
+          320
+        ],
         "rotation": 90,
         "mirror": "none",
         "params": {
           "V1": 0,
           "V2": 10,
-          "TD": 4.3e-5,
-          "TR": 1e-7,
-          "TF": 1e-7,
-          "PW": 5.6e-5,
-          "PER": 1e-4
+          "TD": 4.3e-05,
+          "TR": 1e-07,
+          "TF": 1e-07,
+          "PW": 5.6e-05,
+          "PER": 0.0001
         },
         "ic": {},
         "label": "V2"
@@ -93,10 +118,15 @@
         "paradigm": "physical-network",
         "domain": "physical-electrical",
         "fidelity": "ideal",
-        "position": [480, 180],
+        "position": [
+          480,
+          180
+        ],
         "rotation": 0,
         "mirror": "none",
-        "params": { "L": 0.001 },
+        "params": {
+          "L": 0.001
+        },
         "ic": {},
         "label": "L1"
       },
@@ -106,10 +136,15 @@
         "paradigm": "physical-network",
         "domain": "physical-electrical",
         "fidelity": "ideal",
-        "position": [640, 140],
+        "position": [
+          640,
+          140
+        ],
         "rotation": 90,
         "mirror": "none",
-        "params": { "C": 0.0001 },
+        "params": {
+          "C": 0.0001
+        },
         "ic": {},
         "label": "C1"
       },
@@ -119,10 +154,15 @@
         "paradigm": "physical-network",
         "domain": "physical-electrical",
         "fidelity": "ideal",
-        "position": [780, 140],
+        "position": [
+          780,
+          140
+        ],
         "rotation": 90,
         "mirror": "none",
-        "params": { "R": 5 },
+        "params": {
+          "R": 5
+        },
         "ic": {},
         "label": "R1"
       }
@@ -130,108 +170,284 @@
     "wires": [
       {
         "id": "w-v1-m1d",
-        "from": { "block": "v1", "port": "p" },
-        "to": { "block": "m1", "port": "d" },
-        "waypoints": [[220, 240], [220, 80]],
+        "from": {
+          "block": "v1",
+          "port": "p"
+        },
+        "to": {
+          "block": "m1",
+          "port": "d"
+        },
+        "waypoints": [
+          [
+            220,
+            240
+          ],
+          [
+            220,
+            80
+          ]
+        ],
         "pinned": false,
         "net": null,
         "kind": "physical-electrical"
       },
       {
         "id": "w-m1s-m2d",
-        "from": { "block": "m1", "port": "s" },
-        "to": { "block": "m2", "port": "d" },
-        "waypoints": [[300, 180]],
+        "from": {
+          "block": "m1",
+          "port": "s"
+        },
+        "to": {
+          "block": "m2",
+          "port": "d"
+        },
+        "waypoints": [
+          [
+            300,
+            180
+          ]
+        ],
         "pinned": false,
         "net": null,
         "kind": "physical-electrical"
       },
       {
         "id": "w-m2d-l1p",
-        "from": { "block": "m2", "port": "d" },
-        "to": { "block": "l1", "port": "p" },
-        "waypoints": [[400, 220], [480, 180]],
+        "from": {
+          "block": "m2",
+          "port": "d"
+        },
+        "to": {
+          "block": "l1",
+          "port": "p"
+        },
+        "waypoints": [
+          [
+            400,
+            220
+          ],
+          [
+            480,
+            180
+          ]
+        ],
         "pinned": false,
         "net": null,
         "kind": "physical-electrical"
       },
       {
         "id": "w-v3p-m1g",
-        "from": { "block": "v3", "port": "p" },
-        "to": { "block": "m1", "port": "g" },
-        "waypoints": [[200, 80]],
+        "from": {
+          "block": "v3",
+          "port": "p"
+        },
+        "to": {
+          "block": "m1",
+          "port": "g"
+        },
+        "waypoints": [
+          [
+            200,
+            80
+          ]
+        ],
         "pinned": false,
         "net": null,
         "kind": "physical-electrical"
       },
       {
         "id": "w-v2p-m2g",
-        "from": { "block": "v2", "port": "p" },
-        "to": { "block": "m2", "port": "g" },
-        "waypoints": [[200, 320]],
+        "from": {
+          "block": "v2",
+          "port": "p"
+        },
+        "to": {
+          "block": "m2",
+          "port": "g"
+        },
+        "waypoints": [
+          [
+            200,
+            320
+          ]
+        ],
         "pinned": false,
         "net": null,
         "kind": "physical-electrical"
       },
       {
         "id": "w-l1n-c1p",
-        "from": { "block": "l1", "port": "n" },
-        "to": { "block": "c1", "port": "p" },
-        "waypoints": [[600, 180], [600, 140]],
+        "from": {
+          "block": "l1",
+          "port": "n"
+        },
+        "to": {
+          "block": "c1",
+          "port": "p"
+        },
+        "waypoints": [
+          [
+            600,
+            180
+          ],
+          [
+            600,
+            140
+          ]
+        ],
         "pinned": false,
         "net": null,
         "kind": "physical-electrical"
       },
       {
         "id": "w-l1n-r1p",
-        "from": { "block": "l1", "port": "n" },
-        "to": { "block": "r1", "port": "p" },
-        "waypoints": [[600, 180], [700, 140]],
+        "from": {
+          "block": "l1",
+          "port": "n"
+        },
+        "to": {
+          "block": "r1",
+          "port": "p"
+        },
+        "waypoints": [
+          [
+            600,
+            180
+          ],
+          [
+            700,
+            140
+          ]
+        ],
         "pinned": false,
         "net": null,
         "kind": "physical-electrical"
       },
       {
         "id": "w-v1n-m2s",
-        "from": { "block": "v1", "port": "n" },
-        "to": { "block": "m2", "port": "s" },
-        "waypoints": [[40, 380], [400, 380]],
+        "from": {
+          "block": "v1",
+          "port": "n"
+        },
+        "to": {
+          "block": "m2",
+          "port": "s"
+        },
+        "waypoints": [
+          [
+            40,
+            380
+          ],
+          [
+            400,
+            380
+          ]
+        ],
         "pinned": false,
         "net": null,
         "kind": "physical-electrical"
       },
       {
         "id": "w-v3n-v1n",
-        "from": { "block": "v3", "port": "n" },
-        "to": { "block": "v1", "port": "n" },
-        "waypoints": [[140, 400], [40, 380]],
+        "from": {
+          "block": "v3",
+          "port": "n"
+        },
+        "to": {
+          "block": "v1",
+          "port": "n"
+        },
+        "waypoints": [
+          [
+            140,
+            400
+          ],
+          [
+            40,
+            380
+          ]
+        ],
         "pinned": false,
         "net": null,
         "kind": "physical-electrical"
       },
       {
         "id": "w-v2n-m2s",
-        "from": { "block": "v2", "port": "n" },
-        "to": { "block": "m2", "port": "s" },
-        "waypoints": [[140, 420], [400, 380]],
+        "from": {
+          "block": "v2",
+          "port": "n"
+        },
+        "to": {
+          "block": "m2",
+          "port": "s"
+        },
+        "waypoints": [
+          [
+            140,
+            420
+          ],
+          [
+            400,
+            380
+          ]
+        ],
         "pinned": false,
         "net": null,
         "kind": "physical-electrical"
       },
       {
         "id": "w-c1n-m2s",
-        "from": { "block": "c1", "port": "n" },
-        "to": { "block": "m2", "port": "s" },
-        "waypoints": [[660, 140], [660, 380], [400, 380]],
+        "from": {
+          "block": "c1",
+          "port": "n"
+        },
+        "to": {
+          "block": "m2",
+          "port": "s"
+        },
+        "waypoints": [
+          [
+            660,
+            140
+          ],
+          [
+            660,
+            380
+          ],
+          [
+            400,
+            380
+          ]
+        ],
         "pinned": false,
         "net": null,
         "kind": "physical-electrical"
       },
       {
         "id": "w-r1n-m2s",
-        "from": { "block": "r1", "port": "n" },
-        "to": { "block": "m2", "port": "s" },
-        "waypoints": [[800, 140], [800, 380], [400, 380]],
+        "from": {
+          "block": "r1",
+          "port": "n"
+        },
+        "to": {
+          "block": "m2",
+          "port": "s"
+        },
+        "waypoints": [
+          [
+            800,
+            140
+          ],
+          [
+            800,
+            380
+          ],
+          [
+            400,
+            380
+          ]
+        ],
         "pinned": false,
         "net": null,
         "kind": "physical-electrical"
@@ -245,7 +461,7 @@
           "id": "buck_pwm",
           "type": "TRAN",
           "t_end": 0.01,
-          "t_step": 1e-5,
+          "t_step": 1e-05,
           "uic": true
         }
       ],

@@ -12,7 +12,7 @@
 >
 > **Cross-references:**
 > - Why convention-aligned: project memory `project-keyboard-map`, and
->   [`docs/specs/block-diagram-gui-analysis.md`](block-diagram-gui-analysis.md) §6.
+>   the OSS block-diagram usability research this map was drawn from.
 
 ## Conventions
 
@@ -109,7 +109,7 @@ Breadcrumb is a **visible UI element**, always shown when hierarchy depth
 | Find string | `Ctrl+F` | global | convention |
 
 > **Quick Insert is non-negotiable.** This is the single biggest UX win
-> per [`block-diagram-gui-analysis.md`](block-diagram-gui-analysis.md) §6.
+> per the OSS block-diagram usability research this map was drawn from.
 
 ## 7. Connecting elements
 
