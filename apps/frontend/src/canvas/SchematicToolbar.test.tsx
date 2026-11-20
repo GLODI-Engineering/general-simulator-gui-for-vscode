@@ -9,9 +9,10 @@
 
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { loadCatalogFromManifest } from "../library/catalog";
 import { useGraphStore, useUiStore } from "../store";
 import { useLibraryStore } from "../store/library";
-import { SchematicToolbar } from "./SchematicToolbar";
+import { SPICE_COMPONENTS, SchematicToolbar } from "./SchematicToolbar";
 
 afterEach(cleanup);
 
@@ -19,6 +20,28 @@ beforeEach(() => {
   useGraphStore.setState(useGraphStore.getInitialState());
   useUiStore.setState(useUiStore.getInitialState());
   useLibraryStore.setState(useLibraryStore.getInitialState());
+});
+
+describe("the one-click insert buttons", () => {
+  /**
+   * A dead insert button looks exactly like a live one.
+   *
+   * `ComponentBtn` resolves its `type` against the catalogue; with no entry it renders the bare
+   * letter and pushes a "not found in catalog" toast when clicked. Two of these -- `Q` and `M`,
+   * the BJT and the MOSFET -- became dead when gsim-core#59 pruned the engine's library to the
+   * components it can compile, and every test in this repository still passed. They were found
+   * by opening the app and looking at the toolbar, which is not a thing to rely on twice.
+   */
+  it("every insert button resolves in the catalogue", () => {
+    const catalog = loadCatalogFromManifest();
+    const dead = SPICE_COMPONENTS.filter((c) => catalog[c.type] === undefined).map(
+      (c) => `${c.label} (${c.title}) -> ${c.type}`,
+    );
+    expect(
+      dead,
+      "toolbar buttons that would insert a component the catalogue does not have",
+    ).toEqual([]);
+  });
 });
 
 describe("SchematicToolbar", () => {

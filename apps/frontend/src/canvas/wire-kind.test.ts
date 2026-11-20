@@ -27,14 +27,20 @@ function blockOf(type: string, params: Block["params"] = {}): Block {
 
 describe("a wire's kind", () => {
   /**
-   * The two components where the block's domain and the port's kind genuinely differ. They are
-   * asserted as a pair with the block domain spelled out, because the bug was not a wrong
-   * lookup -- it was reading a field that is right about something else.
+   * The components where the block's domain and the port's kind genuinely differ. They are
+   * asserted with the block domain spelled out, because the bug was not a wrong lookup -- it
+   * was reading a field that is right about something else.
+   *
+   * A third case was `routing.bus_creator.bus`, the one `signal-bus` port in the library.
+   * gsim-core#59 removed it with everything the engine could not compile, and no `signal-bus`
+   * port remains, so that wire kind is no longer reachable from a shipped component. It is
+   * covered against hand-built metadata at the end of this file instead, because the module
+   * still supports the kind and dropping the case would have left it untested.
+   * gsim-core#61 decides whether a bus comes back as a universal component.
    */
   it.each([
     { type: "converter.sig2phys", port: "out", blockDomain: "mixed", kind: "physical-electrical" },
     { type: "converter.sig2phys", port: "in", blockDomain: "mixed", kind: "signal" },
-    { type: "routing.bus_creator", port: "bus", blockDomain: "signal", kind: "signal-bus" },
   ])(
     "on $type.$port is $kind, not the block's $blockDomain",
     ({ type, port, blockDomain, kind }) => {
@@ -84,5 +90,40 @@ describe("a wire's kind", () => {
     expect(wireKindFromMetadata(converter, metadata, "out")).toBe(
       wireKindOf(converter, "out", CATALOG),
     );
+  });
+
+  /**
+   * `signal-bus`, against hand-built metadata rather than the library.
+   *
+   * The deliberate exception to this file's rule of asserting against the shipped catalogue.
+   * `routing.bus_creator` was the only component with a `signal-bus` port and gsim-core#59
+   * removed it, so there is nothing left to read — but the kind is still one
+   * `PortKindDomain` admits and this module still has to return it rather than fall back to the
+   * block's domain, which is the bug the whole file exists for. Deleting the case would have
+   * silently dropped the coverage with the component.
+   */
+  it("returns a port's signal-bus kind rather than the block's signal domain", () => {
+    const metadata = {
+      name: "test.bus_source",
+      label: "Bus source",
+      domain: "signal",
+      ports: {
+        inputs: [],
+        outputs: [{ id: "bus", label: "bus", kind: { domain: "signal-bus" } }],
+      },
+    } as unknown as BlockMetadata;
+    const block = {
+      id: "b_bus",
+      type: "test.bus_source",
+      paradigm: "signal-flow",
+      domain: "signal",
+      fidelity: "ideal",
+      position: [0, 0],
+      rotation: 0,
+      mirror: "none",
+      params: {},
+      ic: {},
+    } as unknown as Block;
+    expect(wireKindFromMetadata(block, metadata, "bus")).toBe("signal-bus");
   });
 });

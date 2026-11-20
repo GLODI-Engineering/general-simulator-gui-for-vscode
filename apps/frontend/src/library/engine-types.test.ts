@@ -17,7 +17,8 @@ describe("the catalogue comes from the engine", () => {
   it("says what each component compiles to, without a map kept here", () => {
     expect(engineTypeOf("passive.resistor")).toBe("passive.resistor");
     expect(engineTypeOf("source.voltage.pulse")).toBe("source.voltage.pulse");
-    // A component with no model in the engine compiles to nothing, and says so.
+    // A name the engine has no model for is not in the catalogue at all since gsim-core#59,
+    // so it compiles to nothing for the same reason `no.such.component` does.
     expect(engineTypeOf("physical-electrical.semiconductor.mosfet_n")).toBeUndefined();
     expect(engineTypeOf("no.such.component")).toBeUndefined();
   });
@@ -38,15 +39,20 @@ describe("the catalogue comes from the engine", () => {
     }
   });
 
-  it("marks what it cannot compile rather than omitting it", () => {
+  it("serves only what it can compile", () => {
+    // Reversed by gsim-core#59. This used to assert the opposite -- that the catalogue carries
+    // every component the library knows and *marks* the ones nothing can compile, so a palette
+    // could show them and say honestly "this engine has no model for it". 164 of 240 components
+    // were in that state, which made the mark the normal case rather than the exception, and
+    // the library now holds exactly what the engine emits. There is no component left to mark.
+    //
+    // So a palette entry is a promise, and a name the engine never had is *absent* rather than
+    // present-and-false.
     const components = engineComponents();
-    const compilable = components.filter((c) => c.compilable);
-    expect(compilable.length).toBeGreaterThanOrEqual(60);
-    // The rest are still served. A palette that dropped them would tell the user those
-    // components do not exist, when what is true is that this engine has no model for them.
-    expect(components.length).toBeGreaterThan(compilable.length);
+    expect(components.length).toBeGreaterThanOrEqual(60);
+    expect(components.filter((c) => !c.compilable).map((c) => c.id)).toEqual([]);
+    expect(componentFor("physical-electrical.semiconductor.mosfet_n")).toBeUndefined();
     expect(isCompilable("physical-electrical.semiconductor.mosfet_n")).toBe(false);
-    expect(componentFor("physical-electrical.semiconductor.mosfet_n")).toBeDefined();
   });
 });
 

@@ -15,18 +15,23 @@ import { loadCatalogFromManifest } from "./catalog";
 describe("blockDomainOf", () => {
   const catalog = loadCatalogFromManifest();
 
-  /** name -> what the first-port guess used to produce */
+  /**
+   * name -> what the first-port guess used to produce.
+   *
+   * Ten components straddled two domains and the guess was wrong about every one. Eight of them
+   * were components no engine could compile and gsim-core#59 removed them: the two subsystems,
+   * the photodiode, the three translational sensors and the two bus blocks. The two that remain
+   * are the converters, which is fitting — a converter exists *to* straddle two domains, so it
+   * is the case a first-port heuristic can never get right, and two of them still demonstrate
+   * that `blockDomainOf` reads the declaration.
+   *
+   * The eight are not lost: they are in the issue and in that repository's git history. Adding
+   * a synthetic stand-in for each would test this module against a hand-written guess about the
+   * library rather than against the library, which is the mistake the module was fixing.
+   */
   const PREVIOUSLY_WRONG: Array<[string, string]> = [
     ["converter.phys2sig", "signal"],
     ["converter.sig2phys", "physical-electrical"],
-    ["hierarchy.subsystem.enabled", "signal"],
-    ["hierarchy.subsystem.triggered", "signal"],
-    ["physical_electrical.semiconductor.photodiode", "physical-signal"],
-    ["physical_translational.sensor.force", "physical-signal"],
-    ["physical_translational.sensor.position", "physical-signal"],
-    ["physical_translational.sensor.velocity", "physical-signal"],
-    ["routing.bus_assignment", "signal-bus"],
-    ["routing.bus_creator", "signal-bus"],
   ];
 
   it.each(PREVIOUSLY_WRONG)("%s keeps its declared domain, not the first port's", (name, guess) => {
@@ -67,10 +72,27 @@ describe("blockDomainOf", () => {
     // `behavior.domain` says `mechanical` for both, and the translation that
     // used to bridge the two vocabularies answered `physical-translational`
     // every time. Nothing reads `behavior.domain` for this any more.
-    const rotational = Object.values(catalog).filter((m) => m.domain === "physical-rotational");
-    expect(rotational.length).toBeGreaterThan(0);
-    for (const metadata of rotational) {
-      expect(blockDomainOf(metadata)).toBe("physical-rotational");
-    }
+    //
+    // Asserted against a hand-built block rather than the shipped library, which is a
+    // deliberate exception to the rule the comment above states. gsim-core#59 removed every
+    // rotational component, so the library carries no case to read: its block domains are now
+    // `signal`, `physical-electrical` and `mixed` only. The alternative was to delete the test,
+    // and the bug it pins is in this module rather than in the library -- a `mechanical`
+    // behaviour domain must not become a translational block domain, whoever ships the block.
+    const rotational = {
+      name: "x.rot",
+      label: "X",
+      domain: "physical-rotational",
+      behavior: { domain: "mechanical" },
+      ports: {
+        inputs: [{ id: "a", label: "A", kind: { domain: "physical-rotational" } }],
+        outputs: [],
+      },
+    } as unknown as BlockMetadata;
+    expect(blockDomainOf(rotational)).toBe("physical-rotational");
+
+    // And nothing in the shipped library contradicts the declaration either, which is what the
+    // sweep above covers for the domains that are left.
+    expect(Object.values(catalog).some((m) => m.domain === "physical-rotational")).toBe(false);
   });
 });

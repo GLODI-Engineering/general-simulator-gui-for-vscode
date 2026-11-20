@@ -23,14 +23,23 @@ describe("FE-64: routing_palette", () => {
     expect(routing.length).toBeGreaterThan(0);
   });
 
-  it("Routing sub-group includes goto/from from FE-57 plus routing blocks", () => {
+  it("Routing sub-group is the goto/from pair from FE-57", () => {
     const manifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf-8")) as Array<{
-      metadata: { name?: string };
+      metadata: { name?: string; paradigm?: string };
     }>;
     const names = new Set(manifest.map((e) => e.metadata?.name).filter(Boolean));
     expect(names.has("routing.goto")).toBe(true);
     expect(names.has("routing.from")).toBe(true);
-    expect(names.has("routing.mux")).toBe(true);
-    expect(names.has("routing.demux")).toBe(true);
+
+    // `routing.mux` and `routing.demux` were asserted here too. They were part of Simulink's
+    // Signal Routing palette transcribed into the library, and no `TypeSpec` emitted either, so
+    // gsim-core#59 removed them -- a mux *computes* an output from a select input, which is a
+    // block an engine has to implement rather than connectivity the pipeline can resolve away.
+    // What is left under this paradigm is exactly the universal pair, which every target must
+    // support by construction (gsim-core#54).
+    const routing = manifest
+      .filter((e) => e.metadata?.paradigm === "routing")
+      .map((e) => e.metadata?.name);
+    expect([...new Set(routing)].sort()).toEqual(["routing.from", "routing.goto"]);
   });
 });

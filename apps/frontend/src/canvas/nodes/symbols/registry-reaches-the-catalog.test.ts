@@ -20,6 +20,30 @@ import { SYMBOL_DRAWINGS } from "./registry";
 
 function catalogTypes(): string[] {
   const types = new Set<string>();
+
+  // Every name a placed block can carry, which is what `loadCatalog` keys its entries by: the
+  // component's `name`, its legacy `type` spelling, and its aliases.
+  //
+  // `name` used to be missing here, and the walk below collected `type` values only. That was
+  // survivable while 143 of 240 components carried a legacy `type` -- enough of the namespace
+  // came along for free that the gap never showed. gsim-core#59 pruned the library to the 76
+  // components the engine compiles, of which only 30 carry a `type`, and sixteen drawings for
+  // components that are still perfectly present reported themselves unreachable. The artwork
+  // had not moved; this function was looking in one of the three places a block's type string
+  // comes from.
+  for (const entry of catalog as Array<{ metadata: Record<string, unknown> }>) {
+    for (const field of ["name", "type"]) {
+      const value = entry.metadata[field];
+      if (typeof value === "string" && value.includes(".")) types.add(value);
+    }
+    const aliases = entry.metadata.aliases;
+    if (Array.isArray(aliases)) {
+      for (const alias of aliases) {
+        if (typeof alias === "string" && alias.includes(".")) types.add(alias);
+      }
+    }
+  }
+
   const walk = (node: unknown): void => {
     if (Array.isArray(node)) {
       for (const item of node) walk(item);
@@ -56,50 +80,93 @@ function candidates(key: string): string[] {
  * "unreachable" stays a decision someone made rather than something that
  * happened — delete an entry when its type lands in the catalog.
  *
- * `passive.switch.ideal` is the uncomfortable one: `library/simulator-compat.ts`
- * names it as the one device the engine can actually simulate, and the catalog
- * has no such type — it offers `physical-electrical.switch.{generic,
- * voltage_controlled,current_controlled}` instead. That is the catalog-versus-
- * engine vocabulary split already recorded as known-broken, not something this
- * test can fix by adding a key.
+ * Rewritten for gsim-core#59, which pruned the engine's library from 240 components to the 76
+ * it can compile. Almost everything below is now artwork for a component that no engine models,
+ * which is a different and more honest kind of gap than before: the drawing is good, and there
+ * is nothing to simulate behind it. It stays in `registry.ts` so that the day a target can
+ * emit the device, the symbol is already drawn.
+ *
+ * Eleven entries left this list in the same change, because they became reachable. Six were
+ * simply wrong by then — `passive.switch.ideal`, `passive.inductor.coupled`,
+ * `converter.sig2phys`/`phys2sig` and `routing.goto`/`routing.from` are all catalogue types
+ * now, the last two because gsim-core#54 made the editor's own universal components part of
+ * the library. The other five — `math.fn1`/`fn2`/`fn3` and `source.dependent.cccs`/`ccvs` —
+ * carried a note that their artwork is drawn for a bigger box than the catalogue gives them,
+ * which is a rendering question and not a reachability one; it is now
+ * omni-schematics#115 so the concern outlives this list.
  */
 const NO_CATALOG_TYPE = new Set([
-  // No catalog type at all — artwork drawn ahead of the component.
+  // Semiconductors. No `TypeSpec` emits one, so the engine has no model to run behind the
+  // symbol; `semi.*` was removed from the library wholesale.
+  "semi.mosfet.n",
+  "semi.mosfet.p",
+  "semi.mosfet.vdmos",
+  "semi.bjt.npn",
+  "semi.bjt.pnp",
+  "semi.diode.zener",
+  "semi.jfet.n",
+  "semi.jfet.p",
+  "physical_electrical.semiconductor.mosfet_n",
+  "physical_electrical.semiconductor.mosfet_p",
+  "physical_electrical.semiconductor.bjt_npn",
+  "physical_electrical.semiconductor.bjt_pnp",
+  "physical_electrical.semiconductor.zener",
+  "physical_electrical.semiconductor.led",
+  "physical_electrical.semiconductor.thyristor",
+
+  // Other electrical devices the engine has no card for.
+  "passive.memristor",
+  "physical_electrical.passive.memristor",
+  "physical_electrical.sensor.voltage",
+  "physical_electrical.sensor.current",
+  "physical_electrical.tline.lossless",
+  "physical_electrical.tline.lossy",
+  "physical_electrical.opamp.ideal",
+  "physical_electrical.opamp.finite_gain",
+  "physical_electrical.opamp.band_limited",
+  "physical_electrical.opamp.comparator",
+  "physical_electrical.source.controlled_voltage",
+  "physical_electrical.source.controlled_current",
+
+  // Cross-domain converters. The engine models one conversion, signal <-> physical-electrical,
+  // and the library keeps it as `converter.sig2phys`/`phys2sig` — which are reachable and no
+  // longer on this list. These are the long legacy spellings of that same pair, plus the seven
+  // thermal/rotational/translational pairs, whose domains have no components left to connect.
+  "converter.signal_to_physical_signal",
+  "converter.physical_signal_to_signal",
+  "converter.electrical_to_rotational",
+  "converter.rotational_to_electrical",
+  "converter.electrical_to_thermal",
+  "converter.electrical_to_translational",
+  "converter.translational_to_electrical",
+  "converter.rotational_to_translational",
+  "converter.translational_to_rotational",
+
+  // Signal-flow blocks with no `kind=` card: a rate limiter, a zero-order hold, abs, sign and
+  // min/max. Both catalogue spellings of each, since a saved sheet may carry either.
+  "control.rate_limiter",
+  "control.zero_order_hold",
+  "signal-flow.discontinuity.rate_limiter",
+  "signal-flow.discrete.zero_order_hold",
+  "signal-flow.math.abs",
+  "signal-flow.math.sign",
+  "signal-flow.math.minmax",
+  "signal_flow.math.abs",
+  "signal_flow.math.sign",
+  "signal_flow.math.min_max",
+
+  // A subsystem's boundary pins. The library has never modelled these as blocks; gsim-core#61
+  // is what decides whether they are the editor's own vocabulary -- a universal component like
+  // a Goto, resolved by flattening -- in which case they become catalogue types and leave this
+  // list the way `routing.goto` just did.
+  "hierarchy.inport",
+  "hierarchy.outport",
+
+  // Artwork drawn ahead of the component: no catalogue type has ever existed for these, and
+  // none was removed by the prune.
   "control.deadband",
   "control.quantizer",
   "logic.comparator",
-  "semi.jfet.n",
-  "semi.jfet.p",
-  "passive.inductor.coupled",
-  // Legacy aliases for a converter the catalog spells
-  // `converter.{signal_to_physical_signal,physical_signal_to_signal}` — those
-  // keys exist and are reachable; these two are the old names, kept rather than
-  // deleted because nothing proves no saved sheet still carries them.
-  "converter.sig2phys",
-  "converter.phys2sig",
-  // `signal-flow.math.math_function` is an 80x40 box and this artwork was drawn
-  // for the 60x40 `math.fn*`: mapped onto it, the box sits left of centre and the
-  // output lead floats ~26px clear of the pin. Rendered, looked at, reverted.
-  // The drawing needs to follow its box before this can be keyed to the catalog.
-  "math.fn1",
-  "math.fn2",
-  "math.fn3",
-  // Same story as math_function, one box size out: the catalog gives cccs/ccvs an
-  // 80x60 box while this artwork draws its terminals for a 60x40 one. Keyed to the
-  // catalog, the diamond rendered with its terminal stubs floating clear of the
-  // pins. Rendered, looked at, reverted. (The controlled voltage/current sources
-  // are *not* here: they are already reachable under
-  // `physical-electrical.source.controlled_{voltage,current}`, which is a
-  // different catalog type from the 80x40 `...source.voltage.controlled_*`.)
-  "source.dependent.cccs",
-  "source.dependent.ccvs",
-  // Sheet furniture the catalog does not model as blocks.
-  "hierarchy.inport",
-  "hierarchy.outport",
-  "routing.goto",
-  "routing.from",
-  // See the note above.
-  "passive.switch.ideal",
 ]);
 
 describe("every drawing is reachable from a catalog type", () => {
