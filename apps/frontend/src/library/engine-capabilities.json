@@ -82,6 +82,30 @@
       "params": []
     },
     {
+      "type": "hierarchy.inport",
+      "emits": {
+        "card": "nothing"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "hierarchy.outport",
+      "emits": {
+        "card": "nothing"
+      },
+      "node_ports": [],
+      "output_ports": [],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
       "type": "passive.resistor",
       "emits": {
         "card": "element",
@@ -2546,6 +2570,8 @@
     "sinks.scope",
     "signal-flow.sink.scope",
     "routing.goto",
-    "routing.from"
+    "routing.from",
+    "hierarchy.inport",
+    "hierarchy.outport"
   ]
 }

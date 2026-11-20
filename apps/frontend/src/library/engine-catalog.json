@@ -4173,6 +4173,236 @@
     }
   },
   {
+    "filePath": "gsim-core/crates/gsim-core/data/component-library.json#hierarchy.inport",
+    "metadata": {
+      "name": "hierarchy.inport",
+      "label": "Inport",
+      "category": "subsystems",
+      "description": "Boundary inport — placed inside a subsystem body to define an input port on the parent-side block (spec §11). The `id` param is the port id; `kind` selects the signal domain.",
+      "aliases": [
+        "inport",
+        "boundary inport"
+      ],
+      "tags": [
+        "hierarchy",
+        "subsystem",
+        "inport",
+        "boundary"
+      ],
+      "paradigm": "signal-flow",
+      "domain": "signal",
+      "behavior": {
+        "causality": "source",
+        "domain": "signal",
+        "equation_template": "hierarchy.inport",
+        "state_count": 0
+      },
+      "fidelities": [
+        {
+          "doc": "Boundary inport — placed inside a subsystem body to define an input port on the parent-side block (spec §11). The `id` param is the port id; `kind` selects the signal domain.",
+          "params": [
+            {
+              "default": "in1",
+              "doc": "Port identifier on the parent-side subsystem block.",
+              "id": "id",
+              "type": "string"
+            },
+            {
+              "choices": [
+                "signal",
+                "physical-electrical",
+                "physical-thermal",
+                "physical-translational",
+                "physical-rotational"
+              ],
+              "default": "signal",
+              "doc": "Port kind domain exposed to the parent.",
+              "id": "kind",
+              "type": "enum"
+            }
+          ],
+          "ports": [
+            {
+              "direction": "out",
+              "id": "out",
+              "kind": "signal",
+              "label": "",
+              "offset": 20,
+              "side": "right"
+            }
+          ],
+          "tier": "ideal"
+        }
+      ],
+      "params": [
+        {
+          "default": "in1",
+          "description": "Port identifier on the parent-side subsystem block.",
+          "label": "Port id",
+          "name": "id",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "signal",
+            "physical-electrical",
+            "physical-thermal",
+            "physical-translational",
+            "physical-rotational"
+          ],
+          "default": "signal",
+          "description": "Port kind domain exposed to the parent.",
+          "label": "Signal kind",
+          "name": "kind",
+          "type": "enum"
+        }
+      ],
+      "ports": {
+        "inputs": [],
+        "outputs": [
+          {
+            "domain_from": "kind",
+            "id": "out",
+            "kind": {
+              "dims": "scalar",
+              "domain": "signal"
+            },
+            "label": "",
+            "offset": 20,
+            "side": "right"
+          }
+        ]
+      },
+      "symbol": {
+        "bbox": [
+          200,
+          40
+        ],
+        "shape": "rect",
+        "text": "In"
+      },
+      "version": 1,
+      "engineId": "hierarchy.inport",
+      "engineType": "hierarchy.inport",
+      "compilable": true
+    }
+  },
+  {
+    "filePath": "gsim-core/crates/gsim-core/data/component-library.json#hierarchy.outport",
+    "metadata": {
+      "name": "hierarchy.outport",
+      "label": "Outport",
+      "category": "subsystems",
+      "description": "Boundary outport — placed inside a subsystem body to define an output port on the parent-side block (spec §11). The `id` param is the port id; `kind` selects the signal domain.",
+      "aliases": [
+        "outport",
+        "boundary outport"
+      ],
+      "tags": [
+        "hierarchy",
+        "subsystem",
+        "outport",
+        "boundary"
+      ],
+      "paradigm": "signal-flow",
+      "domain": "signal",
+      "behavior": {
+        "causality": "sink",
+        "domain": "signal",
+        "equation_template": "hierarchy.outport",
+        "state_count": 0
+      },
+      "fidelities": [
+        {
+          "doc": "Boundary outport — placed inside a subsystem body to define an output port on the parent-side block (spec §11). The `id` param is the port id; `kind` selects the signal domain.",
+          "params": [
+            {
+              "default": "out1",
+              "doc": "Port identifier on the parent-side subsystem block.",
+              "id": "id",
+              "type": "string"
+            },
+            {
+              "choices": [
+                "signal",
+                "physical-electrical",
+                "physical-thermal",
+                "physical-translational",
+                "physical-rotational"
+              ],
+              "default": "signal",
+              "doc": "Port kind domain exposed to the parent.",
+              "id": "kind",
+              "type": "enum"
+            }
+          ],
+          "ports": [
+            {
+              "direction": "in",
+              "id": "in",
+              "kind": "signal",
+              "label": "",
+              "offset": 20,
+              "side": "left"
+            }
+          ],
+          "tier": "ideal"
+        }
+      ],
+      "params": [
+        {
+          "default": "out1",
+          "description": "Port identifier on the parent-side subsystem block.",
+          "label": "Port id",
+          "name": "id",
+          "type": "string"
+        },
+        {
+          "choices": [
+            "signal",
+            "physical-electrical",
+            "physical-thermal",
+            "physical-translational",
+            "physical-rotational"
+          ],
+          "default": "signal",
+          "description": "Port kind domain exposed to the parent.",
+          "label": "Signal kind",
+          "name": "kind",
+          "type": "enum"
+        }
+      ],
+      "ports": {
+        "inputs": [
+          {
+            "domain_from": "kind",
+            "id": "in",
+            "kind": {
+              "dims": "scalar",
+              "domain": "signal"
+            },
+            "label": "",
+            "offset": 20,
+            "side": "left"
+          }
+        ],
+        "outputs": []
+      },
+      "symbol": {
+        "bbox": [
+          200,
+          40
+        ],
+        "shape": "rect",
+        "text": "Out"
+      },
+      "version": 1,
+      "engineId": "hierarchy.outport",
+      "engineType": "hierarchy.outport",
+      "compilable": true
+    }
+  },
+  {
     "filePath": "gsim-core/crates/gsim-core/data/component-library.json#logic.flip_flop",
     "metadata": {
       "name": "logic.flip_flop",

@@ -155,12 +155,11 @@ const NO_CATALOG_TYPE = new Set([
   "signal_flow.math.sign",
   "signal_flow.math.min_max",
 
-  // A subsystem's boundary pins. The library has never modelled these as blocks; gsim-core#61
-  // is what decides whether they are the editor's own vocabulary -- a universal component like
-  // a Goto, resolved by flattening -- in which case they become catalogue types and leave this
-  // list the way `routing.goto` just did.
-  "hierarchy.inport",
-  "hierarchy.outport",
+  // `hierarchy.inport` / `hierarchy.outport` stood here, expecting gsim-core#61 to decide
+  // whether they are the editor's own vocabulary. They left the list the way `routing.goto`
+  // did, in gsim-core#63: they are `structural` types with catalogue entries, because
+  // `group-blocks.ts` builds one per crossing wire out of catalogue metadata and silently
+  // did nothing without it. This test is what noticed, on the commit that restored them.
 
   // Artwork drawn ahead of the component: no catalogue type has ever existed for these, and
   // none was removed by the prune.
