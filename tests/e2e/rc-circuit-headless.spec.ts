@@ -124,11 +124,7 @@ test("RC circuit headless frontend flow with screenshots (schematic + TRAN/AC/DC
   // The schematic screenshot above is produced whatever the kernel does -- it is the drawing.
   // The three waveform captures need a solver, so they are attempted and the test says plainly
   // when the harness could not supply one, rather than writing three pictures of an empty plot.
-  const captured = await runAndCapture(
-    appPage,
-    "TRAN",
-    "test-results/rc-circuit/tran.png",
-  );
+  const captured = await runAndCapture(appPage, "TRAN", "test-results/rc-circuit/tran.png");
   test.skip(!captured, "stub kernel: no samples, so the waveform screenshots cannot be made");
   await runAndCapture(appPage, "AC", "test-results/rc-circuit/ac.png");
   await runAndCapture(appPage, "DC", "test-results/rc-circuit/dc.png");
