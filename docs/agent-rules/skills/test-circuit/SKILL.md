@@ -679,7 +679,7 @@ matplotlib.use("Agg")   # non-interactive backend; required in CI / headless
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-OUT = Path("docs/circuit_test/<circuit_name>")
+OUT = Path("test-results/<circuit_name>")
 OUT.mkdir(parents=True, exist_ok=True)
 
 # TRAN plot
@@ -765,4 +765,4 @@ Do not import matplotlib in test files — plots are for documentation only.
 | `tests/backend/conftest.py` | `e2e_server` fixture |
 | `tests/backend/e2e/test_rc_circuit_per_solver.py` | Reference e2e test |
 | `packages/schemas/definitions/model/gsim.schema.json` | .gsim JSON schema |
-| `docs/circuit_test/rc_circuit/` | RC circuit test report + plots |
+| `test-results/<circuit_name>/` | report + plots, untracked |

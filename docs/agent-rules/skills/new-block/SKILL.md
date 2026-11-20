@@ -184,6 +184,6 @@ follow-up commits as the synthesis engine matures.
 ## Cross-references
 
 - Architectural invariants: `docs/agent-rules/architecture-invariants.md`
-- Block library catalog: `docs/specs/simulator_concept.md` §"Planned Block Library"
+- Block library catalog: `gsim-core`'s component library (`crates/gsim-core/src/compile/library.rs`)
 - IR-2 schema: `packages/schemas/definitions/ir2/`
-- Synthesis matrix: `docs/specs/simulator_concept.md` §"Synthesis Targets — Full Matrix"
+- Synthesis targets: `packages/synthesis/`

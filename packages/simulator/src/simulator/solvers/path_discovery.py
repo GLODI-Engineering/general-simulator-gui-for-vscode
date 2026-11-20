@@ -1,6 +1,7 @@
 """External-solver path discovery (BE-22).
 
-Implements the resolution chain from backend-spec.md §11:
+The resolution chain, in order (this docstring is now its only record --
+`backend-spec.md` described the pre-engine architecture and was removed):
   1. Explicit option
   2. App settings file
   3. Environment variable GENSIM_<NAME>_PATH

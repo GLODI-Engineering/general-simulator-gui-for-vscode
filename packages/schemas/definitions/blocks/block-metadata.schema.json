@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://general-simulator.dev/schemas/blocks/block-metadata.schema.json",
   "title": "BlockMetadata",
-  "description": "Catalog entry for one functional block. One file per block under packages/blocks/src/blocks/<family>/<block_dir>/metadata.yaml. Shared contract: the frontend reads visual + search fields; the simulator reads behavior + equation_template. See docs/specs/frontend-spec.md \u00a79 and progress.yaml FE-23.",
+  "description": "Catalog entry for one functional block. One file per block under packages/blocks/src/blocks/<family>/<block_dir>/metadata.yaml. Shared contract: the frontend reads visual + search fields; the simulator reads behavior + equation_template.",
   "type": "object",
   "additionalProperties": false,
   "required": ["label", "paradigm", "domain", "fidelities"],

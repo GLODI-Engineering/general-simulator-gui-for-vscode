@@ -15,7 +15,7 @@ const SIDES: PortSide[] = ["left", "right", "top", "bottom"];
 
 // FE-174/FE-175: the Symbol Editor tab. Canvas on the left (drawing
 // surface, FE-174), metadata + ports panel on the right (the "Form step"
-// from docs/specs/symbol-editor-spec.md §2.1, now inline instead of the
+// of the deferred symbol-editor design, now inline instead of the
 // separate NewSymbolDialog modal it replaces — one screen instead of a
 // dialog-then-nothing workflow). Save/Cancel live in the tab's toolbar
 // (SymbolEditorToolbar.tsx), dispatched through App.tsx's handleAction

@@ -866,9 +866,12 @@ Biome warnings (lint suggestions) do not fail CI — only errors do.
 ### Reading order (first time on this repo)
 
 1. `AGENTS.md` — invariants + skill index
-2. `docs/agent-rules/orientation.md` — which doc answers which question
-3. The relevant progress file (`progress.frontend.yaml` or `progress.backend.yaml`)
-4. The spec for your epic's `area:` field
+2. `docs/agent-rules/architecture-invariants.md` — the invariants with their
+   reasoning and the script that checks each one
+3. `docs/articles/simulating-an-llc-converter.md` — the product as it actually
+   behaves, end to end
+4. `gsim-core`'s own documentation for anything about what a schematic *is* or
+   what it compiles to: this repository draws and sends, it does not decide
 
 ### Recurring workflows
 

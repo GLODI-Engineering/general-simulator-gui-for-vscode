@@ -17,7 +17,7 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
 SCHEMA_PATH = REPO_ROOT / "packages" / "schemas" / "definitions" / "model" / "gsim_sch.schema.json"
 
 FIXTURES = [
-    REPO_ROOT / "docs" / "circuit_test" / "buck_converter" / "buck_converter.gsim_sch",
+    REPO_ROOT / "tests" / "fixtures" / "gsim_sch" / "buck_converter.gsim_sch",
     REPO_ROOT / "tests" / "manual-tests" / "simulation" / "rec_circuit.gsim_sch",
 ]
 
@@ -42,7 +42,7 @@ def test_real_fixture_round_trips(fixture: pathlib.Path) -> None:
 
 
 def test_jsonschema_validates_our_dump() -> None:
-    # Built directly rather than from a docs/circuit_test fixture: the real
+    # Built directly rather than from a tests/fixtures/gsim_sch fixture: the real
     # buck_converter.gsim_sch fixture's TRAN analysis uses `n_samples`
     # instead of the schema-required `t_step` (pre-existing drift between
     # that fixture and gsim_sch.schema.json, unrelated to gsim_model).

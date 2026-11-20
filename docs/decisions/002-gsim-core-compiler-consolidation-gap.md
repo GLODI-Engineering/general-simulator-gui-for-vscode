@@ -72,8 +72,8 @@ documents that exist in `general-simulator-gui`. Every one **loads** and **none 
 
 | Fixture | `load_document` | `compile(model, "general-simulator")` |
 |---|---|---|
-| `docs/circuit_test/buck_converter/buck_converter.gsim_sch` | OK | `unknown-type: block 'vin' has type 'physical_electrical.source.voltage.dc'` |
-| `docs/circuit_test/buck_converter/buck_converter_synchronous.gsim_sch` | OK | `unknown-type: block 'm1' has type 'physical-electrical.semiconductor.mosfet_n'` |
+| `tests/fixtures/gsim_sch/buck_converter.gsim_sch` | OK | `unknown-type: block 'vin' has type 'physical_electrical.source.voltage.dc'` |
+| `tests/fixtures/gsim_sch/buck_converter_synchronous.gsim_sch` | OK | `unknown-type: block 'm1' has type 'physical-electrical.semiconductor.mosfet_n'` |
 | `tests/fixtures/gsim_sch/comprehensive.gsim_sch` | OK | `unknown-type: block 'const1' has type 'signal.constant'` |
 
 Each fails on its *first* block. `REGISTRY` currently holds 55 type names; the GUI's live pipeline

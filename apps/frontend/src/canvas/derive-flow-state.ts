@@ -29,7 +29,7 @@ const UNDESIGNATED = /ground|junction|probe|annotation|\bnode\b/;
  * Reference designators for every physical part that has no authored label.
  *
  * A document written by hand or emitted by a script usually has no `label` on
- * its blocks — the buck converter in `docs/circuit_test/` has none — and the
+ * its blocks — the buck converter in `tests/fixtures/gsim_sch/` has none — and the
  * renderer then drew each part with its value and nothing else. A schematic
  * where you cannot say "the current through L1" is not finished, and every
  * CAD tool assigns the designator at placement time rather than asking.

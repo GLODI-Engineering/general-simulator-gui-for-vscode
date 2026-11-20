@@ -125,9 +125,9 @@ test.skip("RC live frontend run with kernel-sidecar (TRAN/AC/DC)", async ({ page
   await page.waitForSelector("main", { timeout: 15000 });
 
   await buildRc(page);
-  await page.screenshot({ path: "docs/circuit_test/rc_circuit/frontend_live_schematic.png" });
+  await page.screenshot({ path: "test-results/rc-circuit/live-schematic.png" });
 
-  await runAndSnap(page, "TRAN", "docs/circuit_test/rc_circuit/frontend_live_tran.png");
-  await runAndSnap(page, "AC", "docs/circuit_test/rc_circuit/frontend_live_ac.png");
-  await runAndSnap(page, "DC", "docs/circuit_test/rc_circuit/frontend_live_dc.png");
+  await runAndSnap(page, "TRAN", "test-results/rc-circuit/live-tran.png");
+  await runAndSnap(page, "AC", "test-results/rc-circuit/live-ac.png");
+  await runAndSnap(page, "DC", "test-results/rc-circuit/live-dc.png");
 });

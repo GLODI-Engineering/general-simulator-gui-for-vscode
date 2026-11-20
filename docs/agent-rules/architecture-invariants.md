@@ -21,8 +21,7 @@ Trilinos modern stack: **Tpetra** (distributed LA) + **Kokkos** (kernels) +
 **Why.** The Epetra stack was archived and removed from Trilinos at the end
 of 2025. Writing new code against Epetra means writing code against a
 removed API — it will not compile against current Trilinos, and Xyce's own
-migration is moving the same direction. Source:
-`docs/specs/adaptive_simulation_backend_idea.md` §"Custom PWL Engine".
+migration is moving the same direction.
 
 **Check.** `scripts/check-invariants.sh` greps for `#include <Epetra…>`,
 `#include "Epetra…"`, `from epetra`, `import epetra` (case-insensitive)
@@ -53,9 +52,7 @@ bar, toasts).
 **Why.** OpenModelica's OMEdit couples its canvas tightly to the compiler;
 the result is the editor freezing for 5–6 seconds on every keystroke for
 medium-sized models. The single biggest UX failure mode of every
-open-source block-diagram alternative is this synchronous coupling. Source:
-`docs/specs/block-diagram-gui-analysis.md` §3, `docs/specs/simulator-architecture-spec.md`
-§4 "Interaction latency requirement" and §10 design principle 1.
+open-source block-diagram alternative is this synchronous coupling.
 
 **Check.** `scripts/check-invariants.sh` greps the canvas folder for
 suspicious patterns: `await.*compile`, `await.*solverCall`, `await.*runSim`,
@@ -80,8 +77,7 @@ discrete-event) system. The symbolic processor cannot perform index
 reduction across discontinuities, and the solver must detect events and
 re-initialize at every region switch. This is a qualitatively harder
 numerical problem and the source of most convergence failures in legacy
-SPICE engines. Source: `docs/specs/pipeline_IR_design.md` §4.1
-"Piecewise model rejection".
+SPICE engines.
 
 **Check.** `scripts/check-invariants.sh` greps component templates for
 keywords like `piecewise`, `region_switch`, `if region_`, `case region`,
@@ -92,7 +88,7 @@ or reject it explicitly at the lowering stage with an actionable error. Do
 not silently let a piecewise model into IR-2.
 
 Note: this applies to **library templates**, not to user blocks. A user
-who supplies an external function (Section 8 of `pipeline_IR_design.md`)
+who supplies an external function through the ExternalFunctionBlock contract
 may have stateful or non-smooth internals — those are handled via the
 ExternalFunctionBlock contract, not by library templates.
 

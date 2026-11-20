@@ -118,7 +118,7 @@ test("RC circuit headless frontend flow with screenshots (schematic + TRAN/AC/DC
   await buildRc(appPage);
 
   await appPage.screenshot({
-    path: "docs/circuit_test/rc_circuit/frontend_schematic.png",
+    path: "test-results/rc-circuit/schematic.png",
   });
 
   // The schematic screenshot above is produced whatever the kernel does -- it is the drawing.
@@ -127,9 +127,9 @@ test("RC circuit headless frontend flow with screenshots (schematic + TRAN/AC/DC
   const captured = await runAndCapture(
     appPage,
     "TRAN",
-    "docs/circuit_test/rc_circuit/frontend_tran.png",
+    "test-results/rc-circuit/tran.png",
   );
   test.skip(!captured, "stub kernel: no samples, so the waveform screenshots cannot be made");
-  await runAndCapture(appPage, "AC", "docs/circuit_test/rc_circuit/frontend_ac.png");
-  await runAndCapture(appPage, "DC", "docs/circuit_test/rc_circuit/frontend_dc.png");
+  await runAndCapture(appPage, "AC", "test-results/rc-circuit/ac.png");
+  await runAndCapture(appPage, "DC", "test-results/rc-circuit/dc.png");
 });
