@@ -113,7 +113,10 @@ test("manual-style RC video: drag components, wire, run", async ({ appPage }) =>
   await dragBlock(sheet, "source.voltage.dc", { x: 220, y: 170 });
   await dragBlock(sheet, "passive.resistor", { x: 500, y: 170 });
   await dragBlock(sheet, "passive.capacitor", { x: 780, y: 170 });
-  await dragBlock(sheet, "signal_flow.source.ground", { x: 780, y: 350 });
+  // `signal_flow.source.ground` was an alias of `routing.ground` until the
+  // library prune (gsim-core#59) removed the legacy signal-flow spelling.
+  // `routing.ground` is the name the catalogue answers to.
+  await dragBlock(sheet, "routing.ground", { x: 780, y: 350 });
 
   const blockTypes = await appPage
     .locator("[data-block-type]")

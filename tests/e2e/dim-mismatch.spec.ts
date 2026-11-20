@@ -23,8 +23,20 @@ test.describe("FE-65: signal dimension overlay", () => {
       win.__gensim_wire?.("signal-flow.math.gain", "signal-flow.sink.scope");
     });
 
-    await appPage.getByRole("button", { name: "View options" }).click();
-    await appPage.getByRole("button", { name: /signal dimensions/i }).click();
+    // The overlay has no menu. This spec waited on `View options` → `Signal
+    // dimensions`, a menu that was never built — so it spent 60 s timing out,
+    // twice with the CI retry, and said nothing about FE-65 either way. The
+    // affordance the application actually has is the Ctrl+Alt+D shortcut in
+    // `shell/ShellDialogs.tsx`, which is what `dim-annotation.test.tsx` drives.
+    //
+    // With the real toggle the spec now fails in 12 s on the thing that is
+    // genuinely wrong: `canvas-dim-overlay` never renders, because
+    // `CanvasOverlay` returns null when the propagation pass yields nothing,
+    // and it yields nothing because neither `source.const` nor `control.gain`
+    // has a port signature. `dim-propagate.ts`'s `BUILTIN_PORT_SIGS` is keyed
+    // by `signal-flow.*` names that no placed block carries. See
+    // gsim-core#64 and the omni issue that tracks this spec.
+    await appPage.keyboard.press("Control+Alt+KeyD");
 
     await expect(appPage.getByTestId("canvas-dim-overlay")).toBeVisible();
     await expect(appPage.getByText("[3]").first()).toBeVisible();
