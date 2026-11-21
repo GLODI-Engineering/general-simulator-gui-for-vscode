@@ -345,6 +345,7 @@ export interface BlockMetadata {
     | "sources"
     | "dependent"
     | "semiconductor"
+    | "ideal"
     | "tline"
     | "sinks"
     | "subsystems"

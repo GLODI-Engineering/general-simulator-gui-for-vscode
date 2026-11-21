@@ -370,6 +370,7 @@ export interface BlockMetadata {
     | "sources"
     | "dependent"
     | "semiconductor"
+    | "ideal"
     | "tline"
     | "sinks"
     | "subsystems"
@@ -674,6 +675,7 @@ class BlockMetadata(BaseModel):
         "sources",
         "dependent",
         "semiconductor",
+        "ideal",
         "tline",
         "sinks",
         "subsystems",

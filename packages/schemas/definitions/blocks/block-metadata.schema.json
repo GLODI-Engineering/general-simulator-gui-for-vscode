@@ -50,6 +50,7 @@
         "source",
         "dependent",
         "semiconductor",
+        "ideal",
         "tline",
         "sinks",
         "subsystems",
