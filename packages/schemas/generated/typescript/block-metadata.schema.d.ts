@@ -24,6 +24,18 @@ export type BlockMetadata = {
    */
   type?: string;
   /**
+   * The engine's own name for this component — its id in gsim-core's component library. The catalogue is generated from that library, so this is the component's identity on the side that compiles it.
+   */
+  engineId?: string;
+  /**
+   * The compile-registry type this component becomes, or null when the engine has no model for it. Declared by the engine, not inferred from the name: leaf-name matching pairs an ideal switch with an ideal op-amp.
+   */
+  engineType?: string | null;
+  /**
+   * Whether the engine can compile this component. Derived by the engine from its own registry rather than stored, so it cannot disagree with what a compile actually does. False components are shown and marked, not hidden: the engine having no model yet is a different statement from the component not existing.
+   */
+  compilable?: boolean;
+  /**
    * Block metadata schema version. v1 is the only valid value today; bump only when adding required fields.
    */
   version?: 1;
@@ -39,6 +51,7 @@ export type BlockMetadata = {
     | "source"
     | "dependent"
     | "semiconductor"
+    | "ideal"
     | "tline"
     | "sinks"
     | "subsystems"
@@ -62,7 +75,7 @@ export type BlockMetadata = {
    */
   paradigm: "signal-flow" | "physical-network" | "converter" | "hierarchy" | "routing" | "annotation";
   /**
-   * Primary v2 port domain for this block family.
+   * The block's own connection domain. Authoritative: the canvas takes wire colour, port symbols and the causal/acausal split from this, not from a port or from `behavior.domain`.
    */
   domain:
     | "signal"
@@ -76,11 +89,7 @@ export type BlockMetadata = {
     | "mixed"
     | "reserved.physical-magnetic"
     | "reserved.physical-hydraulic"
-    | "reserved.physical-fluid"
-    | "electrical"
-    | "thermal"
-    | "mechanical"
-    | "event";
+    | "reserved.physical-fluid";
   /**
    * Per-fidelity port and parameter contract used by the fidelity-swap UI and .gsim_sch v2 block insertion.
    *
@@ -107,6 +116,16 @@ export type BlockMetadata = {
     variadic_inputs?: {
       /**
        * Name of the param that controls input count. The param must be of type string, vector, or integer.
+       */
+      count_from: string;
+      template: Port;
+    };
+    /**
+     * Optional: output ports whose count is determined by a parameter (e.g. a script block's output_names vector). The frontend instantiates one port per element of the controlling param, exactly as for variadic_inputs.
+     */
+    variadic_outputs?: {
+      /**
+       * Name of the param that controls output count. The param must be of type string, vector, or integer.
        */
       count_from: string;
       template: Port;
@@ -154,6 +173,9 @@ export type BlockMetadata = {
     [k: string]: string;
   };
 };
+/**
+ * A connection domain. One vocabulary: the `physical-*` spellings are the only ones. The short forms `electrical`, `thermal`, `mechanical` and `event` were accepted here as well, so the same domain had two legal names and `mechanical` had no single right translation -- it collapsed rotational and translational into one. No component used them; they are no longer legal.
+ */
 export type PortKindDomain =
   | "signal"
   | "signal-bus"
@@ -166,11 +188,7 @@ export type PortKindDomain =
   | "mixed"
   | "reserved.physical-magnetic"
   | "reserved.physical-hydraulic"
-  | "reserved.physical-fluid"
-  | "electrical"
-  | "thermal"
-  | "mechanical"
-  | "event";
+  | "reserved.physical-fluid";
 export type FidelityParam = {
   [k: string]: unknown;
 } & {
@@ -274,4 +292,8 @@ export interface Port {
    * Y coordinate in the symbol SVG viewBox space.
    */
   svg_y?: number;
+  /**
+   * Name of a parameter that selects this port's kind domain at runtime, overriding `kind.domain`. For a port whose paradigm is chosen by the user rather than fixed by the component -- a subsystem boundary port, which may carry a signal or any physical domain. Without this the declared `kind.domain` is a lie for every value but one: `hierarchy.inport` declared `signal` while its `kind` param offered five domains, so a physical boundary port drew a signal marker.
+   */
+  domain_from?: string;
 }

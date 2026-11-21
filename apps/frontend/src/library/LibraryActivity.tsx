@@ -7,7 +7,11 @@ import { insertCatalogBlock } from "./insert";
 import { searchCatalog } from "./search";
 import { supportsBlock } from "./simulator-compat";
 
-const CATEGORY_ORDER = [
+// Every category the shipped catalogue uses has to be in here, because the tree below is
+// rendered by mapping this array -- a category that is missing renders in no section at all,
+// while staying searchable and drawable, which is as close to invisible as a bug gets.
+// `a-category-needs-a-section.test.ts` is what holds the two in step; see #120.
+export const CATEGORY_ORDER = [
   "signal",
   "control",
   "power",
@@ -15,6 +19,10 @@ const CATEGORY_ORDER = [
   "sources",
   "dependent",
   "semiconductor",
+  // general-simulator's piecewise-linear ideal devices: a group rather than a leaf, so an
+  // ideal diode can never read as a parameter variant of a SPICE `semi.diode`
+  // (gsim-core decision 0001, as amended by GLODI-Engineering/gsim-core#60).
+  "ideal",
   "reference",
   "tline",
   "sinks",
@@ -30,6 +38,7 @@ const CATEGORY_LABELS: Record<(typeof CATEGORY_ORDER)[number], string> = {
   sources: "Sources",
   dependent: "Dependent Sources",
   semiconductor: "Semiconductor",
+  ideal: "Ideal Devices",
   reference: "Reference",
   tline: "Transmission Lines",
   sinks: "Sinks",
