@@ -121,7 +121,18 @@ describe("FE-23: block catalog loader cross-field rules", () => {
 });
 
 // ---------------------------------------------------------------------------
-// FE-47: all 23 source/dependent block names present in catalog manifest
+// FE-47: source/dependent block names present in catalog manifest
+//
+// These three suites (FE-47/48/49) pinned one thing: the migration to an
+// engine-owned catalogue did not quietly lose a block. That migration is done.
+// gsim-core#59 has since removed, deliberately, every component the engine
+// cannot compile -- so the lists below are no longer "what must be there", they
+// are "what is there, and the prune did not touch it by accident".
+//
+// Seven of FE-47's 23 went: `source.voltage.{am,noise,random,rf_port}`,
+// `source.current.am`, `source.behavioral` and `source.ideal_delay`. No
+// `TypeSpec` emitted any of them. The 16 that remain are the ones a netlist can
+// actually carry, and they are still worth pinning.
 // ---------------------------------------------------------------------------
 
 const FE47_SOURCE_NAMES = [
@@ -131,27 +142,20 @@ const FE47_SOURCE_NAMES = [
   "source.voltage.exp",
   "source.voltage.pwl",
   "source.voltage.sffm",
-  "source.voltage.am",
-  "source.voltage.noise",
-  "source.voltage.random",
-  "source.voltage.rf_port",
   "source.current.dc",
   "source.current.pulse",
   "source.current.sin",
   "source.current.exp",
   "source.current.pwl",
   "source.current.sffm",
-  "source.current.am",
   "source.dependent.vcvs",
   "source.dependent.vccs",
   "source.dependent.cccs",
   "source.dependent.ccvs",
-  "source.behavioral",
-  "source.ideal_delay",
 ];
 
 describe("FE-47: source/dependent block names in catalog manifest", () => {
-  it("the engine's catalogue contains all 23 FE-47 block names", () => {
+  it("the engine's catalogue contains the 16 FE-47 block names that survived the prune", () => {
     const manifestPath = resolve(__dirname, "./engine-catalog.json");
     const manifest = JSON.parse(readFileSync(manifestPath, "utf-8")) as Array<{
       metadata: { name: string };
@@ -164,59 +168,20 @@ describe("FE-47: source/dependent block names in catalog manifest", () => {
 });
 
 // ---------------------------------------------------------------------------
-// FE-48: all 10 semiconductor block names present in catalog manifest
+// FE-48 (semiconductors) and FE-49 (transmission lines) stood here, each
+// asserting that the catalogue carried all of its ticket's block names.
+//
+// Their subject is gone. gsim-core#59 removed `semi.*` and `tline.*` from the
+// engine's library in full -- 15 components, none of which any `TypeSpec`
+// emitted, so none of which could ever be simulated. Asserting their presence
+// now would be asserting the opposite of the contract in that repository's
+// `docs/decisions/0007`: a palette entry is a promise that the engine can
+// compile it.
+//
+// The artwork for them is still drawn and still in `symbols/registry.ts`, held
+// there by `registry-reaches-the-catalog.test.ts`'s allowlist with the reason,
+// so the symbols are ready if a SPICE target is ever decided on.
 // ---------------------------------------------------------------------------
-
-const FE48_SEMI_NAMES = [
-  "semi.diode",
-  "semi.diode.zener",
-  "semi.bjt.npn",
-  "semi.bjt.pnp",
-  "semi.jfet.n",
-  "semi.jfet.p",
-  "semi.mesfet.n",
-  "semi.mosfet.n",
-  "semi.mosfet.p",
-  "semi.mosfet.vdmos",
-];
-
-describe("FE-48: semiconductor block names in catalog manifest", () => {
-  it("the engine's catalogue contains all 10 FE-48 block names", () => {
-    const manifestPath = resolve(__dirname, "./engine-catalog.json");
-    const manifest = JSON.parse(readFileSync(manifestPath, "utf-8")) as Array<{
-      metadata: { name: string };
-    }>;
-    const names = new Set(manifest.map((e) => e.metadata.name));
-    for (const expected of FE48_SEMI_NAMES) {
-      expect(names, `Missing FE-48 block: ${expected}`).toContain(expected);
-    }
-  });
-});
-
-// ---------------------------------------------------------------------------
-// FE-49: all 5 transmission-line block names present in catalog manifest
-// ---------------------------------------------------------------------------
-
-const FE49_TLINE_NAMES = [
-  "tline.lossless",
-  "tline.lossy",
-  "tline.urc",
-  "tline.lumped",
-  "tline.linear_device",
-];
-
-describe("FE-49: tline block names in catalog manifest", () => {
-  it("the engine's catalogue contains all 5 FE-49 block names", () => {
-    const manifestPath = resolve(__dirname, "./engine-catalog.json");
-    const manifest = JSON.parse(readFileSync(manifestPath, "utf-8")) as Array<{
-      metadata: { name: string };
-    }>;
-    const names = new Set(manifest.map((e) => e.metadata.name));
-    for (const expected of FE49_TLINE_NAMES) {
-      expect(names, `Missing FE-49 block: ${expected}`).toContain(expected);
-    }
-  });
-});
 
 // ---------------------------------------------------------------------------
 // FE-170: build-catalog-manifest.ts round-trips GSF symbol.primitives intact

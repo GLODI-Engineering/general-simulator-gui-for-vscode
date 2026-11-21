@@ -123,13 +123,25 @@ function tip(description: string, actionId: string): string {
 
 // ── Component preview button (BlockSymbol on white background) ────────────────
 
-const SPICE_COMPONENTS = [
+/**
+ * The one-click insert buttons, by the catalogue spelling each resolves under.
+ *
+ * `ComponentBtn` looks each one up in the catalogue and, finding nothing, renders a bare letter
+ * and pushes a "not found in catalog" toast on click. So an entry here that the catalogue does
+ * not carry is a dead button that looks like a live one, and nothing said so: `Q` (BJT NPN) and
+ * `M` (MOSFET N-ch) became exactly that when gsim-core#59 pruned the engine's library to what
+ * it can compile, and the whole test suite stayed green. They were found by opening the app and
+ * looking at the toolbar.
+ *
+ * `every insert button resolves in the catalogue` in this file's test is the guard now. Keep
+ * this list and that test together: a button belongs here only once something can simulate
+ * what it inserts.
+ */
+export const SPICE_COMPONENTS = [
   { label: "R", title: "Resistor", type: "physical-electrical.passive.resistor" },
   { label: "C", title: "Capacitor", type: "physical-electrical.passive.capacitor" },
   { label: "L", title: "Inductor", type: "physical-electrical.passive.inductor" },
   { label: "D", title: "Diode", type: "physical-electrical.semiconductor.diode" },
-  { label: "Q", title: "BJT NPN", type: "physical-electrical.semiconductor.bjt_npn" },
-  { label: "M", title: "MOSFET N-ch", type: "physical-electrical.semiconductor.mosfet_n" },
   { label: "V", title: "Voltage Source", type: "physical-electrical.source.voltage_dc" },
   { label: "I", title: "Current Source", type: "physical-electrical.source.current_dc" },
 ] as const;

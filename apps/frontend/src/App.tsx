@@ -1112,6 +1112,37 @@ export default function App() {
         graph.addBlock(createBlockFromMetadata(metadata));
       });
     };
+    /**
+     * The canonical type a requested name resolves to.
+     *
+     * `__gensim_insertBlock` looks a name up in `catalog`, which `loadCatalog`
+     * keys by every component's `name`, its `type` and each of its aliases, and
+     * then builds the block from `metadata.name`. So inserting
+     * `signal-flow.source.constant` puts a block of type `source.const` on the
+     * sheet, and the hooks that *find* a block by type could never see what
+     * their own sibling had just inserted.
+     *
+     * The comment below used to say so and improved the error message instead
+     * of fixing it. That held while most legacy spellings were separate
+     * catalogue entries; the library prune (gsim-core#59) turned 69 of them
+     * into aliases of a canonical component, and FE-65's dim-mismatch spec
+     * started failing with `Block not found for type:
+     * signal-flow.source.constant` — the block was right there, under the name
+     * the catalogue resolves that alias to.
+     */
+    const canonicalBlockType = (type: string) =>
+      useLibraryStore.getState().catalog[type]?.name ?? type;
+
+    /** Exact match first, so a caller naming a canonical type is unaffected. */
+    const findBlockByType = (type: string) => {
+      const blocks = useGraphStore.getState().document.model.blocks;
+      const wanted = canonicalBlockType(type);
+      return (
+        blocks.find((block) => block.type === type) ??
+        blocks.find((block) => canonicalBlockType(block.type) === wanted)
+      );
+    };
+
     const addWireBetweenBlocks = (
       fromType: string,
       fromPort: string,
@@ -1119,13 +1150,12 @@ export default function App() {
       toPort: string,
     ) => {
       const graph = useGraphStore.getState();
-      const fromBlock = graph.document.model.blocks.find((block) => block.type === fromType);
-      const toBlock = graph.document.model.blocks.find((block) => block.type === toType);
+      const fromBlock = findBlockByType(fromType);
+      const toBlock = findBlockByType(toType);
       if (!fromBlock || !toBlock) {
-        // Say which end is missing and what is actually on the sheet. This hook matches
-        // `block.type` exactly, while Quick Insert resolves aliases, so a block placed under
-        // an alias is present but unreachable here -- and "Cannot wire A to B" reads as if
-        // the connection were refused rather than the block never found.
+        // Say which end is missing and what is actually on the sheet, since
+        // "Cannot wire A to B" reads as if the connection were refused rather
+        // than the block never found.
         const missing = [!fromBlock ? fromType : null, !toBlock ? toType : null].filter(Boolean);
         const present = graph.document.model.blocks.map((block) => block.type).join(", ");
         throw new Error(
@@ -1174,9 +1204,13 @@ export default function App() {
       value: string | number | boolean,
     ) => {
       const graph = useGraphStore.getState();
-      const block = graph.document.model.blocks.find((candidate) => candidate.type === type);
+      const block = findBlockByType(type);
       if (!block) {
-        throw new Error(`Block not found for type: ${type}`);
+        const present = graph.document.model.blocks.map((candidate) => candidate.type).join(", ");
+        throw new Error(
+          `Block not found for type: ${type} (resolved to ${canonicalBlockType(type)}). ` +
+            `Present: ${present || "nothing"}.`,
+        );
       }
       graph.transact(`set ${key}`, () => {
         graph.setParam(block.id, key, value);

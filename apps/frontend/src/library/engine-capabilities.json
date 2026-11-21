@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "generator": "gsim-core 0.5.0",
   "types": [
     {
@@ -77,6 +77,30 @@
       "output_ports": [
         "out"
       ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "hierarchy.inport",
+      "emits": {
+        "card": "nothing"
+      },
+      "node_ports": [],
+      "output_ports": [
+        "out"
+      ],
+      "dynamic_outputs": false,
+      "vector_output": false,
+      "params": []
+    },
+    {
+      "type": "hierarchy.outport",
+      "emits": {
+        "card": "nothing"
+      },
+      "node_ports": [],
+      "output_ports": [],
       "dynamic_outputs": false,
       "vector_output": false,
       "params": []
@@ -756,7 +780,7 @@
       ]
     },
     {
-      "type": "physical_electrical.passive.transformer",
+      "type": "passive.transformer",
       "emits": {
         "card": "composite",
         "letters": [
@@ -778,7 +802,7 @@
       ]
     },
     {
-      "type": "physical_electrical.passive.mutual_inductor",
+      "type": "passive.mutual_inductor",
       "emits": {
         "card": "composite",
         "letters": [
@@ -2538,5 +2562,16 @@
       "error",
       "fatal"
     ]
-  }
+  },
+  "universal_types": [
+    "routing.ground",
+    "spice-subckt.boundary",
+    "routing.junction",
+    "sinks.scope",
+    "signal-flow.sink.scope",
+    "routing.goto",
+    "routing.from",
+    "hierarchy.inport",
+    "hierarchy.outport"
+  ]
 }

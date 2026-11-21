@@ -78,12 +78,17 @@ describe("catalog port domains", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("covers a meaningful share of the catalog", () => {
+  it("covers the whole catalog", () => {
     // Guards the guard: if the manifest ever loads empty, the assertions
-    // above pass vacuously.
+    // above pass vacuously. The bound was `> 200` against a 240-component
+    // library; gsim-core#59 pruned it to the 76 the engine compiles, and every
+    // one of those declares at least one port -- a component with no port is
+    // not something the engine can emit a card for. So this is now an equality
+    // rather than a share, which is the stronger statement anyway.
     const withPorts = entries.filter(
       (e) => (e.metadata.ports?.inputs?.length ?? 0) + (e.metadata.ports?.outputs?.length ?? 0) > 0,
     );
-    expect(withPorts.length).toBeGreaterThan(200);
+    expect(entries.length).toBeGreaterThan(0);
+    expect(withPorts.length).toBe(entries.length);
   });
 });
